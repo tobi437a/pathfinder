@@ -130,6 +130,23 @@ Vehicle cube() {
 	return v;
 }
 
+double shipAcceleration(Player const& p) {
+	if (p.input) {
+		if (p.velocity <= p.grav(velocity_thresholds[p.speed]))
+			return p.small ? 1643.5872 : 1397.0491;
+		return p.small ? 1314.86976 : 1117.64328;
+	}
+	if (p.velocity >= p.grav(velocity_thresholds[p.speed]))
+		return p.small ? -1577.85408 : -1341.1719;
+	return p.small ? -1051.8984 : -894.11464;
+}
+
+double ufoAcceleration(Player const& p) {
+	if (p.velocity > p.grav(velocity_thresholds[p.speed]))
+		return p.small ? -1969.92 : -1671.84;
+	return p.small ? -1308.96 : -1114.56;
+}
+
 Vehicle ship() {
 	Vehicle v;
 	v.type = VehicleType::Ship;
@@ -161,8 +178,10 @@ Vehicle ship() {
 
 
 		if (p.gravTop(p) > p.gravCeiling()) {
+			// GD zeroes velocity when it hits the ceiling and adds gravity before the next move
 			if (p.velocity > 0) {
 				p.setVelocity(0, false);
+				p.velocity = roundVel(shipAcceleration(p) * p.dt, p.upsideDown);
 			}
 			p.pos.y = p.grav(p.gravCeiling()) - p.grav(p.size.y / 2);
 		}
@@ -174,17 +193,7 @@ Vehicle ship() {
 		if (p.grounded)
 			p.setVelocity(0, !p.input);
 
-		if (p.input) {
-			if (p.velocity <= p.grav(velocity_thresholds[p.speed]))
-				p.acceleration = p.small ? 1643.5872 : 1397.0491;
-			else
-				p.acceleration = p.small ? 1314.86976 : 1117.64328;
-		} else {
-			if (p.velocity >= p.grav(velocity_thresholds[p.speed]))
-				p.acceleration = p.small ? -1577.85408 : -1341.1719;
-			else
-				p.acceleration = p.small ? -1051.8984 : -894.11464;
-		}
+		p.acceleration = shipAcceleration(p);
 
 		if (p.grav(p.pos.y) >= p.gravCeiling()) {
 			p.setVelocity(0, false);
@@ -304,8 +313,10 @@ Vehicle ufo() {
 		p.input = p.button;
 
 		if (p.gravTop(p) > p.gravCeiling()) {
+			// GD zeroes velocity when it hits the ceiling and adds gravity before the next move
 			if (p.velocity > 0) {
 				p.setVelocity(0, false);
+				p.velocity = roundVel(ufoAcceleration(p) * p.dt, p.upsideDown);
 			}
 			p.pos.y = p.grav(p.gravCeiling()) - p.grav(p.size.y / 2);
 		}
@@ -319,11 +330,7 @@ Vehicle ufo() {
 			p.buffer = false;
 			p.grounded = false;
 		} else {
-			if (p.velocity > p.grav(velocity_thresholds[p.speed])) {
-				p.acceleration = p.small ? -1969.92 : -1671.84;
-			} else {
-				p.acceleration = p.small ? -1308.96 : -1114.56;
-			}
+			p.acceleration = ufoAcceleration(p);
 
 			if (p.grounded) {
 				p.setVelocity(0, true);

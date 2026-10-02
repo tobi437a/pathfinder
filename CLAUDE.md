@@ -179,6 +179,8 @@ Offsets are `PlayerObject` members in 2.2081: `0x9a0` = y velocity (double, grav
 - `PlayerObject::updateJump` rounds y velocity to 3 decimals (in 1/54 units) right after adding
   gravity, so a ball jump is rounded when gravity is applied on that step and not when the jump
   velocity is set without it (buffered jump, e.g. mini ball landing with the button held).
+- Ship/UFO hitting the ceiling: velocity becomes 0, and the next step adds gravity *chosen for
+  velocity 0* (the lighter one) before moving, so the player leaves the ceiling on that step.
 - `GJBaseGameLayer::checkCollisions` snaps a normal-gravity cube below the floor onto the floor
   (no velocity check) *before* `collisionCheckObjects`, so a pad touched while landing on the floor
   still starts from floor height. The sim does this in `Player::postCollision` (`hitPad`).
