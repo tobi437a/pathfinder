@@ -122,15 +122,17 @@ void Block::collide(Player& p) const {
 		}
 	}
 
-	bool padHitBefore = (!p.prevPlayer().grounded && p.prevPlayer().velocity <= 0 && p.velocity > 0);
+	// An orb clicked this frame (orbs run before blocks here) still lands the player on the block.
+	// Pads and gravity portals don't: GD only lands when moving towards the block (yVelocity <= 0).
+	bool padHitBefore = (!p.gravityPortal && !p.hitPad && !p.prevPlayer().grounded && p.prevPlayer().velocity <= 0 && p.velocity > 0);
 
 	if (p.innerHitbox().intersects(*this)) {
 		// Hitting block head-on
 		p.dead = true;
-	} else if (p.vehicle.type != VehicleType::Wave && p.gravTop(*this) - bottom <= clip && (padHitBefore || p.velocity <= 0 || p.gravityPortal)) {
+	} else if (p.vehicle.type != VehicleType::Wave && p.gravTop(*this) - bottom <= clip && (padHitBefore || p.velocity <= 0)) {
 		p.pos.y = p.grav(p.gravTop(*this)) + p.grav(p.size.y / 2);
 
-		// When hitting pads, the next frame will cause the player ot slightly dip into the block
+		// After an orb click, the next frame will cause the player to slightly dip into the block
 		if (!padHitBefore)
 			p.grounded = true;
 

@@ -100,6 +100,7 @@ void Pad::collide(Player& p) const {
 
 	p.grounded = false;
 	p.gravityPortal = false;
+	p.hitPad = true;
 
 	EffectObject::collide(p);
 

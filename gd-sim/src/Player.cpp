@@ -53,6 +53,7 @@ void Player::preCollision(bool pressed) {
 	grounded = false;
 	velocityOverride = false;
 	gravityPortal = false;
+	hitPad = false;
 	roundVelocity = true;
 
 	if (button != pressed) {
@@ -137,7 +138,7 @@ Player::Player() :
 	coyoteFrames(0), acceleration(0), velocity(0),
 	velocityOverride(false), button(false), input(false),
 	vehicleBuffer(false), upsideDown(false), small(false),
-	speed(1), slopeData({{}, 0, false}), roundVelocity(true) {}
+	speed(1), slopeData({{}, 0, false}), hitPad(false), roundVelocity(true) {}
 
 
 

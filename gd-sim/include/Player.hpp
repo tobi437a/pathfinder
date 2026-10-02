@@ -110,6 +110,9 @@ struct Player : public Entity {
 	/// Entering a gravity portal can cause the next frame to have certain edge cases
 	bool gravityPortal;
 
+	/// A pad was touched this frame (pads, unlike orbs, don't snap the player onto a block)
+	bool hitPad;
+
 	/// Whether velocity at the end of the frame is to be rounded (typically used by ball)
 	bool roundVelocity;
 
