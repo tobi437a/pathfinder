@@ -116,6 +116,9 @@ Offsets are `PlayerObject` members in 2.2081: `0x9a0` = y velocity (double, grav
   gravity portal or a pad. The sim (`Block::collide`) still lands the player on the frame of an orb
   click (`padHitBefore`).
 - `PlayerObject::flipGravity` multiplies y velocity by -0.5.
+- `GJBaseGameLayer::checkCollisions` snaps a normal-gravity cube below the floor onto the floor
+  (no velocity check) *before* `collisionCheckObjects`, so a pad touched while landing on the floor
+  still starts from floor height. The sim does this in `Player::postCollision` (`hitPad`).
 
 ## Working rules
 

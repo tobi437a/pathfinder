@@ -80,10 +80,14 @@ void Player::postCollision() {
 		size = small ? (size * 0.6) : (size / 0.6);
 	}
 
-	if (gravBottom(*this) <= gravFloor() && !velocityOverride && velocity <= 0 ) {
+	// GD snaps to the floor before object collisions, so a pad touched this frame still gets snapped
+	// (but launches the player rather than grounding them)
+	if (gravBottom(*this) <= gravFloor() && !velocityOverride && (velocity <= 0 || hitPad)) {
 		pos.y = grav(gravFloor()) + grav(size.y / 2);
-		grounded = true;
-		snapData.playerFrame = 0;
+		if (!hitPad) {
+			grounded = true;
+			snapData.playerFrame = 0;
+		}
 	}
 
 	// Fell through ceiling, or hit floor
