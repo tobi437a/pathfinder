@@ -113,10 +113,12 @@ python tools\batch.py report                     # build\re\batch\report.md, sim
 ```
 - Candidates are levels whose server `gameVersion` (field 13 = GD version of the *last* upload, so
   updates bump it) is <= 11: 7 = early 1.x, 10/11 = 1.7, 18 = 1.8, 20 = 2.0, 22 = 2.2.
-  Giant level (1619692) is the last level rated in 1.7.
+  Giant level (1619692), the last level rated in 1.7, has gameVersion 21 while its version field
+  (5 / save `k16`) is still 1, so the version field doesn't reveal updates; gameVersion does.
 - The search (`getGJLevels21`, `type=4 star=1`) is rated levels newest id first, 10 per page;
   `fetch` binary-searches the page where ids drop below `--max-id`. Requests are spaced 1 s apart.
 - Stages cache per level under `build\re\batch\` and skip finished levels (`--redo`, `--ids 1,2`).
+  `fetch` caches pages too; `fetch --cached-only` indexes just the pages fetched so far.
 - `pathfinder-cli <lvl> <out.gdr2> --seed N --time-limit S` prints a JSON line; seed 1 by default.
 - Verifier jobs take `"levelFile"` (raw `downloadGJLevel22` response): the mod builds the level
   with `GameLevelManager::responseToDict` + `GJGameLevel::create(dict, true)`, like a download.

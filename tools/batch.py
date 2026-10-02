@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Batch-test the pathfinder + simulator on rated online levels against real GD.
 
-  python tools/batch.py fetch [--max-id 1619692]     rated levels with id <= max-id -> index.json
+  python tools/batch.py fetch [--max-id 1619692] [--cached-only]   rated levels with id <= max-id -> index.json
   python tools/batch.py download                     candidates' level data (raw response + .lvl)
   python tools/batch.py pathfind [--time-limit 120] [--jobs 14]   pathfinder-cli on each candidate
   python tools/batch.py verify [--chunk 200]         play every macro in GD (tools/verify.ps1)
@@ -26,6 +26,7 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
+sys.dont_write_bytecode = True  # tools/__pycache__ is tracked in git
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from gdtools import decode_level_string  # noqa: E402
 
@@ -114,27 +115,32 @@ def run_dir(level_id):
 # ---------------------------------------------------------------- stages
 
 def cmd_fetch(a):
-    _, total = search_page(0, cached=False)
-    last = (total - 1) // 10
-    print(f"{total} rated levels, {last + 1} pages")
+    if a.cached_only:
+        pages = sorted(int(p.stem) for p in (DATA / "pages").glob("*.txt"))
+        print(f"building the index from {len(pages)} cached pages")
+    else:
+        _, total = search_page(0, cached=False)
+        last = (total - 1) // 10
+        print(f"{total} rated levels, {last + 1} pages")
 
-    lo, hi = 0, last  # first page whose last (smallest) id is <= max-id
-    while lo < hi:
-        mid = (lo + hi) // 2
-        levels, _ = search_page(mid)
-        if levels and int(levels[-1]["1"]) > a.max_id:
-            lo = mid + 1
-        else:
-            hi = mid
-    print(f"ids <= {a.max_id} start on page {lo}; fetching {last - lo + 1} pages")
+        lo, hi = 0, last  # first page whose last (smallest) id is <= max-id
+        while lo < hi:
+            mid = (lo + hi) // 2
+            levels, _ = search_page(mid)
+            if levels and int(levels[-1]["1"]) > a.max_id:
+                lo = mid + 1
+            else:
+                hi = mid
+        print(f"ids <= {a.max_id} start on page {lo}; fetching {last - lo + 1} pages")
+        pages = range(lo, last + 1)
 
     seen = {}
-    for page in range(lo, last + 1):
+    for page in pages:
         for l in search_page(page)[0]:
             if int(l["1"]) <= a.max_id:
                 l.pop("3", None)  # description
                 seen[l["1"]] = l
-        print(f"\r  page {page}/{last}: {len(seen)} levels", end="", flush=True)
+        print(f"\r  page {page}: {len(seen)} levels", end="", flush=True)
     print()
 
     index = sorted(seen.values(), key=lambda l: int(l["1"]))
@@ -296,7 +302,8 @@ def main():
     ap.add_argument("--ids", help="comma-separated level ids to limit a stage to")
     ap.add_argument("--redo", action="store_true", help="redo levels that already have results")
     sub = ap.add_subparsers(dest="cmd", required=True)
-    p = sub.add_parser("fetch"); p.add_argument("--max-id", type=int, default=1619692); p.set_defaults(f=cmd_fetch)
+    p = sub.add_parser("fetch"); p.add_argument("--max-id", type=int, default=1619692)
+    p.add_argument("--cached-only", action="store_true", help="index only the pages fetched so far"); p.set_defaults(f=cmd_fetch)
     p = sub.add_parser("download"); p.set_defaults(f=cmd_download)
     p = sub.add_parser("pathfind"); p.add_argument("--time-limit", type=float, default=120)
     p.add_argument("--jobs", type=int, default=max(1, (os.cpu_count() or 2) - 2)); p.add_argument("--seed", type=int, default=1)
