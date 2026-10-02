@@ -123,11 +123,12 @@ void Player::postCollision() {
 		if (!grounded && prevPlayer().grounded && ((!input && (prevPlayer().button || !button)) || buffer) && prevPlayer().gravBottom(*this) > prevPlayer().gravFloor() && size == prevPlayer().size) {
 			pos.y += roundVel(prevPlayer().grav(prevPlayer().acceleration) * dt, prevPlayer().upsideDown) * dt;
 
-			if (gravityPortal && vehicle.type != VehicleType::Ship)
-				newVel = -newVel;
-
-			if (velocity == 0)
-				newVel += roundVel(prevPlayer().acceleration * dt, upsideDown);
+			// GD already had this frame's velocity (one step of gravity) when it touched a gravity
+			// portal, which multiplies it by -0.5 (flipGravity)
+			if (velocity == 0) {
+				double fallVel = roundVel(prevPlayer().acceleration * dt, upsideDown);
+				newVel += (gravityPortal && vehicle.type != VehicleType::Ship) ? fallVel * -0.5 : fallVel;
+			}
 		}
 		velocity = newVel;
 	}
