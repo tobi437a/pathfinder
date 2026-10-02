@@ -132,7 +132,7 @@ void Player::postCollision() {
 		velocity = newVel;
 	}
 
-	// Ball movements are not rounded in GD. Probably a bug!
+	// GD rounds velocity to 1/1000 (of 1/54 units) after applying gravity; see roundVel
 	if (roundVelocity)
 		velocity = roundVel(velocity, upsideDown);
 

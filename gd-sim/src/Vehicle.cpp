@@ -273,7 +273,8 @@ Vehicle ball() {
 			p.vehicleBuffer = false;
 			p.buffer = false;
 			p.input = false;
-			p.roundVelocity = false;
+			// GD rounds y velocity only where it applies gravity, which a buffered jump skips
+			p.roundVelocity = !p.velocityOverride;
 		}
 	};
 
