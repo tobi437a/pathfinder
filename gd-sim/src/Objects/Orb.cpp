@@ -35,16 +35,16 @@ bool Orb::touching(Player const& p) const {
 const velocity_map<OrbType, VehicleType, bool> orb_velocities = {
 	//											   slow speed   1x speed    2x speed   3x speed
 	{{OrbType::Yellow, VehicleType::Cube, false}, {573.48,      603.72,     616.68,    606.42}},
-	{{OrbType::Yellow, VehicleType::Cube, true},  {458.784,     482.976,    481.734,   485.136}},
+	{{OrbType::Yellow, VehicleType::Cube, true},  {458.784,     482.976,    493.344,   485.136}},
 
 	{{OrbType::Yellow, VehicleType::Ship, false}, {573.48,      603.72,     616.68,    606.42}},
-	{{OrbType::Yellow, VehicleType::Ship, true},  {458.784,     482.976,    481.734,   485.136}},
+	{{OrbType::Yellow, VehicleType::Ship, true},  {458.784,     482.976,    493.344,   485.136}},
 
 	{{OrbType::Yellow, VehicleType::Ball, false}, {401.435993,  422.60399,  431.67599, 424.493993}},
 	{{OrbType::Yellow, VehicleType::Ball, true},  {321.148795,  338.08319,  345.34079, 339.59519}},
 
 	{{OrbType::Yellow, VehicleType::Ufo, false},  {573.48,      603.72,     616.68,    606.42}},
-	{{OrbType::Yellow, VehicleType::Ufo, true},   {458.784,     482.976,    481.734,   485.136}},
+	{{OrbType::Yellow, VehicleType::Ufo, true},   {458.784,     482.976,    493.344,   485.136}},
 
 
 	{{OrbType::Blue, VehicleType::Cube, false},   {-229.392,    -241.488,   -246.672,  -242.568}},
