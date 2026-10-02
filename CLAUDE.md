@@ -179,6 +179,11 @@ Offsets are `PlayerObject` members in 2.2081: `0x9a0` = y velocity (double, grav
   gravity portal or a pad. The sim (`Block::collide`) still lands the player on the frame of an orb
   click (`padHitBefore`).
 - `PlayerObject::flipGravity` multiplies y velocity by -0.5.
+- Cube X-snap (`PlayerObject::checkSnapJumpToObject`, called on cube block landings): from the
+  previous snap block to the new one, (dx, dy) = (A, +30), (B, -30) or (C, +60) within T snaps
+  x to `new.x + offset` (clamped to +-T), offset = player x - block x stored at each call.
+  slow T1 A90 B120 C60; normal T1 A120 B150 C90; fast T2 A150 B195 C120; faster T2 A180 B225 C135;
+  fastest T1 A120 B150 C90; mini makes A 90 (except slow/fastest). Only `resetObject` clears it.
 - `PlayerObject::updateJump` rounds y velocity to 3 decimals (in 1/54 units) right after adding
   gravity, so a ball jump is rounded when gravity is applied on that step and not when the jump
   velocity is set without it (buffered jump, e.g. mini ball landing with the button held).

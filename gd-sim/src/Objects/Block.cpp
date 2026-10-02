@@ -51,7 +51,7 @@ float snapThreshold(Vec2D const& diff, Player const& p) {
 		threshold = 1;
 		break;
 	case 2:
-		stairs = { Vec2D(180, -30), Vec2D(p.small ? 90 : 150, 30), Vec2D(120, 60) };
+		stairs = { Vec2D(195, -30), Vec2D(p.small ? 90 : 150, 30), Vec2D(120, 60) };
 		threshold = 2;
 		break;
 	case 3:
