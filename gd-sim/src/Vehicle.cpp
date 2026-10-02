@@ -77,11 +77,6 @@ Vehicle cube() {
 		};
 		p.acceleration = accelerations[p.speed];
 
-		// Strange hardcode
-		if (p.gravityPortal && p.grav(p.velocity) > 350 && p.speed > 1) {
-			p.acceleration -= 6.48;
-		}
-
 		//TODO add rotation
 		p.rotation = 0;
 
