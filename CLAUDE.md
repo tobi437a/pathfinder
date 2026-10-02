@@ -16,6 +16,7 @@ support for newer GD features. Upstream: camila314/pathfinder. Fork: `tobi437a/p
 - `src/pathfinder.cpp` - the search: random toggle-frame sets, keep whichever survives longest,
   roll back on failure. Builds a `gdr::Replay` from the state history.
 - `src/debug.cpp` - debug tooling (see "In-game debug loop").
+- `src/verify.cpp` - verifier: plays a macro in real GD at full speed against the sim (see "Verifier").
 - `src/checker.cpp` - commented out. `src/subprocess.hpp` - vendored lib, don't edit.
 - `gd-sim/include/Level.hpp` - entry point: `Level(levelString)`, `runFrame(pressed)`,
   `rollback(frame)`; every `Player` state is kept in `gameStates`. `Player.hpp` = full state.
@@ -82,6 +83,24 @@ extract them.
   `tools\logs.ps1 -Crash` (newest crash log; `GeometryDash.exe+off` resolved through the bro file;
   Pathfinder frames are already symbolised via its PDB).
 
+## Verifier (real GD vs sim, unattended)
+
+```powershell
+tools\verify.ps1 jobs.json [-Minimize]   # launches GD via Steam, runs the jobs, GD exits, prints summary
+```
+`jobs.json`: `{"jobs": [{"level": "77239587" | "main:15" | "<local name>", "macro": "<path>.gdr2"}]}`;
+the level must be in the GD save (main levels always are). Each job plays the macro in a
+`PlayLayer` at ~20-30k physics steps/s and compares the player with the in-process sim every step.
+Results: `verify-results.jsonl` in the mod save dir (`complete`/`died`/`timeout`, first divergence
+frame + positions, max diff) and `verify\<level>\real.txt`, `sim.txt`, `level.lvl`, which
+`gdtools compare real.txt sim.txt --shift 1` reads. Frame numbers are real frames (0-based).
+- Manual run: small play-button icon on `LevelInfoLayer`/`EditLevelLayer` -> pick a `.gdr2`.
+- Runs skip `levelComplete` (no stars) and set `m_isTestMode` (meant to stop % progress saving,
+  not checked in GD's code); job mode exits GD without saving anyway.
+- `-Minimize` waits until the mod has taken `verify.json` before minimising: minimised during the
+  loading screen, GD pauses before mods load and never finishes loading.
+- Eclipse hacks that change physics (TPS bypass, noclip) or a playing macro would skew results.
+
 ## Reading GD's code (Ghidra)
 
 GD exe is imported and analysed in Ghidra project `C:\Users\tobi4\GD-2.2081` (Ghidra 12.1.2 at
@@ -123,6 +142,17 @@ Offsets are `PlayerObject` members in 2.2081: `0x9a0` = y velocity (double, grav
 - A solid block's hitbox is its sprite's size (`GameObject::customSetup` only overrides it for
   some types), so ids sharing a sprite shape share a hitbox: `invis_`/`color` variants match the
   plain one (204 `invis_plank_01_small` = 196 `plank_01_small`, 15x8). Check with `gdtools frame`.
+
+- `GJBaseGameLayer::update(dt)` runs `max(1, round(dt * 240))` physics steps regardless of real
+  time (`getModifiedDelta`), so `update(1/240)` in a loop = one step per call. `processCommands`
+  and `updateCamera` run once per step inside that loop, so `real.txt` is per step at any fps.
+- `GJBaseGameLayer::handleButton` acts immediately (`PlayerObject::pushButton`/`releaseButton`);
+  only real clicks go through the timestamped `m_queuedButtons`, which can split a step in two.
+- GD moves the player on the step it handles a press; the sim one step later. A gdr input at
+  frame F is pressed before real step F-1 (Eclipse playback) and sim step F-1.
+- Losing focus pauses a `PlayLayer` (`AppDelegate::applicationWillResignActive`); minimising calls
+  `applicationDidEnterBackground` -> `CCDirector::pause()`, after which `drawScene` stops updating
+  the scheduler. `CCApplication::run` itself never sleeps. The verifier hooks both away.
 
 ## Working rules
 
