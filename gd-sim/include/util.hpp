@@ -50,7 +50,7 @@ class cow_set {
 public:
     cow_set() : data(std::make_shared<std::unordered_set<T>>()), written(false) {}
     cow_set(cow_set const& other) : data(other.data), written(false) {}
-    cow_set(cow_set&& other) : data(std::move(other.data)), written(false) {}
+    cow_set(cow_set&& other) noexcept : data(std::move(other.data)), written(false) {}
     cow_set(std::unordered_set<T> const& other) : data(std::make_shared<std::unordered_set<T>>(other)), written(false) {}
 
     cow_set& operator=(cow_set const& other) {
@@ -58,7 +58,7 @@ public:
         written = false;
         return *this;
     }
-    cow_set& operator=(cow_set&& other) {
+    cow_set& operator=(cow_set&& other) noexcept {
         data = std::move(other.data);
         written = false;
         return *this;

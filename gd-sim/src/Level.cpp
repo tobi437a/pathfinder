@@ -2,6 +2,9 @@
 #include <iomanip>
 #include <Level.hpp>
 
+// Otherwise gameStates copies every Player (instead of moving) whenever it grows
+static_assert(std::is_nothrow_move_constructible_v<Player>);
+
 void Level::initLevelSettings(std::string const& lvlSettings, Player& player) {
 	std::unordered_map<std::string, std::string> obj;
 
@@ -115,10 +118,8 @@ Player& Level::runFrame(bool pressed, float dt) {
 		sections[2] = nextSection;
 
 	// Blocks are hazards processed separately
-	std::vector<ObjectContainer> blocks;
-	std::vector<ObjectContainer> hazards;
-	blocks.reserve(100);
-	hazards.reserve(100);
+	blocks.clear();
+	hazards.clear();
 
 	size_t numCollisions = 0;
 
@@ -127,9 +128,9 @@ Player& Level::runFrame(bool pressed, float dt) {
 		for (auto& o : *section) {
 			if (p.dead) break;
 			if (o->prio == 1)
-				blocks.push_back(o);
+				blocks.push_back(&o);
 			else if (o->prio == 2)
-				hazards.push_back(o);
+				hazards.push_back(&o);
 			else if (o->touching(p)) {
 				++numCollisions;
 				o->collide(p);
@@ -140,14 +141,15 @@ Player& Level::runFrame(bool pressed, float dt) {
 	// Blocks are processed in descending order
 	for (int i = blocks.size() - 1; i >= 0; --i) {
 		if (p.dead) break;
-		auto& b = blocks[i];
+		auto& b = *blocks[i];
 		if (b->touching(p)) {
 			++numCollisions;
 			b->collide(p);
 		}
 	}
 
-	for (auto& h : hazards) {
+	for (auto hp : hazards) {
+		auto& h = *hp;
 		if (p.dead) break;
 		if (h->touching(p)) {
 			++numCollisions;
@@ -170,7 +172,7 @@ Player& Level::runFrame(bool pressed, float dt) {
 		}
 	}
 
-	gameStates.push_back(p);
+	gameStates.push_back(std::move(p));
 	return gameStates.back();
 }
 

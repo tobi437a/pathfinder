@@ -1,7 +1,5 @@
 #pragma once
 
-#include <functional>
-
 enum class VehicleType {
 	Cube,
 	Ship,
@@ -18,13 +16,13 @@ struct Vehicle {
 	VehicleType type;
 
 	/// When the vehicle is changed into this one.
-	std::function<void(Player&)> enter;
+	void (*enter)(Player&) = nullptr;
 
 	/// Ran after everything else, used mainly for vehicles that have ceilings
-	std::function<void(Player&)> clamp;
+	void (*clamp)(Player&) = nullptr;
 
 	/// Vehicle-specific movement, done after collisions
-	std::function<void(Player&)> update;
+	void (*update)(Player&) = nullptr;
 
 	/// How far away the floor and ceiling are from each other, relative to portal
 	float bounds;

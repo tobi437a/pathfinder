@@ -26,6 +26,10 @@ class Level {
 
 	float length = 0.0;
 
+	/// Per-frame scratch lists for runFrame, kept here so they don't reallocate every frame
+	std::vector<ObjectContainer const*> blocks;
+	std::vector<ObjectContainer const*> hazards;
+
  	static constexpr uint32_t sectionSize = 100;
  	bool debug = false;
 
