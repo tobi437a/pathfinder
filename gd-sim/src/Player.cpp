@@ -115,13 +115,17 @@ void Player::postCollision() {
 		coyoteFrames = INT_MAX;
 	}
 
+	// An upside down cube that just left a block can still jump (see cube update), but GD moves it
+	// off the block first
+	bool coyoteJump = vehicle.type == VehicleType::Cube && !grounded && upsideDown && input && coyoteFrames < 10;
+
 	vehicle.update(*this);
 
 	if (!velocityOverride) {
 		double newVel = velocity + acceleration * dt;
 
 		// Player will fall off blocks a frame faster than expected.
-		if (!grounded && prevPlayer().grounded && ((!input && (prevPlayer().button || !button)) || buffer) && prevPlayer().gravBottom(*this) > prevPlayer().gravFloor() && size == prevPlayer().size && prevPlayer().velocity == 0) {
+		if (!grounded && prevPlayer().grounded && ((!input && (prevPlayer().button || !button)) || buffer || coyoteJump) && prevPlayer().gravBottom(*this) > prevPlayer().gravFloor() && size == prevPlayer().size && prevPlayer().velocity == 0) {
 			pos.y += roundVel(prevPlayer().grav(prevPlayer().acceleration) * dt, prevPlayer().upsideDown) * dt;
 
 			// GD already had this frame's velocity (one step of gravity) when it touched a gravity
