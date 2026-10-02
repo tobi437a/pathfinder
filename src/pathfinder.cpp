@@ -72,11 +72,10 @@ int tryInputs(Level2& lvl, InputSet inputs) {
 	return final;
 }
 
-std::vector<uint8_t> pathfind(std::string const& lvlString, std::atomic_bool& stop, std::function<void(double)> callback) {
+std::vector<uint8_t> pathfind(std::string const& lvlString, std::atomic_bool& stop, std::function<void(double)> callback, uint32_t seed) {
 	Level2 lvl(lvlString);
 
-	std::random_device rd;
-	std::mt19937 rng(rd());
+	std::mt19937 rng(seed ? seed : std::random_device()());
 	std::uniform_int_distribution<int> dist(0, 999);
 
 	int trueBest = 0;

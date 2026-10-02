@@ -12,7 +12,8 @@
  *
  * Runs come from the "verify macro" button or from a job file: if `verify.json` exists in the
  * mod save dir at startup, it is renamed to `verify.json.taken` and its jobs are run one by one:
- *   {"jobs": [{"level": "77239587" | "main:3" | "<local level name>", "macro": "<path>.gdr2"}],
+ *   {"jobs": [{"level": "77239587" | "main:3" | "<local level name>", "macro": "<path>.gdr2",
+ *              "levelFile": "<raw downloadGJLevel22 response>" (optional, then "level" is just a label)}],
  *    "exit": true}
  * Each run appends a line to `verify-results.jsonl` and writes real.txt / sim.txt / level.lvl to
  * `verify/<level>/` (`gdtools compare real.txt sim.txt --shift 1` reads them).
@@ -48,6 +49,8 @@ constexpr float tolerance = 0.01f;
 struct Job {
 	std::string level;
 	std::filesystem::path macro;
+	/// Raw downloadGJLevel22 response, for levels that aren't in the save
+	std::filesystem::path levelFile;
 };
 
 struct Run {
@@ -127,6 +130,28 @@ GJGameLevel* resolveLevel(std::string const& key) {
 			return level;
 	}
 	return nullptr;
+}
+
+/// A level from a raw downloadGJLevel22 response (`1:id:2:name:...:4:<level string>...#hashes`).
+/// Physics only needs the level string; GameLevelManager::responseToDict doesn't parse this format.
+GJGameLevel* levelFromResponse(std::filesystem::path const& path) {
+	auto response = file::readString(path);
+	if (response.isErr())
+		return nullptr;
+	auto& str = response.unwrap();
+	auto fields = utils::string::split(str.substr(0, str.find('#')), ":");
+
+	auto level = GJGameLevel::create();
+	level->m_levelType = GJLevelType::Saved;
+	for (size_t i = 0; i + 1 < fields.size(); i += 2) {
+		if (fields[i] == "1")
+			level->m_levelID = numFromString<int>(fields[i + 1]).unwrapOr(0);
+		else if (fields[i] == "2")
+			level->m_levelName = fields[i + 1];
+		else if (fields[i] == "4")
+			level->m_levelString = fields[i + 1];
+	}
+	return level;
 }
 
 Result<std::vector<std::pair<uint64_t, bool>>> readMacro(std::filesystem::path const& path) {
@@ -253,7 +278,8 @@ class JobRunner : public CCObject {
 
 		auto job = s_jobs.front();
 		s_jobs.pop_front();
-		if (auto res = startRun(job.level, resolveLevel(job.level), job.macro); res.isErr()) {
+		auto level = job.levelFile.empty() ? resolveLevel(job.level) : levelFromResponse(job.levelFile);
+		if (auto res = startRun(job.level, level, job.macro); res.isErr()) {
 			log::error("verify: {}: {}", job.level, res.unwrapErr());
 			auto line = matjson::makeObject({
 				{"level", job.level},
@@ -265,6 +291,17 @@ class JobRunner : public CCObject {
 		}
 	}
 };
+
+/// Job mode runs in the background: silence menu music and sound effects (GD exits afterwards)
+void muteAll() {
+	auto engine = FMODAudioEngine::get();
+	FMOD::ChannelGroup* master = nullptr;
+	bool muted = engine && engine->m_system && engine->m_system->getMasterChannelGroup(&master) == FMOD_OK
+		&& master && master->setMute(true) == FMOD_OK;
+	if (muted)
+		master->getMute(&muted);
+	log::info("verify: sound muted: {}", muted);
+}
 
 void loadJobFile() {
 	auto path = Mod::get()->getSaveDir() / "verify.json";
@@ -288,6 +325,7 @@ void loadJobFile() {
 			s_jobs.push_back({
 				j["level"].isString() ? j["level"].asString().unwrapOr("") : std::to_string(j["level"].asInt().unwrapOr(0)),
 				j["macro"].asString().unwrapOr(""),
+				j["levelFile"].asString().unwrapOr(""),
 			});
 		}
 	}
@@ -299,6 +337,8 @@ void loadJobFile() {
 // (minimising GD there pauses the director and loading never finishes). They start at the menu.
 $on_mod(Loaded) {
 	loadJobFile();
+	if (s_jobMode)
+		muteAll();
 }
 
 void pickAndVerify(std::string levelKey, Ref<GJGameLevel> level) {
@@ -323,6 +363,11 @@ std::string levelKeyOf(GJGameLevel* level) {
 }
 
 } // namespace
+
+/// Used by debug.cpp to skip its per-frame log line (tens of thousands per second while verifying)
+bool verifierRunning() {
+	return verifying();
+}
 
 class $modify(VerifyBGL, GJBaseGameLayer) {
 	void update(float dt) {
@@ -458,8 +503,10 @@ class $modify(VerifyMenuLayer, MenuLayer) {
 	bool init() {
 		if (!MenuLayer::init())
 			return false;
-		if (s_jobMode)
+		if (s_jobMode) {
+			muteAll();
 			JobRunner::get();
+		}
 		return true;
 	}
 };

@@ -101,6 +101,26 @@ frame + positions, max diff) and `verify\<level>\real.txt`, `sim.txt`, `level.lv
   loading screen, GD pauses before mods load and never finishes loading.
 - Eclipse hacks that change physics (TPS bypass, noclip) or a playing macro would skew results.
 
+## Batch testing online levels
+
+```powershell
+cmake --build build --config Release --target pathfinder-cli   # standalone pathfinder (no Geode)
+python tools\batch.py fetch [--max-id 1619692]   # rated levels with id <= max-id from the GD servers
+python tools\batch.py download                   # level data for candidates
+python tools\batch.py pathfind [--time-limit 120] [--jobs 14]
+python tools\batch.py verify                     # every macro through tools\verify.ps1 (GD minimised)
+python tools\batch.py report                     # build\re\batch\report.md, sim bugs first
+```
+- Candidates are levels whose server `gameVersion` (field 13 = GD version of the *last* upload, so
+  updates bump it) is <= 11: 7 = early 1.x, 10/11 = 1.7, 18 = 1.8, 20 = 2.0, 22 = 2.2.
+  Giant level (1619692) is the last level rated in 1.7.
+- The search (`getGJLevels21`, `type=4 star=1`) is rated levels newest id first, 10 per page;
+  `fetch` binary-searches the page where ids drop below `--max-id`. Requests are spaced 1 s apart.
+- Stages cache per level under `build\re\batch\` and skip finished levels (`--redo`, `--ids 1,2`).
+- `pathfinder-cli <lvl> <out.gdr2> --seed N --time-limit S` prints a JSON line; seed 1 by default.
+- Verifier jobs take `"levelFile"` (raw `downloadGJLevel22` response): the mod builds the level
+  with `GameLevelManager::responseToDict` + `GJGameLevel::create(dict, true)`, like a download.
+
 ## Reading GD's code (Ghidra)
 
 GD exe is imported and analysed in Ghidra project `C:\Users\tobi4\GD-2.2081` (Ghidra 12.1.2 at

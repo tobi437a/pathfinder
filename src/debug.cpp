@@ -23,6 +23,8 @@ std::vector<CCPoint> s_inputPoints;
 std::string realTxt = "";
 static int frames = 0;
 
+bool verifierRunning();  // verify.cpp
+
 class Replay2 : public gdr::Replay<Replay2, gdr::Input<"">> {
  public:
     Replay2() : Replay("Pathfinder", 1){}
@@ -270,7 +272,8 @@ class $modify(GJBaseGameLayer) {
         auto dat = fmt::format("Frame {} X {:.8f} Y {:.8f} Vel {:.8f} Accel {:.8f} Rot {:.8f}", frames, m_player1->getPositionX(), m_player1->getPositionY() - 105, vel, (vel - prevVel) * 240, m_player1->getRotation());
         
         #if DEBUG_MODE
-        log::info("{}", dat);
+        if (!verifierRunning())
+            log::info("{}", dat);
         #endif
 
         frames++;
