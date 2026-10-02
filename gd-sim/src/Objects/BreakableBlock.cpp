@@ -21,3 +21,7 @@ void BreakableBlock::collide(Player& p) const {
 	if (p.grounded)
 		p.snapData.playerFrame = 0;
 }
+
+bool BreakableBlock::stopsHead(Player const& p) const {
+	return p.vehicle.type != VehicleType::Ufo;
+}

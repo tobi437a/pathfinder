@@ -4,6 +4,10 @@
 struct Block : public Object {
     Block(Vec2D size, std::unordered_map<int, std::string>&& fields);
     void collide(Player&) const override;
+
+    /// Whether a player rising into the block's underside is stopped by it (otherwise the block
+    /// counts as touched lethally, which breaks a breakable block)
+    virtual bool stopsHead(Player const&) const { return true; }
 };
 
 struct BreakableBlock : public Block {
@@ -11,4 +15,6 @@ struct BreakableBlock : public Block {
 
     void collide(Player&) const override;
     bool touching(Player const& p) const override;
+    // A ufo breaks it with its head (GD: collidedWithObjectInternal, outside platformer)
+    bool stopsHead(Player const& p) const override;
 };

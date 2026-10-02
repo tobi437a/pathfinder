@@ -87,8 +87,11 @@ void trySnap(Block const& b, Player& p) {
 }
 
 void Block::collide(Player& p) const {
-	// The maximum amount the player can dip below block while still being snapped up
-	int clip = (p.vehicle.type == VehicleType::Ufo || p.vehicle.type == VehicleType::Ship) ? 7 : 10;
+	// The maximum amount the player can dip below block while still being snapped up. GD
+	// (collidedWithObjectInternal) allows 10 (6 for ship/ufo), plus however far the player fell this
+	// frame.
+	double landClip = (p.vehicle.type == VehicleType::Ufo || p.vehicle.type == VehicleType::Ship) ? 6 : 10;
+	landClip += std::max(0.0, -(double)p.grav(p.pos.y - p.prevPlayer().pos.y));
 
 	// When hitting blue orbs/pads, there is a single frame where block collisions arent done.
 	// TODO might be able to be merged with the other pad check
@@ -103,7 +106,7 @@ void Block::collide(Player& p) const {
 	if (p.slopeData.slope) {
 		if (p.slopeData.slope->angle() > 0) {
 			bottom = bottom + sin(p.slopeData.slope->angle()) * p.size.y / 2;
-			clip = 7;
+			landClip = 7;
 
 			// Prevent block from catching on slope when it shouldn't
 			// TODO this should probably go somewhere else...
@@ -129,7 +132,7 @@ void Block::collide(Player& p) const {
 	if (p.innerHitbox().intersects(*this)) {
 		// Hitting block head-on
 		p.dead = true;
-	} else if (p.vehicle.type != VehicleType::Wave && p.gravTop(*this) - bottom <= clip && (padHitBefore || p.velocity <= 0)) {
+	} else if (p.vehicle.type != VehicleType::Wave && p.gravTop(*this) - bottom <= landClip && (padHitBefore || p.velocity <= 0)) {
 		p.pos.y = p.grav(p.gravTop(*this)) + p.grav(p.size.y / 2);
 
 		// After an orb click, the next frame will cause the player to slightly dip into the block
@@ -153,10 +156,16 @@ void Block::collide(Player& p) const {
 		}
 	} else {
 		// Ship and ufo can hit the ceiling of a block without dying
+		// Same tolerance as landing: 10 (6 for ship/ufo) plus how far the player rose this frame
 		if (p.vehicle.type == VehicleType::Ship || p.vehicle.type == VehicleType::Ufo || p.vehicle.type == VehicleType::Ball) {
-			if (p.gravTop(p) - p.gravBottom(*this) <= clip - 1 && p.velocity > 0) {
-				p.pos.y = p.grav(p.gravBottom(*this)) - p.grav(p.size.y / 2);
-				p.velocity = 0;
+			double headClip = (p.vehicle.type == VehicleType::Ball ? 10 : 6) + std::max(0.0, (double)p.grav(p.pos.y - p.prevPlayer().pos.y));
+			if (p.gravTop(p) - p.gravBottom(*this) <= headClip && p.velocity > 0) {
+				if (!stopsHead(p)) {
+					p.dead = true;
+				} else {
+					p.pos.y = p.grav(p.gravBottom(*this)) - p.grav(p.size.y / 2);
+					p.velocity = 0;
+				}
 			}
 		}
 	}
