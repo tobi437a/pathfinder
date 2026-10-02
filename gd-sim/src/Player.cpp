@@ -83,11 +83,6 @@ void Player::preCollision(bool pressed) {
 }
 
 void Player::postCollision() {
-	// Size portal only affects hitbox size at the end of frame
-	if (small != prevPlayer().small) {
-		size = small ? (size * 0.6) : (size / 0.6);
-	}
-
 	// GD snaps to the floor before object collisions, so a pad touched this frame still gets snapped
 	// (but launches the player rather than grounding them)
 	if (gravBottom(*this) <= gravFloor() && !velocityOverride && (velocity <= 0 || hitPad)) {
@@ -96,6 +91,12 @@ void Player::postCollision() {
 			grounded = true;
 			snapData.playerFrame = 0;
 		}
+	}
+
+	// Size portal only affects hitbox size at the end of frame (after GD's floor snap, which runs
+	// before object collisions)
+	if (small != prevPlayer().small) {
+		size = small ? (size * 0.6) : (size / 0.6);
 	}
 
 	// Fell through ceiling, or hit floor
