@@ -118,6 +118,17 @@ Run* activeRun(GJBaseGameLayer* layer) {
 	return s_run.get();
 }
 
+/// Same format as Player::modeString in the sim
+std::string realMode(PlayerObject* p) {
+	char vehicle = p->m_isShip ? 's' : p->m_isBall ? 'b' : p->m_isBird ? 'u' : p->m_isDart ? 'w'
+		: p->m_isRobot ? 'r' : p->m_isSpider ? 'p' : p->m_isSwing ? 'i' : 'c';
+	std::string mode(1, vehicle);
+	if (p->m_isUpsideDown) mode += 'u';
+	if (p->m_vehicleSize != 1.f) mode += 'm';
+	if (p->m_isOnGround) mode += 'g';
+	return mode;
+}
+
 GJGameLevel* resolveLevel(std::string const& key) {
 	if (key.starts_with("main:"))
 		return GameLevelManager::get()->getMainLevel(numFromString<int>(key.substr(5)).unwrapOr(0), false);
@@ -431,10 +442,10 @@ class $modify(VerifyBGL, GJBaseGameLayer) {
 		float sx = sim.pos.x, sy = sim.pos.y - 15;
 		double vel = m_player1->m_yVelocity * 60 * 0.9 * (m_player1->m_isUpsideDown ? -1 : 1);
 
-		run->realTrace += fmt::format("Frame {} X {:.8f} Y {:.8f} Vel {:.8f} Rot {:.8f}\n",
-			run->step, rx, ry, vel, m_player1->getRotation());
-		run->simTrace += fmt::format("Frame {} X {:.8f} Y {:.8f} Vel {:.8f} Rot {:.8f}\n",
-			run->step + 1, sx, sy, sim.velocity, sim.rotation);
+		run->realTrace += fmt::format("Frame {} X {:.8f} Y {:.8f} Vel {:.8f} Rot {:.8f} Mode {}\n",
+			run->step, rx, ry, vel, m_player1->getRotation(), realMode(m_player1));
+		run->simTrace += fmt::format("Frame {} X {:.8f} Y {:.8f} Vel {:.8f} Rot {:.8f} Mode {}\n",
+			run->step + 1, sx, sy, sim.velocity, sim.rotation, sim.modeString());
 
 		float diff = std::max(std::abs(rx - sx), std::abs(ry - sy));
 		if (run->simDeathFrame < 0 || run->step <= run->simDeathFrame)

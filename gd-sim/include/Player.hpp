@@ -139,4 +139,7 @@ struct Player : public Entity {
 	inline float gravCeiling() const { return upsideDown ? -floor : ceiling; }
 
 	void setVelocity(double v, bool override=false);
+
+	/// Vehicle letter (c s b u w) + u upside down, m mini, g grounded. Used in debug traces.
+	std::string modeString() const;
 };

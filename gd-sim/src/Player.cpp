@@ -22,6 +22,14 @@ void Player::setVelocity(double v, bool override) {
 		grounded = false;
 }
 
+std::string Player::modeString() const {
+	std::string mode(1, "csbuw"[(int)vehicle.type]);
+	if (upsideDown) mode += 'u';
+	if (small) mode += 'm';
+	if (grounded) mode += 'g';
+	return mode;
+}
+
 Player const& Player::prevPlayer() const {
 	return level->getState(frame - 1);
 }

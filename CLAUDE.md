@@ -128,6 +128,17 @@ python tools\batch.py report                     # build\re\batch\report.md, sim
 - Verifier jobs take `"levelFile"` (raw `downloadGJLevel22` response): the mod builds the level
   with `GameLevelManager::responseToDict` + `GJGameLevel::create(dict, true)`, like a download.
 
+Offline loop over the batch (no game; uses the Debug `gd-sim-test`, ~1.5 min for 570 levels):
+```powershell
+python tools\regress.py --save base          # first real/sim divergence per run -> regress-base.json
+python tools\regress.py --base base          # after a sim change: which runs diverge later / earlier
+python tools\triage.py                       # sim mode + objects at each divergence -> triage.txt
+```
+A sim fix should make runs better and none worse; real paths only cover what the old macros did,
+so finish with `batch.py pathfind`/`verify`. Traces (verifier and `gd-sim-test`) end with
+`Mode` = vehicle `c s b u w` (+ `r p i` robot/spider/swing in GD) + `u` upside down, `m` mini,
+`g` on ground.
+
 ## Reading GD's code (Ghidra)
 
 GD exe is imported and analysed in Ghidra project `C:\Users\tobi4\GD-2.2081` (Ghidra 12.1.2 at
@@ -145,6 +156,8 @@ python tools\gdtools.py sym 0x38f9a0 "GJBaseGameLayer::collision"            # i
 - Output goes to `build\re\<out>`; read it with Read/Grep (decomps are long - grep offsets).
 - ~10-15 s per invocation (JVM + project open), so **batch several targets per call**.
 - Fails with "locked" if the user has the project open in the Ghidra GUI - ask them to close it.
+- `find` regexes must not contain `(` `)` (`analyzeHeadless.bat` chokes on them); use `[Ss]nap`.
+- Read float/double constants (`DAT_14...`) from the exe: `python tools\gdtools.py const 140622c24 140623000:d`.
 - Targets: `Class::method` (all overloads), RVA `0x38b900`, or absolute `0x14038b900`.
 - Image base `0x140000000`. `GeometryDash.bro` (fetched by CMake) is at
   `build\_deps\bindings-src\bindings\2.2081\GeometryDash.bro`; it also lists member order.

@@ -9,6 +9,7 @@
                                                      first frame where GD and the simulator disagree
   python tools/gdtools.py objects f.lvl <x0> <x1> [-y y0 y1]   list level objects in that area
   python tools/gdtools.py frame <id>...              object id -> sprite frame name (from the GD exe)
+  python tools/gdtools.py const <addr[:d|:i]>...      float/double/int constant at a Ghidra DAT_ address
 
 The .lvl/.inp pair is exactly what build/gd-sim/<Config>/gd-sim-test.exe takes:
   build/gd-sim/Debug/gd-sim-test.exe level.lvl input.inp
@@ -330,18 +331,31 @@ GD_EXE = Path(os.environ.get("GD_DIR", r"C:\Program Files (x86)\Steam\steamapps\
 TOOLBOX_INIT = (0x348D70, 163323)  # ObjectToolbox::init (2.2081): RVA, size
 
 
+def pe_sections(b: bytes):
+    pe = struct.unpack_from("<I", b, 0x3C)[0]
+    n, opt = struct.unpack_from("<H", b, pe + 6)[0], struct.unpack_from("<H", b, pe + 20)[0]
+    secs = [struct.unpack_from("<IIII", b, pe + 24 + opt + 40 * i + 8) for i in range(n)]
+    return lambda rva: next((ra + rva - va for vs, va, rs, ra in secs if va <= rva < va + vs), None)
+
+
+def cmd_const(a):
+    """Values of Ghidra's DAT_ constants: `140622c24` (float), `140623000:d` (double), `:i` (int)."""
+    b = GD_EXE.read_bytes()
+    off = pe_sections(b)
+    for arg in a.addrs:
+        addr, _, t = arg.partition(":")
+        v = int(addr, 16)
+        o = off(v - 0x140000000 if v >= 0x140000000 else v)
+        print(f"{addr}  {struct.unpack_from({'d': '<d', 'i': '<i'}.get(t, '<f'), b, o)[0]!r}")
+
+
 def object_frames():
     """id -> frame name, scraped from ObjectToolbox::init, which stores each id as an immediate
     (`mov dword [rbp+x], id; mov rcx, rbx; call map[]; mov rcx, rax`) and then loads its frame
     name with `lea rdx, [rip+str]`. A few ids (mostly very low ones) are encoded differently and
     come back as '?'."""
     b = GD_EXE.read_bytes()
-    pe = struct.unpack_from("<I", b, 0x3C)[0]
-    n, opt = struct.unpack_from("<H", b, pe + 6)[0], struct.unpack_from("<H", b, pe + 20)[0]
-    secs = [struct.unpack_from("<IIII", b, pe + 24 + opt + 40 * i + 8) for i in range(n)]
-
-    def off(rva):
-        return next((ra + rva - va for vs, va, rs, ra in secs if va <= rva < va + vs), None)
+    off = pe_sections(b)
 
     start, size = TOOLBOX_INIT
     base = off(start)
@@ -374,6 +388,7 @@ def main():
     p.add_argument("--context", type=int, default=5); p.set_defaults(f=cmd_compare)
     p = sub.add_parser("objects"); p.add_argument("lvl"); p.add_argument("x0", type=float)
     p.add_argument("x1", type=float); p.add_argument("-y", type=float, nargs=2); p.set_defaults(f=cmd_objects)
+    p = sub.add_parser("const"); p.add_argument("addrs", nargs="+"); p.set_defaults(f=cmd_const)
     p = sub.add_parser("frame"); p.add_argument("ids", type=int, nargs="+"); p.set_defaults(f=cmd_frame)
     a = ap.parse_args()
     a.f(a)
