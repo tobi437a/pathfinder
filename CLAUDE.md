@@ -119,6 +119,11 @@ python tools\batch.py report                     # build\re\batch\report.md, sim
   `fetch` binary-searches the page where ids drop below `--max-id`. Requests are spaced 1 s apart.
 - Stages cache per level under `build\re\batch\` and skip finished levels (`--redo`, `--ids 1,2`).
   `fetch` caches pages too; `fetch --cached-only` indexes just the pages fetched so far.
+  `verify --import-only` collects results of a GD run whose batch.py was interrupted.
+- Per level: `runs\<id>\pathfind.json`, `macro.gdr2`, `verify.json`, `real.txt`, `sim.txt`
+  (`gdtools compare runs\<id>\real.txt runs\<id>\sim.txt --shift 1`); `levels\<id>.lvl` for
+  `gdtools objects`. Re-check one level after a sim fix:
+  `batch.py pathfind --ids <id> --redo` then `batch.py verify --ids <id> --redo`.
 - `pathfinder-cli <lvl> <out.gdr2> --seed N --time-limit S` prints a JSON line; seed 1 by default.
 - Verifier jobs take `"levelFile"` (raw `downloadGJLevel22` response): the mod builds the level
   with `GameLevelManager::responseToDict` + `GJGameLevel::create(dict, true)`, like a download.

@@ -4,7 +4,7 @@
   python tools/batch.py fetch [--max-id 1619692] [--cached-only]   rated levels with id <= max-id -> index.json
   python tools/batch.py download                     candidates' level data (raw response + .lvl)
   python tools/batch.py pathfind [--time-limit 120] [--jobs 14]   pathfinder-cli on each candidate
-  python tools/batch.py verify [--chunk 200]         play every macro in GD (tools/verify.ps1)
+  python tools/batch.py verify [--chunk 200] [--import-only]   play every macro in GD (tools/verify.ps1)
   python tools/batch.py report                       table of results, worst first -> report.md
 
 Candidates are levels whose gameVersion (GD version of their last upload) is <= --max-game-version
@@ -201,7 +201,27 @@ def cmd_pathfind(a):
     print(counts)
 
 
+def import_results():
+    """Copy the last GD run's results (verify-results.jsonl + traces) into runs/<id>/."""
+    results = MOD_SAVE / "verify-results.jsonl"
+    got = 0
+    if results.exists():
+        for line in results.read_text(encoding="utf-8").splitlines():
+            r = json.loads(line)
+            d = run_dir(r["level"])
+            (d / "verify.json").write_text(json.dumps(r))
+            trace = MOD_SAVE / "verify" / r["level"]
+            for f in ("real.txt", "sim.txt"):
+                if (trace / f).exists():
+                    shutil.copy(trace / f, d / f)
+            got += 1
+    return got
+
+
 def cmd_verify(a):
+    if a.import_only:
+        print(f"imported {import_results()} results from the last GD run")
+        return
     todo = [l for l in candidates(a)
             if (DATA / "runs" / l["1"] / "macro.gdr2").exists()
             and (a.redo or not (DATA / "runs" / l["1"] / "verify.json").exists())]
@@ -218,18 +238,7 @@ def cmd_verify(a):
                         str(REPO / "tools" / "verify.ps1"), str(job_file), "-Minimize",
                         "-TimeoutSeconds", str(60 * 60 * 3)], check=False)
 
-        results = MOD_SAVE / "verify-results.jsonl"
-        got = 0
-        if results.exists():
-            for line in results.read_text().splitlines():
-                r = json.loads(line)
-                d = run_dir(r["level"])
-                (d / "verify.json").write_text(json.dumps(r))
-                trace = MOD_SAVE / "verify" / r["level"]
-                for f in ("real.txt", "sim.txt"):
-                    if (trace / f).exists():
-                        shutil.copy(trace / f, d / f)
-                got += 1
+        got = import_results()
         print(f"  {got}/{len(chunk)} results")
         if got < len(chunk):
             print("  some levels have no result (GD crashed or timed out?) - rerun verify to retry them")
@@ -308,7 +317,9 @@ def main():
     p = sub.add_parser("pathfind"); p.add_argument("--time-limit", type=float, default=120)
     p.add_argument("--jobs", type=int, default=max(1, (os.cpu_count() or 2) - 2)); p.add_argument("--seed", type=int, default=1)
     p.set_defaults(f=cmd_pathfind)
-    p = sub.add_parser("verify"); p.add_argument("--chunk", type=int, default=200); p.set_defaults(f=cmd_verify)
+    p = sub.add_parser("verify"); p.add_argument("--chunk", type=int, default=200)
+    p.add_argument("--import-only", action="store_true", help="just collect results of an interrupted GD run")
+    p.set_defaults(f=cmd_verify)
     p = sub.add_parser("report"); p.add_argument("--all", action="store_true", help="include OK levels"); p.set_defaults(f=cmd_report)
     a = ap.parse_args()
     a.f(a)
