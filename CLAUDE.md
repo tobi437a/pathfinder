@@ -58,6 +58,7 @@ python tools\gdtools.py gdr2 "<macro>.gdr2" -o build\re\x.inp           # header
 build\gd-sim\Debug\gd-sim-test.exe build\re\x.lvl build\re\x.inp > build\re\x.sim.txt
 python tools\gdtools.py compare real.txt build\re\x.sim.txt   # first frame GD and sim disagree
 python tools\gdtools.py objects build\re\x.lvl 11260 11360 -y 150 260   # objects near a divergence
+python tools\gdtools.py frame 196 204       # object id -> sprite frame name, read from the GD exe
 ```
 Level-string object coords are sim coords (`pos`); the printed sim/real `Y` is `pos.y - 15`.
 `Entity::rotation` (objects and player) is in degrees.
@@ -119,6 +120,9 @@ Offsets are `PlayerObject` members in 2.2081: `0x9a0` = y velocity (double, grav
 - `GJBaseGameLayer::checkCollisions` snaps a normal-gravity cube below the floor onto the floor
   (no velocity check) *before* `collisionCheckObjects`, so a pad touched while landing on the floor
   still starts from floor height. The sim does this in `Player::postCollision` (`hitPad`).
+- A solid block's hitbox is its sprite's size (`GameObject::customSetup` only overrides it for
+  some types), so ids sharing a sprite shape share a hitbox: `invis_`/`color` variants match the
+  plain one (204 `invis_plank_01_small` = 196 `plank_01_small`, 15x8). Check with `gdtools frame`.
 
 ## Working rules
 

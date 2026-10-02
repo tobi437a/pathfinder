@@ -8,6 +8,7 @@
   python tools/gdtools.py compare real.txt sim.txt [--tol 0.01] [--shift N]
                                                      first frame where GD and the simulator disagree
   python tools/gdtools.py objects f.lvl <x0> <x1> [-y y0 y1]   list level objects in that area
+  python tools/gdtools.py frame <id>...              object id -> sprite frame name (from the GD exe)
 
 The .lvl/.inp pair is exactly what build/gd-sim/<Config>/gd-sim-test.exe takes:
   build/gd-sim/Debug/gd-sim-test.exe level.lvl input.inp
@@ -323,6 +324,44 @@ def cmd_objects(a):
         print(f"id {d.get('1', '?'):>5}  x {x:9.2f}  y {y:8.2f}  {extra}")
 
 
+# ---------------------------------------------------------------- object sprite frames
+
+GD_EXE = Path(os.environ.get("GD_DIR", r"C:\Program Files (x86)\Steam\steamapps\common\Geometry Dash")) / "GeometryDash.exe"
+TOOLBOX_INIT = (0x348D70, 163323)  # ObjectToolbox::init (2.2081): RVA, size
+
+
+def object_frames():
+    """id -> frame name, scraped from ObjectToolbox::init, which stores each id as an immediate
+    (`mov dword [rbp+x], id; mov rcx, rbx; call map[]; mov rcx, rax`) and then loads its frame
+    name with `lea rdx, [rip+str]`. A few ids (mostly very low ones) are encoded differently and
+    come back as '?'."""
+    b = GD_EXE.read_bytes()
+    pe = struct.unpack_from("<I", b, 0x3C)[0]
+    n, opt = struct.unpack_from("<H", b, pe + 6)[0], struct.unpack_from("<H", b, pe + 20)[0]
+    secs = [struct.unpack_from("<IIII", b, pe + 24 + opt + 40 * i + 8) for i in range(n)]
+
+    def off(rva):
+        return next((ra + rva - va for vs, va, rs, ra in secs if va <= rva < va + vs), None)
+
+    start, size = TOOLBOX_INIT
+    base = off(start)
+    code = b[base:base + size]
+    frames = {}
+    for m in re.finditer(rb"\xc7(\x85.{4}|\x45.)(.{4})\x48\x8b\xcb\xe8.{4}\x48\x8b\xc8\x48\x8d\x15(.{4})", code, re.S):
+        oid = struct.unpack("<I", m[2])[0]
+        s = off(start + m.end() + struct.unpack("<i", m[3])[0])
+        name = b[s:s + 80].split(b"\0")[0] if s else b""
+        if name.endswith(b".png") and oid not in frames:
+            frames[oid] = name.decode("latin1")
+    return frames
+
+
+def cmd_frame(a):
+    frames = object_frames()
+    for i in a.ids:
+        print(f"{i:>5}  {frames.get(i, '?')}")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -335,6 +374,7 @@ def main():
     p.add_argument("--context", type=int, default=5); p.set_defaults(f=cmd_compare)
     p = sub.add_parser("objects"); p.add_argument("lvl"); p.add_argument("x0", type=float)
     p.add_argument("x1", type=float); p.add_argument("-y", type=float, nargs=2); p.set_defaults(f=cmd_objects)
+    p = sub.add_parser("frame"); p.add_argument("ids", type=int, nargs="+"); p.set_defaults(f=cmd_frame)
     a = ap.parse_args()
     a.f(a)
 
