@@ -1,4 +1,4 @@
-#include <set>
+#include <algorithm>
 #include <Level.hpp>
 #include <random>
 #include <gdr/gdr.hpp>
@@ -24,11 +24,30 @@ struct Level2 : public Level {
 	}
 };
 
+/**
+ * The toggle frames of one attempt. A tiny unordered set: with ~30 entries a linear scan beats
+ * std::set's per-node allocations. Keys are uint16_t, so lookups wrap frame numbers like std::set did.
+ */
+struct InputSet {
+	std::vector<uint16_t> frames;
+
+	InputSet() { frames.reserve(32); }
+	bool contains(uint16_t f) const { return std::find(frames.begin(), frames.end(), f) != frames.end(); }
+	void insert(uint16_t f) { if (!contains(f)) frames.push_back(f); }
+	void erase(uint16_t f) {
+		if (auto it = std::find(frames.begin(), frames.end(), f); it != frames.end()) {
+			*it = frames.back();
+			frames.pop_back();
+		}
+	}
+	bool empty() const { return frames.empty(); }
+};
+
 bool isLevelEnd(Level2& lvl) {
 	return lvl.latestState().pos.x >= lvl.length;
 }
 
-int tryInputs(Level2& lvl, std::set<uint16_t> inputs) {
+int tryInputs(Level2& lvl, InputSet inputs) {
 	auto frame = lvl.currentFrame();
 	auto press_before = lvl.press;
 
@@ -69,13 +88,13 @@ std::vector<uint8_t> pathfind(std::string const& lvlString, std::atomic_bool& st
 	while (lvl.gameStates.back().pos.x < lvl.length) {
 		auto frame = lvl.currentFrame();
 
-		std::set<uint16_t> bestInputs;
+		InputSet bestInputs;
 		int bestFrame = frame;
 
 		constexpr int iterations = 300; //30
 		for (int i = 0; i < iterations; i++) {
 
-			std::set<uint16_t> inputs;
+			InputSet inputs;
 			for (int i = 0; i < 30; i++) {
 				inputs.insert(frame + dist(rng));
 			}
