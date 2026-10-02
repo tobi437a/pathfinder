@@ -121,7 +121,7 @@ void Player::postCollision() {
 		double newVel = velocity + acceleration * dt;
 
 		// Player will fall off blocks a frame faster than expected.
-		if (!grounded && prevPlayer().grounded && ((!input && (prevPlayer().button || !button)) || buffer) && prevPlayer().gravBottom(*this) > prevPlayer().gravFloor() && size == prevPlayer().size) {
+		if (!grounded && prevPlayer().grounded && ((!input && (prevPlayer().button || !button)) || buffer) && prevPlayer().gravBottom(*this) > prevPlayer().gravFloor() && size == prevPlayer().size && prevPlayer().velocity == 0) {
 			pos.y += roundVel(prevPlayer().grav(prevPlayer().acceleration) * dt, prevPlayer().upsideDown) * dt;
 
 			// GD already had this frame's velocity (one step of gravity) when it touched a gravity
