@@ -7,6 +7,7 @@
   python tools/gdtools.py sym <0xRVA | regex>...     look up GD functions in GeometryDash.bro
   python tools/gdtools.py compare real.txt sim.txt [--tol 0.01] [--shift N]
                                                      first frame where GD and the simulator disagree
+  python tools/gdtools.py objects f.lvl <x0> <x1> [-y y0 y1]   list level objects in that area
 
 The .lvl/.inp pair is exactly what build/gd-sim/<Config>/gd-sim-test.exe takes:
   build/gd-sim/Debug/gd-sim-test.exe level.lvl input.inp
@@ -303,6 +304,25 @@ def cmd_compare(a):
             print(f"{f:>7} {r[0]:>12.4f} {s[0]:>12.4f} {r[1]:>11.4f} {s[1]:>11.4f} {r[2]:>10.3f} {s[2]:>10.3f}{mark}")
 
 
+# ---------------------------------------------------------------- level objects
+
+def cmd_objects(a):
+    """Objects of a .lvl whose position is inside [x0, x1] (and [y0, y1] if given), sorted by x."""
+    objs = Path(a.lvl).read_text(encoding="utf-8").split(";")[1:]
+    rows = []
+    for o in objs:
+        kv = o.split(",")
+        d = dict(zip(kv[::2], kv[1::2]))
+        if "2" not in d:
+            continue
+        x, y = float(d["2"]), float(d.get("3", 0))
+        if a.x0 <= x <= a.x1 and (a.y is None or a.y[0] <= y <= a.y[1]):
+            rows.append((x, y, d))
+    for x, y, d in sorted(rows, key=lambda r: (r[0], r[1])):
+        extra = " ".join(f"{k}={v}" for k, v in d.items() if k not in ("1", "2", "3"))
+        print(f"id {d.get('1', '?'):>5}  x {x:9.2f}  y {y:8.2f}  {extra}")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -313,6 +333,8 @@ def main():
     p = sub.add_parser("compare"); p.add_argument("real"); p.add_argument("sim")
     p.add_argument("--tol", type=float, default=0.01); p.add_argument("--shift", type=int, default=0)
     p.add_argument("--context", type=int, default=5); p.set_defaults(f=cmd_compare)
+    p = sub.add_parser("objects"); p.add_argument("lvl"); p.add_argument("x0", type=float)
+    p.add_argument("x1", type=float); p.add_argument("-y", type=float, nargs=2); p.set_defaults(f=cmd_objects)
     a = ap.parse_args()
     a.f(a)
 

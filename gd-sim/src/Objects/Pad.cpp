@@ -21,7 +21,7 @@ Pad::Pad(Vec2D size, std::unordered_map<int, std::string>&& fields) : EffectObje
 	}
 
 	if (atoi(fields[5].c_str()) == 1) {
-		rotation += deg2rad(180);
+		rotation += 180;
 	}
 }
 
@@ -81,7 +81,7 @@ const velocity_map<PadType, VehicleType, bool> pad_velocities = {
 
 void Pad::collide(Player& p) const {
 	if (type == PadType::Blue) {
-		auto rot = rad2deg(std::abs(rotation));
+		auto rot = std::abs(rotation);
 		if ((rot > 90 && !p.upsideDown) || (rot < 90 && p.upsideDown))
 			return;
 

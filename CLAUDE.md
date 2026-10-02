@@ -57,7 +57,10 @@ python tools\gdtools.py level "Slopeman Adventures" -o build\re\x.lvl
 python tools\gdtools.py gdr2 "<macro>.gdr2" -o build\re\x.inp           # header + sim input file
 build\gd-sim\Debug\gd-sim-test.exe build\re\x.lvl build\re\x.inp > build\re\x.sim.txt
 python tools\gdtools.py compare real.txt build\re\x.sim.txt   # first frame GD and sim disagree
+python tools\gdtools.py objects build\re\x.lvl 11260 11360 -y 150 260   # objects near a divergence
 ```
+Level-string object coords are sim coords (`pos`); the printed sim/real `Y` is `pos.y - 15`.
+`Entity::rotation` (objects and player) is in degrees.
 Macros live in `%LOCALAPPDATA%\GeometryDash\geode\mods\eclipse.eclipse-menu\replays\`. The
 simulator runs 240 tps; a non-240 macro won't line up. GD's `real.txt` counts from 0 at reset and
 the sim's first line is frame 1; real frame N lines up with sim frame N+1, so use
