@@ -146,6 +146,16 @@ void Player::preCollision(bool pressed) {
 	if (floorSnapped)
 		pos.y = grav(gravFloor()) + grav(size.y / 2);
 
+	// An upside down cube below the ground hits its head on it: GD puts it back on and stops it, and
+	// hitGround sets the on-ground flag if it was slow enough (5, see the ball)
+	if (vehicle.type == VehicleType::Cube && upsideDown && getBottom() < floor) {
+		pos.y = floor + size.y / 2;
+		if (velocity <= 270)
+			grounded = true;
+		if (velocity > 0)
+			velocity = 0;
+	}
+
 	// ...and a ship or ufo above the ceiling back under it, stopping it (the vehicle's clamp then adds the
 	// gravity of the next step), so portals touched this frame start from there
 	ceilingSnapped = (vehicle.type == VehicleType::Ship || vehicle.type == VehicleType::Ufo) && gravTop(*this) > gravCeiling();
@@ -252,7 +262,7 @@ void Player::postCollision() {
 		leaveSlope();
 
 	// Fell through ceiling, or hit floor
-	if (pos.y > 1476.3 || (upsideDown && getBottom() < floor)) {
+	if (pos.y > 1476.3 || (upsideDown && getBottom() < floor && vehicle.type != VehicleType::Cube)) {
 		dead = true;
 		return;
 	}
