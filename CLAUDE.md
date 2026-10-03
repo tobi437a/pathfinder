@@ -293,8 +293,9 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
 - A player whose inner hitbox hits a block within 0.1 s (`m_lastFlipTime`) of a gravity flip, with the
   block on its head side, isn't killed (and doesn't break a breakable block): `collidedWithObjectInternal`
   puts it on the block's far side (upside down: on its top) and calls `hitGround`.
-- An upside-down cube reaching the ground (y 0) doesn't die: it is put back on it with velocity 0,
-  and grounded for a step (no gravity) if it was that slow.
+- An upside-down cube below the ground (y 0) dies in `checkCollisions` before object collisions,
+  unless it flipped gravity within 0.1 s: then it is put back on it with velocity 0, and grounded for
+  a step (no gravity) if it was that slow.
 - Ship/UFO/ball hitting the ceiling (without flipping): velocity becomes 0, and the next step adds gravity *chosen for
   velocity 0* (the lighter one) before moving, so the player leaves the ceiling on that step. A ufo
   jumping on that next step moves up into the ceiling instead and stays there one step longer.
