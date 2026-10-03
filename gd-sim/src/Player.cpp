@@ -153,12 +153,13 @@ void Player::postCollision() {
 	// off the block first
 	bool coyoteJump = vehicle.type == VehicleType::Cube && !grounded && upsideDown && input && coyoteFrames < 10;
 	bool ufoJump = vehicle.type == VehicleType::Ufo && buffer;
+	bool groundedBefore = grounded;
 
 	vehicle.update(*this);
 
-	// A mini ufo starts above the floor, and falls on the level's first frame even if pressed: GD only jumps
-	// on the next step
-	if (ufoJump && velocityOverride && !grounded && prevPlayer().grounded && prevPlayer().acceleration == 0
+	// A ufo jumping as it walks off a block (or a mini ufo, which starts above the floor, pressed on the
+	// level's first frame) still takes GD's walk-off step: GD walks off one step and jumps on the next
+	if (ufoJump && velocityOverride && !groundedBefore && prevPlayer().grounded
 		&& prevPlayer().velocity == 0 && prevPlayer().gravBottom(*this) > prevPlayer().gravFloor()) {
 		double fallAccel = small ? -1308.96 : -1114.56; // ufoAcceleration at velocity 0
 		pos.y += roundVel(prevPlayer().grav(fallAccel) * dt, prevPlayer().upsideDown) * dt;
