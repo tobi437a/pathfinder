@@ -29,7 +29,21 @@ Orb::Orb(Vec2D size, std::unordered_map<int, std::string>&& fields) : EffectObje
 
 bool Orb::touching(Player const& p) const {
 	// Coyote frame for orbs
-	return EffectObject::touching(p) || EffectObject::touching(p.prevPlayer());
+	if (EffectObject::touching(p))
+		return true;
+	Player const& prev = p.prevPlayer();
+	if (EffectObject::touching(prev))
+		return true;
+
+	// GD's cached hitbox kept the old size for the rest of the frame a size portal was touched in (see
+	// resizePending), and that's the hitbox the orb was touched with
+	Player const& before = prev.prevPlayer();
+	if (prev.frame > 1 && !(before.size == prev.size)) {
+		Player old = prev;
+		old.size = before.size;
+		return EffectObject::touching(old);
+	}
+	return false;
 }
 
 const velocity_map<OrbType, VehicleType, bool> orb_velocities = {

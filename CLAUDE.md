@@ -224,7 +224,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
 - Orbs: `playerTouchedRing` appends each touched ring to `m_touchingRings` (0xa38); `resetTouchedRings`
   at the start of every step drops those not touched in the last step. A click (`pushButton`) tries
   them in that order (first touched first, custom rings type 36 before the rest), so with two orbs
-  touched the older one wins, whatever the object order.
+  touched the older one wins, whatever the object order. A ring touched in the step a size portal
+  was touched counts with the old (cached) hitbox size.
 - Blue pad (`collisionCheckObjects`, type 10) sets upside down = `!GameObject::isFacingDown(pad)`,
   only if that changes it. isFacingDown: rotation a multiple of 90 -> (|rot| == 180) xor flipY;
   otherwise rot in 91..269 or -269..-91, xor flipY. So a sideways pad's target depends on flipY.
