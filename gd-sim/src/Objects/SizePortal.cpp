@@ -7,9 +7,7 @@ SizePortal::SizePortal(Vec2D size, std::unordered_map<int, std::string>&& fields
 void SizePortal::collide(Player& p) const {
 	EffectObject::collide(p);
 
-	if (p.small != small) {
-		p.resizePending = !p.resizePending;
-		p.resizeBeforeBlocks = p.resizePending && p.scaleRefreshed;
-	}
+	if (p.small != small)
+		p.resizePending = true;
 	p.small = small;
 }

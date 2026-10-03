@@ -28,13 +28,11 @@ void VehiclePortal::collide(Player& player) const {
 	EffectObject::collide(player);
 
 	if (player.vehicle.type != type) {
-		// Leaving the wave, GD keeps the wave's (cached) hitbox for the rest of the step
-		if (player.vehicle.type == VehicleType::Wave) {
+		// GD checks pads and portals against the player's (cached) rect from before them, so the new size only
+		// shows for the blocks after a switch into or out of ship, ufo or wave (see scaleRefreshed), or else at
+		// the end of the frame (the wave's own size is set next frame, see wave())
+		if (type != VehicleType::Wave)
 			player.resizePending = true;
-		} else {
-			player.size = Vec2D(30, 30) * (player.small ? 0.6 : 1);
-			player.resizePending = false;
-		}
 
 		// GD's wave y velocity is the x speed (m_playerSpeed * m_speedMultiplier, rounded; not doubled when
 		// mini), up or down; the sim's moves the wave instead. The new vehicle's enter halves it (toggleDartMode).

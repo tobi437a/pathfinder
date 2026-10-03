@@ -169,7 +169,7 @@ Player& Level::runFrame(bool pressed, float dt) {
 			orb->collide(p);
 	}
 
-	if (p.resizeBeforeBlocks)
+	if (p.scaleRefreshed)
 		p.applyResize();
 
 	// Blocks are processed in descending order

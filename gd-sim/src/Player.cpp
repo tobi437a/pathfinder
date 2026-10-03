@@ -112,7 +112,6 @@ void Player::preCollision(bool pressed) {
 	walkedOff = false;
 	scaleRefreshed = false;
 	portalVelocityScale = 1;
-	resizeBeforeBlocks = false;
 	roundVelocity = true;
 
 	if (button != pressed) {
