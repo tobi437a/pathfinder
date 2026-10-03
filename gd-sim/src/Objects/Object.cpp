@@ -199,7 +199,19 @@ bool Object::touching(Player const& player) const {
 		if (box.getTop() == getBottom() || box.getBottom() == getTop())
 			return false;
 	}
-	return intersects((r == 0 || r == 90 || r == 180 || r == 270) ? player.unrotatedHitbox() : (Entity&)player);
+	if (r == 0 || r == 90 || r == 180 || r == 270)
+		return intersects(player.unrotatedHitbox());
+
+	// GJBaseGameLayer::collisionCheckObjects first tests the object's bounding rect (of its rotated box)
+	// against the player's unrotated rect, edges included, and only then the oriented boxes
+	auto box = player.unrotatedHitbox();
+	float rad = deg2rad(rotation);
+	float halfW = std::abs(std::cos(rad)) * size.x / 2 + std::abs(std::sin(rad)) * size.y / 2;
+	float halfH = std::abs(std::sin(rad)) * size.x / 2 + std::abs(std::cos(rad)) * size.y / 2;
+	if (pos.x - halfW > box.getRight() || box.getLeft() > pos.x + halfW
+		|| pos.y - halfH > box.getTop() || box.getBottom() > pos.y + halfH)
+		return false;
+	return intersects((Entity&)player);
 }
 
 void Object::collide(Player&) const {

@@ -313,6 +313,9 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   player on the floor counts as touched (GD's rects include edges); one standing on a block has moved
   a step into the block by then, so edge contact there doesn't count (`Object::touching`). The sim snaps in `Player::preCollision` (`floorSnapped`) and
   grounds in `postCollision`.
+- An object rotated by a non-multiple of 90 (pad, orb, portal, ...) is touched only if its bounding
+  rect (of the rotated box) overlaps the player's unrotated rect, edges included, and then its
+  oriented box overlaps the player's (rotated) one (`collisionCheckObjects`, `OBB2D::overlaps1Way`).
 - A solid block's hitbox is its sprite's size (`GameObject::customSetup` only overrides it for
   some types), so ids sharing a sprite shape share a hitbox: `invis_`/`color` variants match the
   plain one (204 `invis_plank_01_small` = 196 `plank_01_small`, 15x8). Check with `gdtools frame`.
