@@ -118,6 +118,8 @@ void Player::preCollision(bool pressed) {
 		button = pressed;
 		input = button;
 		buffer = button;
+		if (pressed)
+			clickUsedByOrb = false;
 	}
 
 	for (auto& i : actions)

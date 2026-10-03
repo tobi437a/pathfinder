@@ -159,6 +159,8 @@ struct Player : public Entity {
 
 	/// An orb was clicked this frame
 	bool clickedOrb = false;
+	/// The current click (button still held) was used by an orb
+	bool clickUsedByOrb = false;
 
 	/// The player was snapped onto a block top this frame (even if an orb click keeps it ungrounded)
 	bool onBlock = false;
