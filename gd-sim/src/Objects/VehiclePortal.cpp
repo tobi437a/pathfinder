@@ -39,6 +39,11 @@ void VehiclePortal::collide(Player& player) const {
 		player.vehicle.enter(player);
 	}
 
+	// GD's on-ground flag outlives the switch: a player resting on the old mode's floor stays grounded
+	// this frame (and can jump), even if the new mode's floor is lower
+	if (player.prevPlayer().grounded && player.velocity == 0 && player.gravBottom(player) <= player.gravFloor())
+		player.grounded = true;
+
 	player.floor = std::max(0., 30 * std::ceil((pos.y - (player.vehicle.bounds / 2. + 30)) / 30.));
 	player.ceiling = player.floor + player.vehicle.bounds;
 }
