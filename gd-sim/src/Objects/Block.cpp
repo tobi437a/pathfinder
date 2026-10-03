@@ -103,14 +103,22 @@ void Block::collideBlock(Player& p, bool bare) const {
 	double landClip = (p.vehicle.type == VehicleType::Ufo || p.vehicle.type == VehicleType::Ship) ? 6 : 10;
 	landClip += slopeClip + std::max(0.0, -(double)p.grav(p.pos.y - p.prevPlayer().pos.y));
 
-	// When hitting blue orbs, there is a single frame where block collisions arent done. A blue pad pushes
-	// the player towards the new floor, which GD lands it on in the same step if it reaches it (see
-	// Pad::collide for a player flipped off a block).
+	// A blue orb clicked this frame flips the player. GD clicks it a step later, so in this step it still
+	// lands on a block on the old side (not grounded: the orb launches it), and none on the new side. With
+	// the button already held, GD takes the orb in this step's collisions, before the blocks, which then
+	// act in the new gravity. A blue pad pushes the player towards the new floor, which GD lands it on in
+	// the same step if it reaches it (see Pad::collide for a player flipped off a block).
 	auto const& prev = p.prevPlayer();
-	if (p.upsideDown != prev.upsideDown && !p.gravityPortal && !p.hitPad) {
-		// (still standing on it in the old gravity, see Player::onBlock)
-		if (prev.gravTop(*this) - prev.gravBottom(p) <= landClip)
+	if (p.upsideDown != prev.upsideDown && !p.gravityPortal && !p.hitPad && !prev.button) {
+		double oldClip = landClip - std::max(0.0, -(double)p.grav(p.pos.y - prev.pos.y))
+			+ std::max(0.0, -(double)prev.grav(p.pos.y - prev.pos.y));
+		double oldBottom = prev.gravBottom(p);
+		if (prev.gravTop(*this) - oldBottom <= oldClip) {
+			// (still standing on it in the old gravity, see Player::onBlock)
 			p.onBlock = true;
+			if (!p.innerHitbox().intersects(*this) && prev.velocity <= 0 && oldBottom < prev.gravTop(*this))
+				p.pos.y = prev.grav(prev.gravTop(*this)) + prev.grav(p.size.y / 2);
+		}
 		return;
 	}
 
