@@ -15,8 +15,9 @@ struct Object;
 struct Vehicle {
 	VehicleType type;
 
-	/// When the vehicle is changed into this one.
-	void (*enter)(Player&) = nullptr;
+	/// When the vehicle is changed into this one, from `from` (the vehicle of the portal before it when
+	/// several are touched in one frame)
+	void (*enter)(Player&, VehicleType from) = nullptr;
 
 	/// Ran after everything else, used mainly for vehicles that have ceilings
 	void (*clamp)(Player&) = nullptr;

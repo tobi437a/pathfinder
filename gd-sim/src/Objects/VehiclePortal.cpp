@@ -45,8 +45,9 @@ void VehiclePortal::collide(Player& player) const {
 			player.velocity = (player.velocity > 0 ? 1 : -1) * speed * 54;
 		}
 
+		VehicleType from = player.vehicle.type;
 		player.vehicle = Vehicle::from(type);
-		player.vehicle.enter(player);
+		player.vehicle.enter(player, from);
 	}
 
 	// GD's on-ground flag outlives the switch: a player resting on the old mode's floor stays grounded

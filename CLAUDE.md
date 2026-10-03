@@ -231,7 +231,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   The flipped player lands on a block on its new side in the same step if it touches it; one that
   stood on a block has already moved a step of its old gravity into that block, so it can miss.
 - Each `toggleFlyMode` / `toggleBirdMode` / `toggleDartMode` (ship, ufo, wave; on or off) halves y
-  velocity; ball and cube have none. A wave's `m_yVelocity` is +-round3(m_playerSpeed *
+  velocity; ball and cube have none. Per portal: a ship and a ufo portal touched in one step by a
+  cube halve it three times (ship on, ship off, ufo on). A wave's `m_yVelocity` is +-round3(m_playerSpeed *
   m_speedMultiplier) (not doubled when mini), so leaving it starts from that (`VehiclePortal`).
 - On a level's first step a ship on the floor is snapped there but keeps one step of falling
   velocity (-3.726, not grounded yet); it is grounded (velocity 0) from the second step on.

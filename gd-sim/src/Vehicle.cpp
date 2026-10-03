@@ -54,12 +54,12 @@ Vehicle cube() {
 	Vehicle v;
 	 v.type = VehicleType::Cube;
 
-	v.enter = +[](Player& p) {
+	v.enter = +[](Player& p, VehicleType from) {
 		// GD halves y velocity when the ship, ufo or wave mode is toggled off (or on)
-		if (p.prevPlayer().vehicle.type != VehicleType::Ball)
+		if (from != VehicleType::Ball)
 			p.velocity = p.velocity / 2;
 
-		if (p.prevPlayer().vehicle.type == VehicleType::Ship && p.input)
+		if (from == VehicleType::Ship && p.input)
 			p.buffer = true;
 	};
 
@@ -139,8 +139,8 @@ Vehicle ship() {
 	Vehicle v;
 	v.type = VehicleType::Ship;
 
-	v.enter = +[](Player& p) {
-		if (p.prevPlayer().vehicle.type == VehicleType::Ufo || p.prevPlayer().vehicle.type == VehicleType::Wave)
+	v.enter = +[](Player& p, VehicleType from) {
+		if (from == VehicleType::Ufo || from == VehicleType::Wave)
 			p.velocity = p.velocity / 4.0;
 		else 
 			p.velocity = p.velocity / 2.0;
@@ -225,11 +225,11 @@ Vehicle ball() {
 		}
 	};
 
-	v.enter = +[](Player& p) {
+	v.enter = +[](Player& p, VehicleType from) {
 		if (p.input)
 			p.vehicleBuffer = true;
 
-		switch (p.prevPlayer().vehicle.type) {
+		switch (from) {
 			case VehicleType::Ship:
 			case VehicleType::Ufo:
 			case VehicleType::Wave:
@@ -301,12 +301,11 @@ Vehicle ufo() {
 	Vehicle v;
 
 	v.type = VehicleType::Ufo;
-	v.enter = +[](Player& p) {
-		VehicleType pv = p.prevPlayer().vehicle.type;
-		if ((pv == VehicleType::Ship || pv == VehicleType::Wave) && p.input)
+	v.enter = +[](Player& p, VehicleType from) {
+		if ((from == VehicleType::Ship || from == VehicleType::Wave) && p.input)
 			p.buffer = true;
 
-		p.velocity = p.velocity / (pv == VehicleType::Ship || pv == VehicleType::Wave ? 4 : 2);
+		p.velocity = p.velocity / (from == VehicleType::Ship || from == VehicleType::Wave ? 4 : 2);
 	};
 
 	v.clamp = +[](Player& p) {
@@ -357,7 +356,7 @@ Vehicle ufo() {
 Vehicle wave() {
 	Vehicle v;
 	v.type = VehicleType::Wave;
-	v.enter = +[](Player& p) {
+	v.enter = +[](Player& p, VehicleType from) {
 		p.actions.push_back(+[](Player& p) {
 			p.size = p.small ? Vec2D(6, 6) : Vec2D(10, 10);
 		});
