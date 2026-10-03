@@ -129,8 +129,10 @@ void Player::postCollision() {
 		double newVel = velocity + acceleration * dt;
 
 		// Player will fall off blocks a frame faster than expected. A grounded ship flipped by a gravity
-		// portal stays put for that frame (GD flips it after the move).
-		if (!grounded && prevPlayer().grounded && ((!input && (prevPlayer().button || !button)) || buffer || coyoteJump) && prevPlayer().gravBottom(*this) > prevPlayer().gravFloor() && size == prevPlayer().size && prevPlayer().velocity == 0 && !(gravityPortal && vehicle.type == VehicleType::Ship)) {
+		// portal stays put for that frame (GD flips it after the move). A ship pressed this frame still
+		// walks off first (unless an orb or pad launched it), since GD handles the press one step later.
+		bool shipPress = vehicle.type == VehicleType::Ship && button && !prevPlayer().button && velocity == 0;
+		if (!grounded && prevPlayer().grounded && ((!input && (prevPlayer().button || !button)) || buffer || coyoteJump || shipPress) && prevPlayer().gravBottom(*this) > prevPlayer().gravFloor() && size == prevPlayer().size && prevPlayer().velocity == 0 && !(gravityPortal && vehicle.type == VehicleType::Ship)) {
 			// The level's first frame has no previous acceleration
 			double fallAccel = prevPlayer().acceleration != 0 ? prevPlayer().acceleration : acceleration;
 			pos.y += roundVel(prevPlayer().grav(fallAccel) * dt, prevPlayer().upsideDown) * dt;
