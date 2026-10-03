@@ -96,7 +96,7 @@ struct Player : public Entity {
 
 	float ceiling;
 	float floor;
-	float dt;
+	float dt = 1 / 240.f;
 
 	/// Some vehicles have coyote frames for valid inputs
 	unsigned int coyoteFrames;
@@ -121,7 +121,7 @@ struct Player : public Entity {
 	bool button, input;
 
 	/// If a click is being buffered. Used for things like orb clicks.
-	bool buffer;
+	bool buffer = false;
 	/**
 	 * In the ball vehicle, holding a click while transitioning into another vehicle will cause a
 	 * buffered input, despite things like orbs not buffering in the same way.
@@ -132,7 +132,7 @@ struct Player : public Entity {
 	bool small;
 
 	/// Entering a gravity portal can cause the next frame to have certain edge cases
-	bool gravityPortal;
+	bool gravityPortal = false;
 
 	/// A pad was touched this frame (pads, unlike orbs, don't snap the player onto a block)
 	bool hitPad;
@@ -151,7 +151,7 @@ struct Player : public Entity {
 	bool resizePending = false;
 
 	/// Whether velocity at the end of the frame is to be rounded (typically used by ball)
-	bool roundVelocity;
+	bool roundVelocity = true;
 
 	Player();
 
