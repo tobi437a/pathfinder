@@ -250,31 +250,33 @@ void Player::easeRotation(float target) {
 	rotation = slerp(rotation * 0.017453292f, target * 0.017453292f, t) * 57.29578f;
 }
 
+void Player::hitGroundRotation() {
+	// A cube stops spinning; a ball stops its flip spin (and a faster roll, off a slope) and rolls
+	onGround2 = true;
+	if (vehicle.type == VehicleType::Cube) {
+		if (isRotating || slope.was)
+			stopRotation();
+	} else if (vehicle.type == VehicleType::Ball) {
+		if (ballRotating && !slope.on)
+			stopRotation();
+		if (ballRotating2)
+			stopRotation();
+		if (!isRotating) {
+			stopRotation();
+			runBallRotation();
+		}
+	}
+}
+
 void Player::updateRotation() {
 	if (vehicle.type != VehicleType::Cube && vehicle.type != VehicleType::Ball) {
 		pendingSpin.reset();
 		return;
 	}
 
-	// PlayerObject::hitGround (every step on the ground, before this): a cube stops spinning; a ball stops its
-	// flip spin (and a faster roll, off a slope) and rolls
+	// PlayerObject::hitGround runs every step on the ground, before this
 	if (grounded)
-		onGround2 = true;
-	if (grounded) {
-		if (vehicle.type == VehicleType::Cube) {
-			if (isRotating || slope.was)
-				stopRotation();
-		} else {
-			if (ballRotating && !slope.on)
-				stopRotation();
-			if (ballRotating2)
-				stopRotation();
-			if (!isRotating) {
-				stopRotation();
-				runBallRotation();
-			}
-		}
-	}
+		hitGroundRotation();
 
 	// PlayerObject::updateRotation(dt): a cube eases to the slope it's on, or to the nearest 90 degrees on the
 	// ground (m_isOnGround2, unless falling); otherwise the spin goes on

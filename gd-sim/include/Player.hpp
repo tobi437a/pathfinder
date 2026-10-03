@@ -259,6 +259,8 @@ struct Player : public Entity {
 	float closestRotation(float target) const;
 	void easeRotation(float target);
 	void updateRotation();
+	/// PlayerObject::hitGround's part in the rotation (and m_isOnGround2)
+	void hitGroundRotation();
 
 	/// Move y by a step of velocity `vel` (gravity-relative sign already applied), like PlayerObject::update
 	void moveY(double vel);

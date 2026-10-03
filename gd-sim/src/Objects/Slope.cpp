@@ -314,6 +314,7 @@ void Slope::collide(Player& p) const {
 			p.velocity = 0;
 			if (sign * before <= 5)
 				p.grounded = true;
+			p.hitGroundRotation();
 			if (!up ? 5 < v0 : v0 < -5)
 				p.setGdVelocity(v0);
 		} else {
