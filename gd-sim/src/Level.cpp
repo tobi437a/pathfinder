@@ -169,6 +169,9 @@ Player& Level::runFrame(bool pressed, float dt) {
 			orb->collide(p);
 	}
 
+	if (p.resizeBeforeBlocks)
+		p.applyResize();
+
 	// Blocks are processed in descending order
 	for (int i = blocks.size() - 1; i >= 0; --i) {
 		if (p.dead) break;

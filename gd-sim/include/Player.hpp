@@ -177,6 +177,13 @@ struct Player : public Entity {
 	/// GD caches the player's hitbox, so a size portal's new size only shows once the player is moved
 	/// (e.g. snapped onto a block) or at the end of the frame
 	bool resizePending = false;
+	/// GD's updatePlayerScale ran this frame (switching into or out of ship, ufo or wave), which marks the
+	/// hitbox dirty: a size portal after it in the frame shows for the blocks (GD takes the player's rect once
+	/// for the other objects)
+	bool scaleRefreshed = false;
+	/// What vehicle portals multiplied y velocity by this frame (GD halves it per ship/ufo/wave toggle)
+	double portalVelocityScale = 1;
+	bool resizeBeforeBlocks = false;
 
 	/// Whether velocity at the end of the frame is to be rounded (typically used by ball)
 	bool roundVelocity = true;

@@ -110,6 +110,9 @@ void Player::preCollision(bool pressed) {
 	onBlock = false;
 	headHit = false;
 	walkedOff = false;
+	scaleRefreshed = false;
+	portalVelocityScale = 1;
+	resizeBeforeBlocks = false;
 	roundVelocity = true;
 
 	if (button != pressed) {
@@ -303,7 +306,8 @@ void Player::postCollision() {
 			// portal, which multiplies it by -0.5 (flipGravity)
 			if (velocity == 0) {
 				double fallVel = roundVel(fallAccel * dt, upsideDown);
-				newVel += gravityPortal ? fallVel * -0.5 : fallVel;
+				// ...and a vehicle portal scales it (toggleFlyMode etc.)
+				newVel += (gravityPortal ? fallVel * -0.5 : fallVel) * portalVelocityScale;
 			}
 		} else if (shipPress && grounded && prevPlayer().acceleration == 0) {
 			// On the level's first frame GD snaps a ship onto the floor but keeps its step of falling velocity

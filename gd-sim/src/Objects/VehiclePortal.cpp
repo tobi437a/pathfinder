@@ -46,8 +46,16 @@ void VehiclePortal::collide(Player& player) const {
 		}
 
 		VehicleType from = player.vehicle.type;
+		auto flies = [](VehicleType t) { return t == VehicleType::Ship || t == VehicleType::Ufo || t == VehicleType::Wave; };
+		if (flies(from) || flies(type))
+			player.scaleRefreshed = true;
 		player.vehicle = Vehicle::from(type);
+		// enter scales velocity; find by how much, for a walk-off step added later (Player::postCollision)
+		double velocity = player.velocity;
+		player.velocity = 1;
 		player.vehicle.enter(player, from);
+		player.portalVelocityScale *= player.velocity;
+		player.velocity = velocity * player.velocity;
 	}
 
 	// GD's on-ground flag outlives the switch: a player resting on the old mode's floor stays grounded
