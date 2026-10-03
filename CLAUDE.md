@@ -192,7 +192,8 @@ Offsets are `PlayerObject` members in 2.2081: `0x9a0` = y velocity (double, grav
   stands on a block): from the previous snap block to the new one, (dx, dy) = (A, +30), (B, -30) or
   (C, +60) within T snaps x to `new.x + offset` (clamped to +-T), offset = player x - block x stored
   at each call. The pattern uses the blocks' original positions, the offset and target their
-  current ones, so a block moved by a move trigger (not simulated) shifts the snap.
+  current ones, so a block still sliding in from an enter effect (ids 22-28, 55-59; not
+  simulated) shifts the snap.
   slow T1 A90 B120 C60; normal T1 A120 B150 C90; fast T2 A150 B195 C120; faster T2 A180 B225 C135;
   fastest T1 A120 B150 C90; mini makes A 90 (except slow/fastest). Only `resetObject` clears it.
 - `PlayerObject::updateJump` rounds y velocity to 3 decimals (in 1/54 units) right after adding
