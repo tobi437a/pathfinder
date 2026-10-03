@@ -104,6 +104,7 @@ void Player::preCollision(bool pressed) {
 	hitPad = false;
 	clickedOrb = false;
 	onBlock = false;
+	headHit = false;
 	roundVelocity = true;
 
 	if (button != pressed) {
@@ -127,7 +128,8 @@ void Player::preCollision(bool pressed) {
 void Player::postCollision() {
 	// GD snaps to the floor before object collisions, so a pad touched this frame still gets snapped
 	// (but launches the player rather than grounding them)
-	if (gravBottom(*this) <= gravFloor() && !velocityOverride && (velocity <= 0 || hitPad)) {
+	// (so a block that stopped the player's head after that can leave it below the floor)
+	if (gravBottom(*this) <= gravFloor() && !velocityOverride && (velocity <= 0 || hitPad) && !headHit) {
 		pos.y = grav(gravFloor()) + grav(size.y / 2);
 		if (!hitPad) {
 			grounded = true;

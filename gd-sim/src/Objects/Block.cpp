@@ -187,6 +187,7 @@ void Block::collide(Player& p) const {
 				} else {
 					p.pos.y = p.grav(p.gravBottom(*this)) - p.grav(p.size.y / 2);
 					p.velocity = 0;
+					p.headHit = true;
 					p.applyResize();
 				}
 			}

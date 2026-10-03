@@ -143,6 +143,9 @@ struct Player : public Entity {
 	/// The player was snapped onto a block top this frame (even if an orb click keeps it ungrounded)
 	bool onBlock = false;
 
+	/// A block stopped the player's head this frame
+	bool headHit = false;
+
 	/// GD caches the player's hitbox, so a size portal's new size only shows once the player is moved
 	/// (e.g. snapped onto a block) or at the end of the frame
 	bool resizePending = false;
