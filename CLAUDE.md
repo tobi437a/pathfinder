@@ -34,7 +34,8 @@ support for newer GD features (robot, spider, swing, dash orbs, teleport portals
 
 New vehicles need `VehicleType` + `Vehicle.cpp`, portal ids in `Object.cpp`, `Player::modeString`
 letters (r p i), and the verifier's `realMode`. GD's fly-mode floor/ceiling are
-`GJBaseGameLayer::getMinPortalY/getMaxPortalY` (they depend on camera zoom).
+`GJBaseGameLayer::getMinPortalY/getMaxPortalY` (they depend on camera zoom). The bottom is set by
+`animateInDualGroundNew`: `floor((portalY - height/2) / 30) * 30`, at least 90, in GD y (sim y + 90).
 
 ## Build & install
 

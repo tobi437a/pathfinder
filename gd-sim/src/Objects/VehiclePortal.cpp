@@ -55,6 +55,9 @@ void VehiclePortal::collide(Player& player) const {
 	if (player.prevPlayer().grounded && player.velocity == 0 && player.gravBottom(player) <= player.gravFloor())
 		player.grounded = true;
 
-	player.floor = std::max(0., 30 * std::ceil((pos.y - (player.vehicle.bounds / 2. + 30)) / 30.));
+	// GJBaseGameLayer::animateInDualGroundNew: the bottom is the portal's y minus half the height, rounded
+	// down to 30 in GD's coordinates (90 higher), and at least GD's ground at 90
+	float bottom = std::floor(((float)pos.y + 90.f - (float)player.vehicle.bounds * 0.5f) / 30.f) * 30.f;
+	player.floor = std::max(0., (double)bottom - 90.);
 	player.ceiling = player.floor + player.vehicle.bounds;
 }
