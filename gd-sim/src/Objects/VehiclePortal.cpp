@@ -31,9 +31,14 @@ void VehiclePortal::collide(Player& player) const {
 		player.size = Vec2D(30, 30) * (player.small ? 0.6 : 1);
 		player.resizePending = false;
 
-		// Going from wave to any other vehicle changes the velocity		
-		if (player.vehicle.type == VehicleType::Wave)
-			player.velocity *= 0.9;
+		// GD's wave y velocity is the x speed (m_playerSpeed * m_speedMultiplier, rounded; not doubled when
+		// mini), up or down; the sim's moves the wave instead. The new vehicle's enter halves it (toggleDartMode).
+		if (player.vehicle.type == VehicleType::Wave) {
+			double speed = player_speeds[player.speed] / 60;
+			double whole = (int)speed;
+			speed = std::round((speed - whole) * 1000.0) / 1000.0 + whole;
+			player.velocity = (player.velocity > 0 ? 1 : -1) * speed * 54;
+		}
 
 		player.vehicle = Vehicle::from(type);
 		player.vehicle.enter(player);

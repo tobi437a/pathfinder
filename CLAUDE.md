@@ -265,6 +265,9 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   otherwise rot in 91..269 or -269..-91, xor flipY. So a sideways pad's target depends on flipY.
   The flipped player lands on a block on its new side in the same step if it touches it; one that
   stood on a block has already moved a step of its old gravity into that block, so it can miss.
+- Each `toggleFlyMode` / `toggleBirdMode` / `toggleDartMode` (ship, ufo, wave; on or off) halves y
+  velocity; ball and cube have none. A wave's `m_yVelocity` is +-round3(m_playerSpeed *
+  m_speedMultiplier) (not doubled when mini), so leaving it starts from that (`VehiclePortal`).
 - On a level's first step a ship on the floor is snapped there but keeps one step of falling
   velocity (-3.726, not grounded yet); it is grounded (velocity 0) from the second step on.
 - The player's hitbox rect is cached and only recomputed after it is marked dirty (`setPosition`,

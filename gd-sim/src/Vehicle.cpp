@@ -48,10 +48,8 @@ Vehicle cube() {
 	 v.type = VehicleType::Cube;
 
 	v.enter = +[](Player& p) {
+		// GD halves y velocity when the ship, ufo or wave mode is toggled off (or on)
 		if (p.prevPlayer().vehicle.type != VehicleType::Ball)
-			p.velocity = p.velocity / 2;
-
-		if (p.prevPlayer().vehicle.type == VehicleType::Wave)
 			p.velocity = p.velocity / 2;
 
 		if (p.prevPlayer().vehicle.type == VehicleType::Ship && p.input)
@@ -234,6 +232,7 @@ Vehicle ball() {
 		switch (p.prevPlayer().vehicle.type) {
 			case VehicleType::Ship:
 			case VehicleType::Ufo:
+			case VehicleType::Wave:
 				p.velocity = p.velocity / 2;
 				break;
 			default: break;
@@ -306,7 +305,7 @@ Vehicle ufo() {
 		if ((pv == VehicleType::Ship || pv == VehicleType::Wave) && p.input)
 			p.buffer = true;
 
-		p.velocity = p.velocity / (p.prevPlayer().vehicle.type == VehicleType::Ship ? 4 : 2);
+		p.velocity = p.velocity / (pv == VehicleType::Ship || pv == VehicleType::Wave ? 4 : 2);
 	};
 
 	v.clamp = +[](Player& p) {
