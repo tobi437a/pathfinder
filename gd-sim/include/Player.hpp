@@ -162,6 +162,17 @@ struct Player : public Entity {
 	/// don't apply, and a falling ship that isn't held is pushed back up (shipAcceleration).
 	bool accelerating = false;
 
+	/// The cube's and ball's rotation (Entity::rotation, degrees, clockwise like GD), which rotated objects are
+	/// tested against (Object::touching): PlayerObject's m_rotationSpeed (degrees per second, added each step
+	/// by updateRotation), m_isRotating, m_isBallRotating / m_isBallRotating2 and m_rotateSpeed
+	float rotationSpeed = 0;
+	bool isRotating = false, ballRotating = false, ballRotating2 = false;
+	float rotateSpeed = 1;
+	/// An orb's new rotation, which starts after this frame's updateRotation: GD clicks the ring a step
+	/// after the sim (see Orb::collide)
+	struct Spin { float speed, rotateSpeed; bool isRotating, ballRotating, ballRotating2; };
+	std::optional<Spin> pendingSpin;
+
 	/// A pad was touched this frame (pads, unlike orbs, don't snap the player onto a block)
 	bool hitPad;
 
@@ -232,6 +243,18 @@ struct Player : public Entity {
 	void leaveSlope();
 	/// PlayerObject::updateJump: part (share) of a slope's launch added to a jump from it
 	void slopeJump(float share);
+
+	/// PlayerObject's rotation: stop (the inline reset GD does before most of these), runNormalRotation (a
+	/// cube's jump spin), runBallRotation (a ball's roll, `speed` times), runBallRotation2 (a ball's flip
+	/// spin), convertToClosestRotation, updateRotation(dt, target) (ease towards `target`) and
+	/// updateRotation(dt) (once per step, after collisions)
+	void stopRotation();
+	void runNormalRotation(float mult = 1);
+	void runBallRotation(float speed = 1);
+	void runBallRotation2();
+	float closestRotation(float target) const;
+	void easeRotation(float target);
+	void updateRotation();
 
 	/// Move y by a step of velocity `vel` (gravity-relative sign already applied), like PlayerObject::update
 	void moveY(double vel);

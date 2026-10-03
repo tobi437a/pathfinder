@@ -26,4 +26,9 @@ void SpeedPortal::collide(Player& p) const {
 	EffectObject::collide(p);
 
 	p.speed = speed;
+	// updateTimeMod restarts a ball's roll at the new speed
+	if (p.vehicle.type == VehicleType::Ball) {
+		p.stopRotation();
+		p.runBallRotation();
+	}
 }

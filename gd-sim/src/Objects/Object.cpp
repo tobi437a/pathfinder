@@ -211,7 +211,12 @@ bool Object::touching(Player const& player) const {
 	if (pos.x - halfW > box.getRight() || box.getLeft() > pos.x + halfW
 		|| pos.y - halfH > box.getTop() || box.getBottom() > pos.y + halfH)
 		return false;
-	return intersects((Entity&)player);
+	// Entity rotations here are counter-clockwise (objects: -GD's; the ship's, ufo's and wave's too), while
+	// the cube's and ball's is GD's own clockwise one (Player::updateRotation)
+	Entity oriented = player;
+	if (player.vehicle.type == VehicleType::Cube || player.vehicle.type == VehicleType::Ball)
+		oriented.rotation = -oriented.rotation;
+	return intersects(oriented);
 }
 
 void Object::collide(Player&) const {

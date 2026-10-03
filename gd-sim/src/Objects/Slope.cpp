@@ -342,4 +342,8 @@ void Slope::collide(Player& p) const {
 	st.velocity = (float)sign * v;
 	if (fly || ball)
 		st.velocity = (float)sign * v * 0.75f;
+
+	// updateSlopeRotation: a cube turns towards the slope (and again in Player::updateRotation)
+	if (p.vehicle.type == VehicleType::Cube)
+		p.easeRotation(p.closestRotation((float)(st.rotation * 57.295780181884766)));
 }

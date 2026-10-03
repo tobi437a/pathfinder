@@ -9,5 +9,11 @@ void SizePortal::collide(Player& p) const {
 
 	if (p.small != small)
 		p.resizePending = true;
+	bool changes = p.small != small;
 	p.small = small;
+	// togglePlayerScale restarts a rolling ball's rotation at its new size
+	if (changes && p.vehicle.type == VehicleType::Ball && p.isRotating) {
+		p.stopRotation();
+		p.runBallRotation();
+	}
 }

@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """Replay every batch run through the current sim and score it against the recorded real GD path.
 
-  python tools/regress.py [--save NAME] [--base NAME] [--ids 1,2] [--jobs 14] [--show 30] [--tol 0.01]
+  python tools/regress.py [--save NAME] [--base NAME] [--ids 1,2] [--jobs 14] [--show 30] [--tol 0.01] [--rot]
 
 For each build/re/batch/runs/<id> with a real.txt (written by `batch.py verify`), runs the macro
 through the Debug gd-sim-test (runs/<id>/simdbg.txt) and finds the first real frame where GD and
 the sim are more than 0.01 apart (as `gdtools compare --shift 1`). Needs no game, so a sim fix can
 be checked on every level in a minute: --base compares with a saved score file and lists the
 levels that got better (diverge later) or worse; --save writes build/re/batch/regress-NAME.json.
+--rot also counts a cube or ball whose rotation (mod 90: the hitbox is square) differs by more than
+--tol as diverged, for checking the player rotation that rotated objects are tested against.
 The real paths only cover what the old sim told the pathfinder to do, so a level whose divergence
 moves later may still die further on; batch.py pathfind/verify is the real check.
 """
@@ -26,6 +28,16 @@ REPO = Path(__file__).resolve().parent.parent
 DATA = REPO / "build" / "re" / "batch"
 SIM_TEST = REPO / "build" / "gd-sim" / "Debug" / "gd-sim-test.exe"
 TOL = 0.01
+ROT = False
+
+
+def modes(path: Path):
+    """{frame: mode string} from a trace's Frame lines."""
+    out = {}
+    for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+        if line.startswith("Frame ") and " Mode " in line:
+            out[int(line.split()[1])] = line.rsplit(" Mode ", 1)[1].split()[0]
+    return out
 
 
 def score(run: Path):
@@ -43,15 +55,20 @@ def score(run: Path):
     while last - 1 in real and real[last - 1][0] == real[last][0]:
         last -= 1
     frames = [f for f in sorted(real) if f <= last and f + 1 in sim]
+    real_modes = modes(run / "real.txt") if ROT else {}
     for f in frames:
-        (rx, ry, *_), (sx, sy, *_) = real[f], sim[f + 1]
+        (rx, ry, _, rr), (sx, sy, _, sr) = real[f], sim[f + 1]
         if abs(rx - sx) > TOL or abs(ry - sy) > TOL:
             return f, len(frames)
+        if ROT and real_modes.get(f, "")[:1] in ("c", "b"):
+            d = (rr - sr) % 90
+            if min(d, 90 - d) > TOL:
+                return f, len(frames)
     return -1, len(frames)
 
 
 def main():
-    global TOL
+    global TOL, ROT
     ap = argparse.ArgumentParser()
     ap.add_argument("--save")
     ap.add_argument("--base")
@@ -59,8 +76,9 @@ def main():
     ap.add_argument("--jobs", type=int, default=14)
     ap.add_argument("--show", type=int, default=30)
     ap.add_argument("--tol", type=float, default=TOL, help="position difference that counts as diverged")
+    ap.add_argument("--rot", action="store_true", help="a cube's or ball's rotation (mod 90) counts too")
     a = ap.parse_args()
-    TOL = a.tol
+    TOL, ROT = a.tol, a.rot
     runs = [r for r in sorted((DATA / "runs").iterdir())
             if (r / "real.txt").exists() and (DATA / "levels" / f"{r.name}.lvl").exists()]
     if a.ids:

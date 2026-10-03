@@ -76,9 +76,6 @@ Vehicle cube() {
 		static float const gravity[] = {0.940199f, 0.958199f, 0.957199f, 0.961199f, 0.961199f};
 		p.acceleration = gdFall(p, gravity[p.speed], 1);
 
-		//TODO add rotation
-		p.rotation = 0;
-
 		bool jump = false;
 
 		if (p.grounded) {
@@ -109,6 +106,8 @@ Vehicle cube() {
 			p.boosted = true;
 			// Jumping off a slope adds a quarter of its launch
 			p.slopeJump(0.25f);
+			p.stopRotation();
+			p.runNormalRotation();
 		}
 	};
 

@@ -142,8 +142,35 @@ void Orb::collide(Player& p) const {
 			}
 		}
 
-		if (type == OrbType::Blue || type == OrbType::Green) {
+		// ringJump restarts the rotation: after a green ring's flipGravity, before a blue ring's. GD handles a
+		// fresh click a step later than the sim (pushButton, at the start of its next step), so its new
+		// rotation only starts after this frame's updateRotation; a ring first touched with the button held
+		// fires in GD's collisions, like the sim's.
+		bool freshClick = p.button && !p.prevPlayer().button;
+		Player::Spin before {p.rotationSpeed, p.rotateSpeed, p.isRotating, p.ballRotating, p.ballRotating2};
+		auto spin = [&] {
+			if (p.vehicle.type == VehicleType::Ball) {
+				p.runBallRotation2();
+			} else {
+				p.stopRotation();
+				p.runNormalRotation();
+			}
+		};
+		if (type == OrbType::Green) {
 			p.flipGravity(!p.upsideDown);
+			spin();
+		} else {
+			spin();
+			if (type == OrbType::Blue)
+				p.flipGravity(!p.upsideDown);
+		}
+		if (freshClick) {
+			p.pendingSpin = Player::Spin {p.rotationSpeed, p.rotateSpeed, p.isRotating, p.ballRotating, p.ballRotating2};
+			p.rotationSpeed = before.speed;
+			p.rotateSpeed = before.rotateSpeed;
+			p.isRotating = before.isRotating;
+			p.ballRotating = before.ballRotating;
+			p.ballRotating2 = before.ballRotating2;
 		}
 
 		// Clicking on an orb as ball essentially removes the input

@@ -104,6 +104,13 @@ void Pad::collide(Player& p) const {
 		p.walkedOff = true;
 	}
 
+	// propellPlayer restarts the rotation (before a blue pad's flipGravity)
+	p.stopRotation();
+	if (p.vehicle.type == VehicleType::Ball)
+		p.runBallRotation();
+	else
+		p.runNormalRotation();
+
 	if (type == PadType::Blue) {
 		p.flipGravity(flipsToUpsideDown);
 
