@@ -20,9 +20,19 @@ Pad::Pad(Vec2D size, std::unordered_map<int, std::string>&& fields) : EffectObje
 			break;
 	}
 
-	if (atoi(fields[5].c_str()) == 1) {
+	bool flipY = atoi(fields[5].c_str()) == 1;
+	if (flipY) {
 		rotation += 180;
 	}
+
+	// A blue pad flips the player to upside down unless it faces down (GameObject::isFacingDown)
+	int rot = (int)stod_def(fields[6]);
+	bool facingDown;
+	if (rot % 90 != 0)
+		facingDown = ((rot >= 91 && rot <= 269) || (rot >= -269 && rot <= -91)) != flipY;
+	else
+		facingDown = (std::abs(rot) == 180) != flipY;
+	flipsToUpsideDown = !facingDown;
 }
 
 const velocity_map<PadType, VehicleType, bool> pad_velocities = {
@@ -81,11 +91,10 @@ const velocity_map<PadType, VehicleType, bool> pad_velocities = {
 
 void Pad::collide(Player& p) const {
 	if (type == PadType::Blue) {
-		auto rot = std::abs(rotation);
-		if ((rot > 90 && !p.upsideDown) || (rot < 90 && p.upsideDown))
+		if (p.upsideDown == flipsToUpsideDown)
 			return;
 
-		p.upsideDown = !p.upsideDown;
+		p.upsideDown = flipsToUpsideDown;
 
 		if (p.vehicle.type == VehicleType::Wave)
 			p.velocity = -p.velocity;

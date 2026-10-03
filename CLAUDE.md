@@ -185,6 +185,9 @@ Offsets are `PlayerObject` members in 2.2081: `0x9a0` = y velocity (double, grav
   gravity portal or a pad. The sim (`Block::collide`) still lands the player on the frame of an orb
   click (`padHitBefore`).
 - `PlayerObject::flipGravity` multiplies y velocity by -0.5.
+- Blue pad (`collisionCheckObjects`, type 10) sets upside down = `!GameObject::isFacingDown(pad)`,
+  only if that changes it. isFacingDown: rotation a multiple of 90 -> (|rot| == 180) xor flipY;
+  otherwise rot in 91..269 or -269..-91, xor flipY. So a sideways pad's target depends on flipY.
 - On a level's first step a ship on the floor is snapped there but keeps one step of falling
   velocity (-3.726, not grounded yet); it is grounded (velocity 0) from the second step on.
 - The player's hitbox rect is cached and only recomputed after it is marked dirty (`setPosition`,
