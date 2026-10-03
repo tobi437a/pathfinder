@@ -1180,6 +1180,8 @@ void Bot::onLayerUpdate(PlayLayer* pl, float dt) {
                 resumeFromPartial(pl);
                 if (m_mode != Mode::Solving) return;
             }
+            // Resuming may have handed the search to the sim instead of a Solver
+            if (m_simPhase != SimPhase::Off) break;
             if (!m_solver) { endSession(); return; }
             m_solver->runSlice(s_budget);
             if (m_solver->finished()) onSolveFinished(pl, m_solver->found());

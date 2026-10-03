@@ -14,13 +14,29 @@ void openSimOnlyPathfinder(CCNode* parent, GJGameLevel* level);
 
 namespace {
     CCMenuItemSpriteExtra* makePathfindButton(CCObject* target, SEL_MenuHandler handler, float scale) {
-        auto spr = CircleButtonSprite::create(CCSprite::create("pathfinder.png"_spr), CircleBaseColor::Green,
-            CircleBaseSize::Medium);
+        auto spr = BasedButtonSprite::create(CCSprite::create("pathfinder.png"_spr), BaseType::Circle, 4, 3);
         spr->setTopRelativeScale(1.4f);
         spr->setScale(scale);
         auto btn = CCMenuItemSpriteExtra::create(spr, target, handler);
-        btn->setID("pathfind-button"_spr);
+        btn->setID("pathfinder-button");
         return btn;
+    }
+
+    /// Put the button `offset` away from a sibling node (same menu), or into its own menu there
+    void placeNear(CCNode* layer, CCMenuItemSpriteExtra* btn, CCNode* menu, char const* anchorID, CCPoint offset) {
+        auto anchor = layer->getChildByIDRecursive(anchorID);
+        if (menu && anchor && anchor->getParent() == menu) {
+            btn->setPosition(anchor->getPosition() + offset);
+            menu->addChild(btn);
+            return;
+        }
+        auto own = CCMenu::create();
+        own->setID("pathfinder-menu");
+        own->setPosition(anchor ? anchor->getParent()->convertToWorldSpace(anchor->getPosition()) + offset
+                                : CCPoint{30.f, CCDirector::get()->getWinSize().height / 2 - 100.f});
+        btn->setPosition({0, 0});
+        own->addChild(btn);
+        layer->addChild(own);
     }
 
     /// True if the level should be opened to search it (otherwise the simulator popup was shown)
@@ -38,17 +54,7 @@ class $modify(GDPFLevelInfoLayer, LevelInfoLayer) {
     bool init(GJGameLevel* level, bool challenge) {
         if (!LevelInfoLayer::init(level, challenge)) return false;
         auto btn = makePathfindButton(this, menu_selector(GDPFLevelInfoLayer::onPathfind), 0.8f);
-        if (auto menu = this->getChildByID("left-side-menu")) {
-            menu->addChild(btn);
-            menu->updateLayout();
-        } else {
-            auto ownMenu = CCMenu::create();
-            ownMenu->setID("pathfind-menu"_spr);
-            auto winSize = CCDirector::sharedDirector()->getWinSize();
-            ownMenu->setPosition({30.f, winSize.height / 2 - 100.f});
-            ownMenu->addChild(btn);
-            this->addChild(ownMenu);
-        }
+        placeNear(this, btn, getChildByID("other-menu"), "list-button", {0, 45});
         return true;
     }
 
@@ -104,17 +110,7 @@ class $modify(GDPFEditLevelLayer, EditLevelLayer) {
     bool init(GJGameLevel* level) {
         if (!EditLevelLayer::init(level)) return false;
         auto btn = makePathfindButton(this, menu_selector(GDPFEditLevelLayer::onPathfind), 0.8f);
-        if (auto menu = this->getChildByID("level-actions-menu")) {
-            menu->addChild(btn);
-            menu->updateLayout();
-        } else {
-            auto ownMenu = CCMenu::create();
-            ownMenu->setID("pathfind-menu"_spr);
-            auto winSize = CCDirector::sharedDirector()->getWinSize();
-            ownMenu->setPosition({winSize.width - 30.f, winSize.height / 2 - 100.f});
-            ownMenu->addChild(btn);
-            this->addChild(ownMenu);
-        }
+        placeNear(this, btn, nullptr, "delete-button", {-45, 0});
         return true;
     }
 
