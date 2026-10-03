@@ -322,8 +322,10 @@ Vehicle ufo() {
 		// (possibly already put back under it before collisions, see Player::preCollision)
 		bool over = p.gravTop(p) > p.gravCeiling();
 		if (over || (p.ceilingSnapped && p.upsideDown == p.prevPlayer().upsideDown)) {
-			// GD zeroes velocity when it hits the ceiling and adds gravity before the next move
-			if (p.velocity > 0) {
+			// GD zeroes velocity when it hits the ceiling and adds gravity before the next move. A jump
+			// this frame (GD's next step) still moves up into the ceiling first, so the ufo stays there
+			// a step longer (preCollision stops it).
+			if (p.velocity > 0 && !p.velocityOverride) {
 				p.setVelocity(0, false);
 				p.velocity = roundVel(ufoAcceleration(p) * p.dt, p.upsideDown);
 			}

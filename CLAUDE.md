@@ -274,7 +274,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   gravity-relative y velocity <= 5 (270 in sim units); a ball jumps (flips) while the button is
   held and that flag is set, so a ball reaching the mode ceiling faster doesn't flip.
 - Ship/UFO/ball hitting the ceiling (without flipping): velocity becomes 0, and the next step adds gravity *chosen for
-  velocity 0* (the lighter one) before moving, so the player leaves the ceiling on that step.
+  velocity 0* (the lighter one) before moving, so the player leaves the ceiling on that step. A ufo
+  jumping on that next step moves up into the ceiling instead and stays there one step longer.
 - `GJBaseGameLayer::checkCollisions` snaps a normal-gravity cube below the floor onto the floor
   (no velocity check) *before* `collisionCheckObjects`, so a pad touched while landing on the floor
   still starts from floor height, and a block hitting the head after that can push the player
