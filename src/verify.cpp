@@ -25,6 +25,7 @@
 #include <Geode/modify/LevelInfoLayer.hpp>
 #include <Geode/modify/MenuLayer.hpp>
 #include <Geode/modify/PlayLayer.hpp>
+#include <Geode/modify/PlayerObject.hpp>
 #include <UIBuilder.hpp>
 #include <gdr/gdr.hpp>
 #include <Level.hpp>
@@ -456,6 +457,25 @@ class $modify(VerifyBGL, GJBaseGameLayer) {
 			run->divergeSim[0] = sx; run->divergeSim[1] = sy;
 		}
 		++run->step;
+	}
+};
+
+// Logs GD's cube X-snap calls into real.txt (lines not starting with "Frame" are skipped by the tools):
+// `Snap <frame> obj <x> <y> prev <x> <y> offset <stored offset> x <before> -> <after>`
+class $modify(VerifyPlayerObject, PlayerObject) {
+	void checkSnapJumpToObject(GameObject* object) {
+		auto run = activeRun(PlayLayer::get());
+		if (!run || !object || this != PlayLayer::get()->m_player1)
+			return PlayerObject::checkSnapJumpToObject(object);
+
+		// 2.2081 offsets: snap object 0x888, stored player x - object x 0x838
+		auto prev = *reinterpret_cast<GameObject**>(reinterpret_cast<char*>(this) + 0x888);
+		double offset = *reinterpret_cast<double*>(reinterpret_cast<char*>(this) + 0x838);
+		float before = getPositionX();
+		PlayerObject::checkSnapJumpToObject(object);
+		run->realTrace += fmt::format("Snap {} obj {} {} prev {} {} offset {:.4f} x {:.4f} -> {:.4f}\n",
+			run->step, object->getPositionX(), object->getPositionY() - 90,
+			prev ? prev->getPositionX() : 0.f, prev ? prev->getPositionY() - 90 : 0.f, offset, before, getPositionX());
 	}
 };
 
