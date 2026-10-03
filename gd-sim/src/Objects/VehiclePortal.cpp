@@ -1,5 +1,6 @@
 #include <Portals.hpp>
 #include <Player.hpp>
+#include <climits>
 
 VehiclePortal::VehiclePortal(Vec2D size, std::unordered_map<int, std::string>&& fields) : EffectObject(size, std::move(fields)) {
 	switch (atoi(fields[1].c_str())) {
@@ -44,6 +45,8 @@ void VehiclePortal::collide(Player& player) const {
 		}
 
 		VehicleType from = player.vehicle.type;
+		// Coyote frames only count from leaving the ground as this vehicle
+		player.coyoteFrames = INT_MAX;
 		auto flies = [](VehicleType t) { return t == VehicleType::Ship || t == VehicleType::Ufo || t == VehicleType::Wave; };
 		if (flies(from) || flies(type))
 			player.scaleRefreshed = true;
