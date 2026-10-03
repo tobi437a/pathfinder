@@ -129,10 +129,15 @@ void Block::collide(Player& p) const {
 	// Pads and gravity portals don't: GD only lands when moving towards the block (yVelocity <= 0).
 	bool padHitBefore = (!p.gravityPortal && !p.hitPad && !p.prevPlayer().grounded && p.prevPlayer().velocity <= 0 && p.velocity > 0);
 
+	// A grounded cube flipped by a gravity portal has GD's walk-off velocity times -0.5 (positive) by now,
+	// so it doesn't land this frame (see Player::postCollision). A ball or ufo lands right away.
+	bool flippedOffGround = p.gravityPortal && p.upsideDown != p.prevPlayer().upsideDown && p.prevPlayer().grounded
+		&& p.prevPlayer().velocity == 0 && p.vehicle.type == VehicleType::Cube;
+
 	if (p.innerHitbox().intersects(*this)) {
 		// Hitting block head-on
 		p.dead = true;
-	} else if (p.vehicle.type != VehicleType::Wave && p.gravTop(*this) - bottom <= landClip && (padHitBefore || p.velocity <= 0)) {
+	} else if (p.vehicle.type != VehicleType::Wave && p.gravTop(*this) - bottom <= landClip && (padHitBefore || p.velocity <= 0) && !flippedOffGround) {
 		p.pos.y = p.grav(p.gravTop(*this)) + p.grav(p.size.y / 2);
 		p.applyResize();
 
