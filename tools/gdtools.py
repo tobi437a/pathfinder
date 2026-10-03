@@ -2,13 +2,15 @@
 """Offline helpers for Pathfinder work: GD save files, .gdr2 macros, GeometryDash.bro symbols.
 
   python tools/gdtools.py levels [filter]            list levels in the save (local + saved online)
-  python tools/gdtools.py level <name|id> [-o f.lvl]  extract a decompressed level string
+  python tools/gdtools.py level <name|id|main:N> [-o f.lvl]  extract a decompressed level string
   python tools/gdtools.py gdr2 <macro.gdr2> [-o f.inp]  print header; write the sim's .inp format
   python tools/gdtools.py sym <0xRVA | regex>...     look up GD functions in GeometryDash.bro
   python tools/gdtools.py compare real.txt sim.txt [--tol 0.01] [--shift N]
                                                      first frame where GD and the simulator disagree
   python tools/gdtools.py objects f.lvl <x0> <x1> [-y y0 y1]   list level objects in that area
   python tools/gdtools.py frame <id>...              object id -> sprite frame name (from the GD exe)
+  python tools/gdtools.py annotate out.c param_1=PlayerObject [param_2=GameObject] [-o f.c]
+                                                     name raw member offsets in a Ghidra decomp
   python tools/gdtools.py const <addr[:d|:i]>...      float/double/int constant at a Ghidra DAT_ address
 
 The .lvl/.inp pair is exactly what build/gd-sim/<Config>/gd-sim-test.exe takes:
@@ -97,8 +99,18 @@ def cmd_levels(a):
         print(f"{src:6}  id={lvl.get('k1', '-')!s:>10}  string={'yes' if lvl.get('k4') else 'NO '}  {name}")
 
 
+GD_DIR = Path(os.environ.get("GD_DIR", r"C:\Program Files (x86)\Steam\steamapps\common\Geometry Dash"))
+
+
 def cmd_level(a):
-    matches = [(s, l) for s, l in all_levels()
+    m = re.fullmatch(r"main:(\d+)", a.level)
+    if m:  # official levels ship with GD as Resources/levels/<id>.txt
+        s = decode_level_string((GD_DIR / "Resources" / "levels" / f"{m[1]}.txt").read_text().strip())
+        out = Path(a.o or f"main_{m[1]}.lvl")
+        out.write_text(s, encoding="utf-8")
+        print(f"main level {m[1]} -> {out} ({len(s)} chars, {s.count(';') - 1} objects)")
+        return
+    matches =[(s, l) for s, l in all_levels()
                if str(l.get("k1", "")) == a.level or l.get("k2", "").lower() == a.level.lower()]
     if not matches:
         matches = [(s, l) for s, l in all_levels() if a.level.lower() in l.get("k2", "").lower()]
@@ -376,6 +388,45 @@ def cmd_frame(a):
         print(f"{i:>5}  {frames.get(i, '?')}")
 
 
+def cmd_annotate(a):
+    """Name raw member offsets in a Ghidra decomp: `*(double *)(param_1 + 0x9a0)` -> `...m_yVelocity`.
+    Offset tables come from tools/offsets.py <Class> --all > build/re/<Class>.offsets.txt."""
+    text = Path(a.file).read_text(encoding="utf-8", errors="replace")
+    for spec in a.var:
+        var, cls = spec.split("=")
+        table = REPO / "build" / "re" / f"{cls}.offsets.txt"
+        if not table.exists():
+            raise SystemExit(f"{table} missing: python tools/offsets.py {cls} --all > {table}")
+        names = {}
+        for line in table.read_text().splitlines():
+            m = re.match(r"0x([0-9a-f]+)\s+(\w+)", line)
+            if m:
+                names.setdefault(int(m[1], 16), m[2])
+        def name(off, fallback):
+            return names.get(off, fallback)
+        def fix_function(fn):
+            # Pointer arithmetic counts elements of the parameter's declared type:
+            # `longlong *param_1` -> param_1[0x134] is offset 0x9a0; `CCNode *param_1` -> byte offsets.
+            v = re.escape(var)
+            decl = re.search(r"\b(\w+) \*" + v + r"\b", fn)
+            unit = {"longlong": 8, "ulonglong": 8, "double": 8, "undefined8": 8, "int": 4, "uint": 4,
+                    "float": 4, "undefined4": 4, "short": 2, "undefined2": 2}.get(decl[1], 1) if decl else 0
+            def named(off, whole, amp):
+                return f"{amp}{var}->{names[off]}" if off in names else whole
+            fn = re.sub(r"\(longlong\)" + v + r" \+ 0x([0-9a-f]+)\b",
+                        lambda m: named(int(m[1], 16), m[0], "&"), fn)
+            if unit:
+                fn = re.sub(r"\b" + v + r"\[(0x[0-9a-f]+|\d+)\]",
+                            lambda m: named(int(m[1], 0) * unit, m[0], ""), fn)
+            fn = re.sub(r"(?<!\*)\b" + v + r" \+ (0x[0-9a-f]+|\d+)\b",
+                        lambda m: named(int(m[1], 0) * (unit or 1), m[0], "&"), fn)
+            return fn
+        text = "".join(fix_function(f) for f in re.split(r"(?=^// =====)", text, flags=re.M))
+    out = Path(a.o or a.file)
+    out.write_text(text, encoding="utf-8")
+    print(f"annotated -> {out}")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -390,6 +441,8 @@ def main():
     p.add_argument("x1", type=float); p.add_argument("-y", type=float, nargs=2); p.set_defaults(f=cmd_objects)
     p = sub.add_parser("const"); p.add_argument("addrs", nargs="+"); p.set_defaults(f=cmd_const)
     p = sub.add_parser("frame"); p.add_argument("ids", type=int, nargs="+"); p.set_defaults(f=cmd_frame)
+    p = sub.add_parser("annotate"); p.add_argument("file"); p.add_argument("-o")
+    p.add_argument("var", nargs="+", help="param_1=PlayerObject ..."); p.set_defaults(f=cmd_annotate)
     a = ap.parse_args()
     a.f(a)
 

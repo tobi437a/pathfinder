@@ -118,6 +118,20 @@ void Player::preCollision(bool pressed) {
 		i(*this);
 	actions.clear();
 
+	// GJBaseGameLayer::checkCollisions starts the frame's slope state: last frame's slope, and the slopes
+	// blocks have to look out for (m_potentialSlopeMap)
+	slope.was = slope.on;
+	slope.on = false;
+	if (slope.keepPotential)
+		slope.keepPotential = false;
+	else
+		slope.potential = nullptr;
+	potentialSlopes.clear();
+	if (slope.potential)
+		potentialSlopes.push_back(slope.potential);
+	if (slope.current && slope.current != slope.potential)
+		potentialSlopes.push_back(slope.current);
+
 	// GJBaseGameLayer::checkCollisions puts a player below the mode floor back onto it before object
 	// collisions (postCollision then decides about grounding)
 	floorSnapped = gravBottom(*this) < gravFloor();
@@ -133,12 +147,81 @@ void Player::preCollision(bool pressed) {
 			velocity = 0;
 	}
 
-	potentialSlopes.clear();
+	// A flying player (or ball) put onto the mode's floor or ceiling is off any slope
+	if ((floorSnapped || ceilingSnapped) && vehicle.type != VehicleType::Cube)
+		slope.was = false;
+}
 
-	// Downhill slopes snap you automatically
-	if (slopeData.slope && slopeData.slope->gravOrient(*this) == 1) {
-		grounded = true;
+void Player::flipGravity(bool to) {
+	if (to != upsideDown && (slope.was || slope.on))
+		slope.downhill = !slope.downhill;
+	upsideDown = to;
+}
+
+void Player::setGdVelocity(double v) {
+	double whole = (int)v;
+	if (v != whole)
+		v = std::round((v - whole) * 1000.0) / 1000.0 + whole;
+	velocity = grav(v * 54);
+}
+
+/// Seconds on the current slope, GD's m_totalTime - m_slopeStartTime, scaled for the launch: 0.4 to 1
+/// over the first 0.1 s. GD's updateJump runs a step after this frame's collisions (nextStep).
+static double slopeTimeFactor(Player const& p, bool nextStep) {
+	double t = p.timeElapsed + (nextStep ? p.dt : 0) - p.slope.startTime;
+	if (t < (double)0.1f)
+		return std::max((double)0.4f, t * 10);
+	return 1;
+}
+
+void Player::leaveSlope() {
+	// PlayerObject::postCollision, on the frame after the last slope collision. GD's button state for
+	// this frame is the last frame's (see Slope.cpp)
+	bool held = vehicle.type == VehicleType::Ball ? prevPlayer().input : prevPlayer().button;
+	double v = gdVelocity();
+	float sv = slope.velocity;
+	bool launches = (sv < 0 && sv < v && slope.ceiling) || (0 < sv && v < sv && !slope.ceiling);
+	bool flyOrBall = vehicle.type != VehicleType::Cube;
+	if ((!boosted || flyOrBall) && launches) {
+		// Launched at the slope's speed (less in its first 0.1 s) if that's faster: boostPlayer
+		float b = (float)((double)sv * slopeTimeFactor(*this, false));
+		bool fire;
+		if (!upsideDown)
+			fire = (!slope.ceiling || !slope.downhill) ? v < b : b < v;
+		else
+			fire = (slope.ceiling || !slope.downhill) ? b < v : v < b;
+		if (fire) {
+			setGdVelocity(b);
+			velocityOverride = false;
+			grounded = false;
+			boosted = true;
+		}
+	} else if (!upsideDown ? sv < 0 : 0 < sv) {
+		// Off the bottom of a downhill slope: keeps falling at its speed
+		if (!boosted && !held && slope.ceiling == upsideDown) {
+			setGdVelocity((upsideDown ? -1 : 1) * -slope.yVelocity);
+			velocityOverride = false;
+			grounded = false;
+		}
 	}
+	slope.yVelocity = 0;
+	slope.velocity = 0;
+	slope.rotation = 0;
+	slope.current = nullptr;
+}
+
+void Player::slopeJump(float share) {
+	// PlayerObject::updateJump: jumping from a slope that would launch the player adds part of the
+	// launch, up to 1.4 times the jump
+	if (!(slope.was || slope.on) || !(0 < grav(slope.velocity)))
+		return;
+	setGdVelocity(gdVelocity());
+	double v = gdVelocity();
+	float cap = (float)(v * 1.399999976158142);
+	float add = vehicle.type == VehicleType::Ball ? slope.velocity : (float)((double)slope.velocity * slopeTimeFactor(*this, true));
+	setGdVelocity((double)(add * share) + v);
+	double nv = gdVelocity();
+	setGdVelocity(!upsideDown ? std::min(nv, (double)cap) : std::max(nv, (double)cap));
 }
 
 void Player::postCollision() {
@@ -156,6 +239,9 @@ void Player::postCollision() {
 
 	// After GD's floor snap, which runs before object collisions
 	applyResize();
+
+	if (slope.was && !slope.on)
+		leaveSlope();
 
 	// Fell through ceiling, or hit floor
 	if (pos.y > 1476.3 || (upsideDown && getBottom() < floor)) {
@@ -178,6 +264,7 @@ void Player::postCollision() {
 	bool coyoteJump = vehicle.type == VehicleType::Cube && !grounded && upsideDown && input && coyoteFrames < 10;
 	bool ufoJump = vehicle.type == VehicleType::Ufo && buffer;
 	bool groundedBefore = grounded;
+	bool boostedBefore = boosted;
 
 	vehicle.update(*this);
 
@@ -225,8 +312,14 @@ void Player::postCollision() {
 	if (roundVelocity)
 		velocity = roundVel(velocity, upsideDown);
 
-	if (slopeData.slope)
-		slopeData.slope->calc(*this);
+	// m_maybeIsBoosted ends when GD's updateJump finds the player falling (playerIsFallingBugged: y
+	// velocity below twice m_gravity, with the wrong sign upside down), except on the step of a jump
+	if (boosted && boostedBefore) {
+		static double const gravity[5] = {0.940199, 0.9581990242004395, 0.957199, 0.961199, 0.961199};
+		double g = gravity[speed], v = gdVelocity();
+		if (!upsideDown ? v < (double)((float)g + (float)g) : g + g < v)
+			boosted = false;
+	}
 
 	// Ensure the player hasn't gone beyond the bounds of the vehicle
 	vehicle.clamp(*this);
@@ -239,7 +332,7 @@ Player::Player() :
 	coyoteFrames(0), acceleration(0), velocity(0),
 	velocityOverride(false), button(false), input(false),
 	vehicleBuffer(false), upsideDown(false), small(false),
-	speed(1), slopeData({{}, 0, false}), hitPad(false), roundVelocity(true) {}
+	speed(1), hitPad(false), roundVelocity(true) {}
 
 
 

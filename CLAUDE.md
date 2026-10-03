@@ -41,6 +41,8 @@ hybrid search only keeps levels working meanwhile; the engine's share should shr
   `rollback(frame)`; every `Player` state is kept in `gameStates`. `Player.hpp` = full state.
 - `gd-sim/src/Objects/Object.cpp` - object id -> type + hitbox table (`Object::create`).
 - `gd-sim/src/Vehicle.cpp` - per-gamemode physics. `Objects/Slope.cpp`, `Block.cpp` - collisions.
+- `tools/offsets.py` - GD member offsets via the compiler; `tools/maincheck.sh 16 17` - replay
+  `build/re/main_<n>.gdr2` in the Debug sim and compare with the verifier's recording of it.
 - `gd-sim/test/test.cpp` -> `gd-sim-test.exe <level.lvl> <input.inp>`: prints `Frame N X Y Vel
   Accel Rot Coll` per frame (when `lvl.debug`), "Macro failed at frame N" on death (stderr).
 - `tools/` - helper scripts written for this work (below). `build/` is gitignored scratch;
@@ -67,9 +69,10 @@ job): restore/construct a GD state, `capture` it into the sim, step both with th
 report the first differing field; sweep inputs (hold lengths, speeds, sizes, gravity) to read
 constants off GD (y, velocity per tick); confirm the logic in Ghidra (`PlayerObject::updateJump`,
 `collidedWithObjectInternal`, ...); then fuzz random states until nothing differs. Order: fix
-`capture` drift; the sim's ship path in Hexagon Force (main:16) dies in GD at x 4265 (spike 145,
-speed 1.1), which hands the rest of that level to the slow engine (~100-700 steps/s there even
-optimised) - find that sim bug; then robot, spider, swing, dash orbs, spider pad/orb, teleport, dual, triggers.
+`capture` drift (it also refuses a player on a slope); then robot, spider, swing, dash orbs, spider
+pad/orb, teleport, dual, triggers. For checking a feature end to end, `pathfinder-cli` a main level
+that uses it (`gdtools level main:N`), verify the macro in GD and `compare`; batch levels are 1.x
+(no slopes or later features).
 New vehicles need `VehicleType` + `Vehicle.cpp`, portal ids in `Object.cpp`, `Player::modeString`
 letters (r p i), `capture` mapping, and the verifier's `realMode`.
 GD's fly-mode floor/ceiling are `GJBaseGameLayer::getMinPortalY/getMaxPortalY` (they depend on camera
@@ -103,6 +106,7 @@ Gotchas:
 ```powershell
 python tools\gdtools.py levels [filter]                 # levels in the GD save (local + saved online)
 python tools\gdtools.py level "Slopeman Adventures" -o build\re\x.lvl
+python tools\gdtools.py level main:16 -o build\re\x.lvl  # official level, from GD's Resources\levels
 python tools\gdtools.py gdr2 "<macro>.gdr2" -o build\re\x.inp           # header + sim input file
 build\gd-sim\Debug\gd-sim-test.exe build\re\x.lvl build\re\x.inp > build\re\x.sim.txt
 python tools\gdtools.py compare real.txt build\re\x.sim.txt   # first frame GD and sim disagree
@@ -116,8 +120,7 @@ Macros live in `%LOCALAPPDATA%\GeometryDash\geode\mods\eclipse.eclipse-menu\repl
 simulator runs 240 tps; a non-240 macro won't line up. GD's `real.txt` counts from 0 at reset and
 the sim's first line is frame 1; real frame N lines up with sim frame N+1, so use
 `compare --shift 1`. After a death GD keeps recording the frozen player, so the real death frame is
-where X stops changing. Official levels (Stereo Madness etc.) aren't in the save, so `level` can't
-extract them.
+where X stops changing.
 
 ## In-game debug loop (Debug build)
 
@@ -211,7 +214,14 @@ tools\ghidra\ghidra.ps1 decomp out.c PlayerObject::updateJump 0x38f810 asm:0x388
 tools\ghidra\ghidra.ps1 xrefs out.txt PlayerObject::flipGravity 0x14012345   # callers / refs
 tools\ghidra\ghidra.ps1 find out.txt "PlayerObject::.*slope"                 # regex over names
 python tools\gdtools.py sym 0x38f9a0 "GJBaseGameLayer::collision"            # instant, no Ghidra
+python tools\offsets.py PlayerObject --all > build\re\PlayerObject.offsets.txt  # member offsets
+python tools\gdtools.py annotate build\re\out.c param_1=PlayerObject param_3=GameObject -o named.c
 ```
+- `offsets.py` gets member offsets from the compiler (failing `static_assert(offsetof)` probes built
+  with the mod's recorded clang-cl command line; needs one Debug build). `--match slope` filters;
+  only members the class itself declares in the .bro (query base classes separately).
+- `annotate` renames `param_1 + 0x9a0`, `param_1[0x134]` (scaled by the declared pointer type) and
+  `(longlong)param_1 + 0x9bf` to member names, per function, from those tables.
 - Output goes to `build\re\<out>`; read it with Read/Grep (decomps are long - grep offsets).
 - ~10-15 s per invocation (JVM + project open), so **batch several targets per call**.
 - Fails with "locked" if the user has the project open in the Ghidra GUI - ask them to close it.
@@ -228,8 +238,20 @@ python tools\gdtools.py sym 0x38f9a0 "GJBaseGameLayer::collision"            # i
 
 ## Verified GD behaviour
 
-Offsets are `PlayerObject` members in 2.2081: `0x9a0` = y velocity (double, gravity-relative),
+Offsets are `PlayerObject` members in 2.2081: `0x9a0` = y velocity (double, positive = up in the
+world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-relative and 54x),
 `0x9bf` = upside down.
+- Slopes (type 25) are ported 1:1 in `Objects/Slope.cpp` (`preSlopeCollision`,
+  `collidedWithSlopeInternal`), `Player::leaveSlope` (`postCollision`), `Player::slopeJump`
+  (`updateJump`) and `Block::collideBlock` (`collidedWithObjectInternal`'s slope parts); comments
+  there explain them. GD collides slopes in object order with pads/orbs/portals, before blocks, with a
+  broadphase rect at twice their size. A flying player holding on an uphill slope gets y velocity >= 2
+  and isn't landed, so it rides the surface and keeps its speed off the top; leaving a slope launches
+  at `min(0.8 / angle, 1.1) * rise * 1.4` (x0.75 fly/ball, ramped 0.4 -> 1 over the first 0.1 s) if
+  that's faster. Pads clear the slope flags; `flipGravity` flips which way is downhill.
+- `m_speedMultiplier` (`updateTimeMod`) is 5.980002 / 5.7700018882751465 / 5.870002 / 6.000002 /
+  6.000002 for m_playerSpeed 0.7 / 0.9 / 1.1 / 1.3 / 1.6, so x per step = speed * mult * 60 / 240
+  (the sim's `player_speeds`). `m_gravity` 0.940199 / 0.958199 / 0.957199 / 0.961199 / 0.961199.
 - Landing on a block (`PlayerObject::collidedWithObjectInternal`) needs y velocity <= 0; with
   positive velocity GD only handles moving blocks. It lands if the player's bottom is at most
   `clip + distance fallen this step` below the block top (clip 10; 6 for ship/ufo/wave/swing; 5 in

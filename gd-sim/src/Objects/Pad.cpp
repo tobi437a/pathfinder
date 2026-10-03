@@ -102,7 +102,7 @@ void Pad::collide(Player& p) const {
 			p.walkedOff = true;
 		}
 
-		p.upsideDown = flipsToUpsideDown;
+		p.flipGravity(flipsToUpsideDown);
 
 		if (p.vehicle.type == VehicleType::Wave)
 			p.velocity = -p.velocity;
@@ -114,6 +114,9 @@ void Pad::collide(Player& p) const {
 	p.grounded = false;
 	p.gravityPortal = false;
 	p.hitPad = true;
+	// PlayerObject::propellPlayer: launched, and off any slope
+	p.boosted = true;
+	p.slope.on = p.slope.was = false;
 
 	EffectObject::collide(p);
 

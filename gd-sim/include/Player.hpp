@@ -9,7 +9,7 @@
 #include <optional>
 
 
-/// Player X velocity per speed
+/// Player X velocity per speed: GD's m_playerSpeed (float) * m_speedMultiplier * 60
 inline double player_speeds[5] = {
 	251.16007972276924,
 	311.580093712804,
@@ -47,22 +47,38 @@ struct Player : public Entity {
 	/// See util.hpp for what cow_set is
 	cow_set<int> usedEffects;
 
-	// Potential slopes are important for block collisions. Reset per frame.
+	/// GD's m_potentialSlopeMap: slopes near the player this frame. A block whose top (or bottom) one of
+	/// them covers isn't landed on (or hit with the head). Rebuilt every frame, see Player::preCollision.
 	std::vector<Slope const*> potentialSlopes;
 
 	/// Actions will be ran at the beginning of every frame.
 	std::vector<std::function<void(Player&)>> actions;
 
-	/// Slopes have special collision rules. See Slope.cpp for more information.
-	struct {
-		std::optional<Slope> slope;
+	/// GD's slope state (PlayerObject members named in the comments). Velocities are in GD units
+	/// (sim velocity / 54, positive = up in the world), y values in GD coordinates (sim y + 90).
+	struct SlopeState {
+		Slope const* current = nullptr;   // m_currentSlope
+		Slope const* potential = nullptr; // m_currentPotentialSlope
+		bool keepPotential = false;       // !m_unk669: keep `potential` for another frame
+		bool on = false;                  // m_isOnSlope: a slope collision this frame
+		bool was = false;                 // m_wasOnSlope: one last frame
+		bool head = false;                // m_maybeUpsideDownSlope: the slope is on the player's head side
+		bool ceiling = false;             // m_isCurrentSlopeTop: the slope's solid part is on top
+		bool downhill = false;            // m_slopeFlipGravityRelated: downhill relative to gravity
+		bool topClamped = false;          // m_unk3e0: put at the slope's high end
+		bool bottomClamped = false;       // m_unk3e1: put at its low end
+		int collidingId = -1;             // m_collidingWithSlopeId
+		float velocity = 0;               // m_slopeVelocity: the launch speed leaving its top
+		float angle = 0;                  // m_slopeAngleRadians
+		double yVelocity = 0;             // m_currentSlopeYVelocity: rise per step along it
+		double startTime = 0;             // m_slopeStartTime
+		double rotation = 0;              // m_slopeRotation: signed angle (radians)
+		double target = 0;                // m_unk3d0: the y the last slope collision put the player at
+		double clipExtra = 0;             // unk_584: extra half height on the slope, widens block landing
+	} slope;
 
-		/// Time on slope
-		double elapsed;
-
-		/// When colliding with a downhill slope with a positive velocity.
-		bool snapDown;
-	} slopeData;
+	/// m_maybeIsBoosted: launched upwards (jump, pad, orb, slope) and not yet falling
+	bool boosted = false;
 
 	/// X-snapping. See Block.cpp for more information
 	struct {
@@ -186,6 +202,18 @@ struct Player : public Entity {
 	inline float gravCeiling() const { return upsideDown ? -floor : ceiling; }
 
 	void setVelocity(double v, bool override=false);
+
+	/// PlayerObject::flipGravity's slope part: a player on a slope flips which way is downhill
+	void flipGravity(bool upsideDown);
+
+	/// GD's y velocity (m_yVelocity: GD units, positive = up in the world) and setYVelocity (rounds to 1/1000)
+	double gdVelocity() const { return grav(velocity) / 54; }
+	void setGdVelocity(double v);
+
+	/// PlayerObject::postCollision on leaving a slope: the launch off its top, or the fall off its bottom
+	void leaveSlope();
+	/// PlayerObject::updateJump: part (share) of a slope's launch added to a jump from it
+	void slopeJump(float share);
 
 	/// Move by dy, rounding y like GD does
 	void moveY(double dy);

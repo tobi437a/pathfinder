@@ -10,7 +10,7 @@ void GravityPortal::collide(Player& p) const {
 	if (upsideDown != p.upsideDown) {
 		// Gravity portals halve the velocity
 		p.velocity = -p.velocity / 2;
-		p.upsideDown = upsideDown;
+		p.flipGravity(upsideDown);
 		p.gravityPortal = true;
 	}
 }

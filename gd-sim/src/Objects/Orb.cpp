@@ -117,6 +117,7 @@ void Orb::collide(Player& p) const {
 			} else {
 				p.velocity = orb_velocities.get(type, p.vehicle.type, p.small , std::min(3, p.speed));
 				p.grounded = false;
+				p.boosted = true;
 
 				if (type == OrbType::Green) {
 					p.velocityOverride = true;
@@ -125,7 +126,7 @@ void Orb::collide(Player& p) const {
 		}
 
 		if (type == OrbType::Blue || type == OrbType::Green) {
-			p.upsideDown = !p.upsideDown;
+			p.flipGravity(!p.upsideDown);
 		}
 
 		// Clicking on an orb as ball essentially removes the input

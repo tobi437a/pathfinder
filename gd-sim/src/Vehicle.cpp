@@ -105,18 +105,11 @@ Vehicle cube() {
 				606.421728
 			};
 
-			// On slopes, you jump higher depending on how long you've been on the slope
-			if (p.slopeData.slope && p.slopeData.slope->orientation == 0) {
-				auto time = std::clamp(10 * (p.timeElapsed - p.slopeData.elapsed), 0.4, 1.0);
-				double vel = 0.9 * std::min(1.12 / p.slopeData.slope->angle(), 1.54) * (p.slopeData.slope->size.y * player_speeds[p.speed] / p.slopeData.slope->size.x);
-				p.setVelocity(0.25 * time * vel + jumpHeights[p.speed], p.prevPlayer().input);
-
-				//p.velocity = std::floor(1000 * p.velocity / 54.) * 54 / 1000.;
-				p.grounded = false;
-			} else {
-				p.setVelocity(jumpHeights[p.speed], p.prevPlayer().input);
-				p.grounded = false;
-			}
+			p.setVelocity(jumpHeights[p.speed], p.prevPlayer().input);
+			p.grounded = false;
+			p.boosted = true;
+			// Jumping off a slope adds a quarter of its launch
+			p.slopeJump(0.25f);
 		}
 	};
 
@@ -224,7 +217,7 @@ Vehicle ball() {
 			// Hitting the ceiling with the button held flips the ball, which uses up the click. GD's hitGround
 			// only counts the ceiling as ground when the ball reaches it at y velocity <= 5 (270 here).
 			if (p.input && hitVelocity <= 270) {
-				p.upsideDown = !p.upsideDown;
+				p.flipGravity(!p.upsideDown);
 				p.input = false;
 				p.buffer = false;
 			} else {
@@ -276,17 +269,21 @@ Vehicle ball() {
 				-181.92601
 			};
 
-			double newVel = jumpHeights[p.speed];
-
-			if (p.slopeData.slope && p.slopeData.slope->orientation == 0) {
-				auto slope = p.slopeData.slope;
-
-				// Ball doesn't round, leading to very silly results
-				newVel -= p.grav(0.300000001 * roundVel(0.16875 * std::min(1.12 / slope->angle(), 1.54) * (slope->size.y * player_speeds[p.speed] / slope->size.x), p.upsideDown));
+			bool slopeBoost = (p.slope.was || p.slope.on) && 0 < p.grav(p.slope.velocity);
+			bool override = p.prevPlayer().buffer || p.vehicleBuffer;
+			if (slopeBoost) {
+				// GD jumps up (rounded), adds a quarter of the slope's launch (up to 1.4 times the jump), then
+				// flips gravity (half the velocity) and takes 0.6 of it, unrounded
+				p.setVelocity(-jumpHeights[p.speed] / (0.5 * 0.6000000238418579), override);
+				p.slopeJump(0.25f);
+				double v = p.gdVelocity() * 0.5 * 0.6000000238418579;
+				p.flipGravity(!p.upsideDown);
+				p.velocity = p.grav(v * 54);
+			} else {
+				p.flipGravity(!p.upsideDown);
+				p.setVelocity(jumpHeights[p.speed], override);
 			}
-
-			p.upsideDown = !p.upsideDown;
-			p.setVelocity(newVel, p.prevPlayer().buffer || p.vehicleBuffer);
+			p.boosted = true;
 			p.vehicleBuffer = false;
 			p.buffer = false;
 			p.input = false;

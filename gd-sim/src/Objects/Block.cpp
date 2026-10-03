@@ -91,11 +91,16 @@ void trySnap(Block const& b, Player& p) {
 }
 
 void Block::collide(Player& p) const {
+	collideBlock(p, false);
+}
+
+void Block::collideBlock(Player& p, bool bare) const {
 	// The maximum amount the player can dip below block while still being snapped up. GD
 	// (collidedWithObjectInternal) allows 10 (6 for ship/ufo), plus however far the player fell this
-	// frame.
+	// frame, plus on a slope the extra half height its angle gives the player.
+	double slopeClip = p.slope.was ? p.slope.clipExtra : 0;
 	double landClip = (p.vehicle.type == VehicleType::Ufo || p.vehicle.type == VehicleType::Ship) ? 6 : 10;
-	landClip += std::max(0.0, -(double)p.grav(p.pos.y - p.prevPlayer().pos.y));
+	landClip += slopeClip + std::max(0.0, -(double)p.grav(p.pos.y - p.prevPlayer().pos.y));
 
 	// When hitting blue orbs, there is a single frame where block collisions arent done. A blue pad pushes
 	// the player towards the new floor, which GD lands it on in the same step if it reaches it (see
@@ -104,35 +109,38 @@ void Block::collide(Player& p) const {
 	if (p.upsideDown != prev.upsideDown && !p.gravityPortal && !p.hitPad)
 		return;
 
-	/*
-		Going from slope to block means you have to check the bottom of the player
-		adjusted for the angle of the slope
-	*/
 	double bottom = p.gravBottom(p);
-	if (p.slopeData.slope) {
-		if (p.slopeData.slope->angle() > 0) {
-			bottom = bottom + sin(p.slopeData.slope->angle()) * p.size.y / 2;
-			landClip = 7;
 
-			// Prevent block from catching on slope when it shouldn't
-			// TODO this should probably go somewhere else...
-			if (p.gravTop(*this) - bottom < 2) {
-				return;
-			}
+	// A slope near the player whose surface covers this block's top (bottom) means the player isn't
+	// landing on (hitting its head on) the block (GD walks m_potentialSlopeMap). Unless the player is on a
+	// slope or this is a slope's side, only slopes over the block's centre count; a ceiling slope only
+	// covers a bottom and a floor slope a top, unless it's the player's slope.
+	bool coverTop = false, coverBottom = false;
+	if (p.slope.on || p.slope.was || !p.potentialSlopes.empty()) {
+		bool any = p.slope.on || p.slope.was || bare;
+		GDRect block = GDRect::of(*this), player = GDRect::of(p);
+		for (Slope const* s : p.potentialSlopes) {
+			if (!any && s != p.slope.current && !(s->getLeft() < pos.x && pos.x < s->getRight()))
+				continue;
+			GDRect sr = GDRect::of(*s, 1.2f, 1.1f);
+			if (!sr.intersects(block) || !sr.intersects(player))
+				continue;
+			double sy = s->surfaceY(s->uphill != s->ceiling() ? block.minX() : block.maxX());
+			bool mine = s == p.slope.current;
+			if (block.maxY() <= sy + 2 && (!s->ceiling() || mine))
+				coverTop = true;
+			if (sy - 2 <= block.minY() && (s->ceiling() || mine))
+				coverBottom = true;
+			if (coverTop && coverBottom)
+				break;
 		}
 	}
-
-	for (auto& entity : p.potentialSlopes) {
-		auto block_comp = entity->orientation < 2 ? getTop() : getBottom();
-		auto slope_comp = entity->orientation < 2 ? entity->getBottom() : entity->getTop();
-
-		if (block_comp - slope_comp < 2) {
-			return;
-		}
-	}
+	bool coverFeet = p.upsideDown ? coverBottom : coverTop;
+	bool coverHead = p.upsideDown ? coverTop : coverBottom;
 
 	// An orb clicked this frame (orbs run before blocks here) still lands the player on the block.
-	// Pads and gravity portals don't: GD only lands when moving towards the block (yVelocity <= 0).
+	// Pads and gravity portals don't: GD only lands when moving towards the block (yVelocity <= 0), or
+	// when it was on a slope last frame.
 	bool padHitBefore = (!p.gravityPortal && !p.hitPad && !p.prevPlayer().grounded && p.prevPlayer().velocity <= 0 && p.velocity > 0);
 
 	// A grounded cube flipped by a gravity portal has GD's walk-off velocity times -0.5 (positive) by now,
@@ -147,7 +155,7 @@ void Block::collide(Player& p) const {
 	if (p.innerHitbox().intersects(*this)) {
 		// Hitting block head-on
 		p.dead = true;
-	} else if (p.vehicle.type != VehicleType::Wave && p.gravTop(*this) - bottom <= landClip && (padHitBefore || p.velocity <= 0) && !flippedOffGround) {
+	} else if (p.vehicle.type != VehicleType::Wave && p.gravTop(*this) - bottom <= landClip && (padHitBefore || p.velocity <= 0 || p.slope.was) && !flippedOffGround && !coverFeet) {
 		p.pos.y = p.grav(p.gravTop(*this)) + p.grav(p.size.y / 2);
 		p.applyResize();
 
@@ -155,13 +163,8 @@ void Block::collide(Player& p) const {
 		if (!padHitBefore)
 			p.grounded = true;
 
-		// If on a downhill slope and hits a block, the player is no longer on that slope.
-		if (p.slopeData.slope && p.slopeData.slope->angle() < 0) {
-			p.slopeData.slope = {};
-		}
-
 		// X-snapping
-		if (p.vehicle.type == VehicleType::Cube) {
+		if (p.vehicle.type == VehicleType::Cube && !bare) {
 			if (!p.prevPlayer().grounded) {
 				if (p.snapData.playerFrame > 0 && p.snapData.playerFrame + 1 < p.frame)
 					trySnap(*this, p);
@@ -175,15 +178,15 @@ void Block::collide(Player& p) const {
 		// Ship and ufo can hit the ceiling of a block without dying
 		// Same tolerance as landing: 10 (6 for ship/ufo) plus how far the player rose this frame
 		if (p.vehicle.type == VehicleType::Ship || p.vehicle.type == VehicleType::Ufo || p.vehicle.type == VehicleType::Ball) {
-			double headClip = (p.vehicle.type == VehicleType::Ball ? 10 : 6) + std::max(0.0, (double)p.grav(p.pos.y - p.prevPlayer().pos.y));
+			double headClip = (p.vehicle.type == VehicleType::Ball ? 10 : 6) + slopeClip + std::max(0.0, (double)p.grav(p.pos.y - p.prevPlayer().pos.y));
 			// GD checks velocity >= 0: 0 counts when another block's head hit or a landing zeroed it this
 			// frame, or for a grounded ship, ufo or ball that a gravity portal flipped in place (GD resolved the block before the portal), but not for a player
 			// walking off (GD has already applied that step's gravity)
 			bool flippedOnGround = p.gravityPortal && p.vehicle.type != VehicleType::Cube && p.prevPlayer().grounded;
 			// A landing this frame counts whatever the sim's velocity is: GD zeroes it when landing.
 			// So does a snap onto the mode floor this frame.
-			bool rising = p.velocity > 0 || p.grounded || p.floorSnapped || (p.velocity == 0 && (p.prevPlayer().velocity > 0 || flippedOnGround));
-			if (p.gravTop(p) - p.gravBottom(*this) <= headClip && rising) {
+			bool rising = p.velocity > 0 || p.grounded || p.floorSnapped || p.slope.was || (p.velocity == 0 && (p.prevPlayer().velocity > 0 || flippedOnGround));
+			if (p.gravTop(p) - p.gravBottom(*this) <= headClip && rising && !coverHead) {
 				if (!stopsHead(p)) {
 					p.dead = true;
 				} else {
