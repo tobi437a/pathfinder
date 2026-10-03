@@ -85,10 +85,6 @@ void Pad::collide(Player& p) const {
 		if ((rot > 90 && !p.upsideDown) || (rot < 90 && p.upsideDown))
 			return;
 
-		// Can't flip twice in a frame with blue pad
-		if (p.upsideDown != p.prevPlayer().upsideDown)
-			return;
-
 		p.upsideDown = !p.upsideDown;
 
 		if (p.vehicle.type == VehicleType::Wave)
