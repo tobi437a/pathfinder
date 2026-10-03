@@ -137,7 +137,7 @@ void Player::postCollision() {
 		// walks off first (unless an orb or pad launched it), since GD handles the press one step later.
 		bool shipPress = vehicle.type == VehicleType::Ship && button && !prevPlayer().button && velocity == 0;
 		double shipFall = small ? -1051.8984 : -894.11464;
-		if (!grounded && prevPlayer().grounded && ((!input && (prevPlayer().button || !button)) || buffer || coyoteJump || shipPress) && prevPlayer().gravBottom(*this) > prevPlayer().gravFloor() && size == prevPlayer().size && prevPlayer().velocity == 0 && !(gravityPortal && vehicle.type == VehicleType::Ship)) {
+		if (!grounded && prevPlayer().grounded && ((!input && (prevPlayer().button || !button)) || buffer || coyoteJump || shipPress) && prevPlayer().gravBottom(*this) > prevPlayer().gravFloor() && prevPlayer().velocity == 0 && !(gravityPortal && vehicle.type == VehicleType::Ship)) {
 			// The level's first frame has no previous acceleration. A ufo's previous acceleration was
 			// chosen for its velocity before landing; GD falls with the one for velocity 0 (this frame's).
 			double fallAccel = prevPlayer().acceleration;
