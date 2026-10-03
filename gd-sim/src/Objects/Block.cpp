@@ -194,7 +194,8 @@ void Block::collideBlock(Player& p, bool bare) const {
 			bool flippedOnGround = p.gravityPortal && p.vehicle.type != VehicleType::Cube && p.prevPlayer().grounded;
 			// A landing this frame counts whatever the sim's velocity is: GD zeroes it when landing.
 			// So does a snap onto the mode floor this frame.
-			bool rising = p.velocity > 0 || p.grounded || p.floorSnapped || p.slope.was || (p.velocity == 0 && (p.prevPlayer().velocity > 0 || flippedOnGround));
+			// A flying player whose velocity just reached 0 (a ship slowing its fall) counts too.
+			bool rising = p.velocity > 0 || p.grounded || p.floorSnapped || p.slope.was || (p.velocity == 0 && (p.prevPlayer().velocity > 0 || flippedOnGround || !p.prevPlayer().grounded));
 			if (p.gravTop(p) - p.gravBottom(*this) <= headClip && rising && !coverHead) {
 				if (!stopsHead(p)) {
 					p.dead = true;
