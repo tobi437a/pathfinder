@@ -179,6 +179,11 @@ Offsets are `PlayerObject` members in 2.2081: `0x9a0` = y velocity (double, grav
   gravity portal or a pad. The sim (`Block::collide`) still lands the player on the frame of an orb
   click (`padHitBefore`).
 - `PlayerObject::flipGravity` multiplies y velocity by -0.5.
+- The player's hitbox rect is cached and only recomputed after it is marked dirty (`setPosition`,
+  `setScale`). `togglePlayerScale` sets the scale fields without dirtying it (it animates the
+  sprite instead), so after a size portal the old size is still used for the rest of that step's
+  portals and blocks until a block snap moves the player, e.g. standing on two blocks: the first
+  snaps with the old size, the second with the new one. The sim models this with `resizePending`.
 - Cube X-snap (`PlayerObject::checkSnapJumpToObject`, called on cube block landings): from the
   previous snap block to the new one, (dx, dy) = (A, +30), (B, -30) or (C, +60) within T snaps
   x to `new.x + offset` (clamped to +-T), offset = player x - block x stored at each call.

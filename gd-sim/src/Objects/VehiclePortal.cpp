@@ -29,6 +29,7 @@ void VehiclePortal::collide(Player& player) const {
 
 	if (player.vehicle.type != type) {
 		player.size = Vec2D(30, 30) * (player.small ? 0.6 : 1);
+		player.resizePending = false;
 
 		// Going from wave to any other vehicle changes the velocity		
 		if (player.vehicle.type == VehicleType::Wave)

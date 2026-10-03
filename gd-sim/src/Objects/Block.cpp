@@ -134,6 +134,7 @@ void Block::collide(Player& p) const {
 		p.dead = true;
 	} else if (p.vehicle.type != VehicleType::Wave && p.gravTop(*this) - bottom <= landClip && (padHitBefore || p.velocity <= 0)) {
 		p.pos.y = p.grav(p.gravTop(*this)) + p.grav(p.size.y / 2);
+		p.applyResize();
 
 		// After an orb click, the next frame will cause the player to slightly dip into the block
 		if (!padHitBefore)
@@ -165,6 +166,7 @@ void Block::collide(Player& p) const {
 				} else {
 					p.pos.y = p.grav(p.gravBottom(*this)) - p.grav(p.size.y / 2);
 					p.velocity = 0;
+					p.applyResize();
 				}
 			}
 		}

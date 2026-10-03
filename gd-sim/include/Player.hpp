@@ -113,6 +113,10 @@ struct Player : public Entity {
 	/// A pad was touched this frame (pads, unlike orbs, don't snap the player onto a block)
 	bool hitPad;
 
+	/// GD caches the player's hitbox, so a size portal's new size only shows once the player is moved
+	/// (e.g. snapped onto a block) or at the end of the frame
+	bool resizePending = false;
+
 	/// Whether velocity at the end of the frame is to be rounded (typically used by ball)
 	bool roundVelocity;
 
@@ -139,6 +143,9 @@ struct Player : public Entity {
 	inline float gravCeiling() const { return upsideDown ? -floor : ceiling; }
 
 	void setVelocity(double v, bool override=false);
+
+	/// Apply a size portal's size change if it hasn't been yet (see resizePending)
+	void applyResize();
 
 	/// Vehicle letter (c s b u w) + u upside down, m mini, g grounded. Used in debug traces.
 	std::string modeString() const;

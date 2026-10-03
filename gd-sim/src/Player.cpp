@@ -22,6 +22,13 @@ void Player::setVelocity(double v, bool override) {
 		grounded = false;
 }
 
+void Player::applyResize() {
+	if (resizePending) {
+		size = small ? (size * 0.6) : (size / 0.6);
+		resizePending = false;
+	}
+}
+
 std::string Player::modeString() const {
 	std::string mode(1, "csbuw"[(int)vehicle.type]);
 	if (upsideDown) mode += 'u';
@@ -93,11 +100,8 @@ void Player::postCollision() {
 		}
 	}
 
-	// Size portal only affects hitbox size at the end of frame (after GD's floor snap, which runs
-	// before object collisions)
-	if (small != prevPlayer().small) {
-		size = small ? (size * 0.6) : (size / 0.6);
-	}
+	// After GD's floor snap, which runs before object collisions
+	applyResize();
 
 	// Fell through ceiling, or hit floor
 	if (pos.y > 1476.3 || (upsideDown && getBottom() < floor)) {
