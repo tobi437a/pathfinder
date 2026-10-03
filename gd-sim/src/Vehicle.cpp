@@ -212,11 +212,17 @@ Vehicle ball() {
 		if (p.velocity <= -810)
 			p.velocity = -810;
 
-		if (p.grav(p.pos.y) >= p.gravCeiling() && p.velocity > 0) {
+		// GD stops the ball with its top at the ceiling
+		if (p.gravTop(p) >= p.gravCeiling() && p.velocity > 0) {
+			p.pos.y = p.grav(p.gravCeiling()) - p.grav(p.size.y / 2);
 			p.setVelocity(0, true);
 
-			if (p.input)
+			// Hitting the ceiling with the button held flips the ball, which uses up the click
+			if (p.input) {
 				p.upsideDown = !p.upsideDown;
+				p.input = false;
+				p.buffer = false;
+			}
 		}
 	};
 
