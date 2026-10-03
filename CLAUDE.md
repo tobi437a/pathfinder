@@ -126,18 +126,21 @@ frame + positions, max diff) and `verify\<level>\real.txt`, `sim.txt`, `level.lv
 
 ```powershell
 cmake --build build --config Release --target pathfinder-cli   # standalone pathfinder (no Geode)
-python tools\batch.py fetch [--max-id 1619692]   # rated levels with id <= max-id from the GD servers
+python tools\batch.py fetch                      # 500 rated 1.8 levels from the GD servers -> index.json
 python tools\batch.py download                   # level data for candidates
 python tools\batch.py pathfind [--time-limit 120] [--jobs 14]
 python tools\batch.py verify                     # every macro through tools\verify.ps1 (GD minimised)
 python tools\batch.py report                     # build\re\batch\report.md, sim bugs first
 ```
-- Candidates are levels whose server `gameVersion` (field 13 = GD version of the *last* upload, so
-  updates bump it) is <= 11: 7 = early 1.x, 10/11 = 1.7, 18 = 1.8, 20 = 2.0, 22 = 2.2.
-  Giant level (1619692), the last level rated in 1.7, has gameVersion 21 while its version field
-  (5 / save `k16`) is still 1, so the version field doesn't reveal updates; gameVersion does.
+- The batch is 1.8 levels (dual, slopes): `fetch` takes rated levels with ids `--min-id`..`--max-id`
+  (1628620..2808696, first and last rated in 1.8), keeps those whose server `gameVersion` is in
+  `--game-versions` (18), and writes `--count` (500) of them, evenly spread by id, to `index.json`.
+  gameVersion (field 13) is the GD version of the *last* upload, so updates bump it: 7 = early 1.x,
+  10/11 = 1.7, 18 = 1.8, 19 = 1.9, 20 = 2.0, 22 = 2.2. The version field (5 / save `k16`) doesn't
+  reveal updates (Giant level, last rated in 1.7: gameVersion 21, version 1).
 - The search (`getGJLevels21`, `type=4 star=1`) is rated levels newest id first, 10 per page;
-  `fetch` binary-searches the page where ids drop below `--max-id`. Requests are spaced 1 s apart.
+  `fetch` binary-searches the pages where ids cross `--max-id` and `--min-id`. Requests are spaced
+  2 s apart (1 s gets 429s).
 - Stages cache per level under `build\re\batch\` and skip finished levels (`--redo`, `--ids 1,2`).
   `fetch` caches pages too; `fetch --cached-only` indexes just the pages fetched so far.
   `verify --import-only` collects results of a GD run whose batch.py was interrupted.

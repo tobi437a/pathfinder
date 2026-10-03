@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 """Batch-test the pathfinder + simulator on rated online levels against real GD.
 
-  python tools/batch.py fetch [--max-id 1619692] [--cached-only]   rated levels with id <= max-id -> index.json
+  python tools/batch.py fetch [--min-id 1628620 --max-id 2808696 --game-versions 18 --count 500] [--cached-only]
+                                                     rated levels in the id range -> index.json
   python tools/batch.py download                     candidates' level data (raw response + .lvl)
   python tools/batch.py pathfind [--time-limit 120] [--jobs 14]   pathfinder-cli on each candidate
   python tools/batch.py verify [--chunk 200] [--import-only]   play every macro in GD (tools/verify.ps1)
   python tools/batch.py report                       table of results, worst first -> report.md
 
-Candidates are levels whose gameVersion (GD version of their last upload) is <= --max-game-version
-(default 11: 7 = early 1.x, 10/11 = 1.7, 18 = 1.8, ...), so levels updated later are skipped.
+fetch keeps levels whose gameVersion (GD version of their last upload: 7 = early 1.x, 10/11 = 1.7,
+18 = 1.8, 19 = 1.9, ...) is in --game-versions, so levels updated in a later GD are skipped, and
+writes --count of them, evenly spread over the id range, to index.json: the candidates.
 Every stage caches per level and skips what's done (--redo to force); --ids 123,456 limits a stage.
 Data lives in build/re/batch/ (gitignored): index.json, levels/<id>.txt|.lvl, runs/<id>/.
 Needs build/Release/pathfinder-cli.exe:  cmake --build build --config Release --target pathfinder-cli
@@ -98,8 +100,7 @@ def load_index():
 
 
 def candidates(args, index=None):
-    index = index or load_index()
-    out = [l for l in index if int(l.get("13", 0)) <= args.max_game_version]
+    out = index or load_index()
     if args.ids:
         ids = set(args.ids.split(","))
         out = [l for l in out if l["1"] in ids]
@@ -123,35 +124,42 @@ def cmd_fetch(a):
         last = (total - 1) // 10
         print(f"{total} rated levels, {last + 1} pages")
 
-        lo, hi = 0, last  # first page whose last (smallest) id is <= max-id
-        while lo < hi:
-            mid = (lo + hi) // 2
-            levels, _ = search_page(mid)
-            if levels and int(levels[-1]["1"]) > a.max_id:
-                lo = mid + 1
-            else:
-                hi = mid
-        print(f"ids <= {a.max_id} start on page {lo}; fetching {last - lo + 1} pages")
-        pages = range(lo, last + 1)
+        def first_page(max_id):  # first page whose last (smallest) id is <= max_id
+            lo, hi = 0, last
+            while lo < hi:
+                mid = (lo + hi) // 2
+                levels, _ = search_page(mid)
+                if levels and int(levels[-1]["1"]) > max_id:
+                    lo = mid + 1
+                else:
+                    hi = mid
+            return lo
+        lo, hi = first_page(a.max_id), first_page(a.min_id - 1)
+        print(f"ids {a.min_id}..{a.max_id} are on pages {lo}..{hi}; fetching {hi - lo + 1} pages")
+        pages = range(lo, hi + 1)
 
     seen = {}
     for page in pages:
         for l in search_page(page)[0]:
-            if int(l["1"]) <= a.max_id:
+            if a.min_id <= int(l["1"]) <= a.max_id:
                 l.pop("3", None)  # description
                 seen[l["1"]] = l
         print(f"\r  page {page}: {len(seen)} levels", end="", flush=True)
     print()
 
-    index = sorted(seen.values(), key=lambda l: int(l["1"]))
+    fetched = sorted(seen.values(), key=lambda l: int(l["1"]))
+    by_gv = {}
+    for l in fetched:
+        by_gv[l.get("13")] = by_gv.get(l.get("13"), 0) + 1
+    print(f"{len(fetched)} rated levels with ids {a.min_id}..{a.max_id}")
+    print("gameVersion counts:", dict(sorted(by_gv.items(), key=lambda kv: int(kv[0] or 0))))
+    versions = {int(v) for v in a.game_versions.split(",")}
+    eligible = [l for l in fetched if int(l.get("13", 0)) in versions]
+    n = min(a.count, len(eligible))
+    index = [eligible[i * len(eligible) // n] for i in range(n)]
     DATA.mkdir(parents=True, exist_ok=True)
     (DATA / "index.json").write_text(json.dumps(index, indent=1), encoding="utf-8")
-    by_gv = {}
-    for l in index:
-        by_gv[l.get("13")] = by_gv.get(l.get("13"), 0) + 1
-    print(f"{len(index)} levels -> {DATA / 'index.json'}")
-    print("gameVersion counts:", dict(sorted(by_gv.items(), key=lambda kv: int(kv[0] or 0))))
-    print(f"candidates (gameVersion <= {a.max_game_version}): {len(candidates(a, index))}")
+    print(f"{len(eligible)} with gameVersion in {sorted(versions)}; {len(index)} of them -> {DATA / 'index.json'}")
 
 
 def cmd_download(a):
@@ -284,7 +292,7 @@ def cmd_report(a):
     counts = {}
     for r in rows:
         counts[r[1]] = counts.get(r[1], 0) + 1
-    lines = [f"# Batch report ({len(rows)} candidate levels of {len(index)} fetched)", ""]
+    lines = [f"# Batch report ({len(rows)} of {len(index)} candidate levels)", ""]
     lines += [f"- {cat}: {n}" for cat, n in sorted(counts.items(), key=lambda kv: min(r[0] for r in rows if r[1] == kv[0]))]
     lines += ["", "| category | id | name | gv | sim | sim % | GD | GD frames | diverge frame | diverge x | max diff |",
               "|---|---|---|---|---|---|---|---|---|---|---|"]
@@ -307,11 +315,13 @@ def cmd_report(a):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--max-game-version", type=int, default=11)
     ap.add_argument("--ids", help="comma-separated level ids to limit a stage to")
     ap.add_argument("--redo", action="store_true", help="redo levels that already have results")
     sub = ap.add_subparsers(dest="cmd", required=True)
-    p = sub.add_parser("fetch"); p.add_argument("--max-id", type=int, default=1619692)
+    p = sub.add_parser("fetch"); p.add_argument("--min-id", type=int, default=1628620)
+    p.add_argument("--max-id", type=int, default=2808696)
+    p.add_argument("--game-versions", default="18", help="comma-separated gameVersions to keep (18 = 1.8)")
+    p.add_argument("--count", type=int, default=500, help="how many levels to keep, evenly spread by id")
     p.add_argument("--cached-only", action="store_true", help="index only the pages fetched so far"); p.set_defaults(f=cmd_fetch)
     p = sub.add_parser("download"); p.set_defaults(f=cmd_download)
     p = sub.add_parser("pathfind"); p.add_argument("--time-limit", type=float, default=120)
