@@ -132,9 +132,10 @@ void Player::postCollision() {
 		// portal stays put for that frame (GD flips it after the move). A ship pressed this frame still
 		// walks off first (unless an orb or pad launched it), since GD handles the press one step later.
 		bool shipPress = vehicle.type == VehicleType::Ship && button && !prevPlayer().button && velocity == 0;
+		double shipFall = small ? -1051.8984 : -894.11464;
 		if (!grounded && prevPlayer().grounded && ((!input && (prevPlayer().button || !button)) || buffer || coyoteJump || shipPress) && prevPlayer().gravBottom(*this) > prevPlayer().gravFloor() && size == prevPlayer().size && prevPlayer().velocity == 0 && !(gravityPortal && vehicle.type == VehicleType::Ship)) {
 			// The level's first frame has no previous acceleration
-			double fallAccel = prevPlayer().acceleration != 0 ? prevPlayer().acceleration : acceleration;
+			double fallAccel = prevPlayer().acceleration != 0 ? prevPlayer().acceleration : (shipPress ? shipFall : acceleration);
 			pos.y += roundVel(prevPlayer().grav(fallAccel) * dt, prevPlayer().upsideDown) * dt;
 
 			// GD already had this frame's velocity (one step of gravity) when it touched a gravity
@@ -143,6 +144,9 @@ void Player::postCollision() {
 				double fallVel = roundVel(fallAccel * dt, upsideDown);
 				newVel += gravityPortal ? fallVel * -0.5 : fallVel;
 			}
+		} else if (shipPress && grounded && prevPlayer().acceleration == 0) {
+			// On the level's first frame GD snaps a ship onto the floor but keeps its step of falling velocity
+			newVel += roundVel(shipFall * dt, upsideDown);
 		}
 		velocity = newVel;
 	}

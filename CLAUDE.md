@@ -179,6 +179,8 @@ Offsets are `PlayerObject` members in 2.2081: `0x9a0` = y velocity (double, grav
   gravity portal or a pad. The sim (`Block::collide`) still lands the player on the frame of an orb
   click (`padHitBefore`).
 - `PlayerObject::flipGravity` multiplies y velocity by -0.5.
+- On a level's first step a ship on the floor is snapped there but keeps one step of falling
+  velocity (-3.726, not grounded yet); it is grounded (velocity 0) from the second step on.
 - The player's hitbox rect is cached and only recomputed after it is marked dirty (`setPosition`,
   `setScale`). `togglePlayerScale` sets the scale fields without dirtying it (it animates the
   sprite instead), so after a size portal the old size is still used for the rest of that step's
