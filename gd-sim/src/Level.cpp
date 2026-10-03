@@ -160,6 +160,8 @@ Player& Level::runFrame(bool pressed, float dt) {
 
 	if (!p.dead)
 		p.postCollision();
+	else
+		p.vehicle.clamp(p); // GD keeps the player within the mode's bounds before object collisions kill it
 
 	if (debug) {
 		std::cout << "Frame " << gameStates.size() << std::fixed << std::setprecision(8)
