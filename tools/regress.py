@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Replay every batch run through the current sim and score it against the recorded real GD path.
 
-  python tools/regress.py [--save NAME] [--base NAME] [--ids 1,2] [--jobs 14] [--show 30]
+  python tools/regress.py [--save NAME] [--base NAME] [--ids 1,2] [--jobs 14] [--show 30] [--tol 0.01]
 
 For each build/re/batch/runs/<id> with a real.txt (written by `batch.py verify`), runs the macro
 through the Debug gd-sim-test (runs/<id>/simdbg.txt) and finds the first real frame where GD and
@@ -51,13 +51,16 @@ def score(run: Path):
 
 
 def main():
+    global TOL
     ap = argparse.ArgumentParser()
     ap.add_argument("--save")
     ap.add_argument("--base")
     ap.add_argument("--ids")
     ap.add_argument("--jobs", type=int, default=14)
     ap.add_argument("--show", type=int, default=30)
+    ap.add_argument("--tol", type=float, default=TOL, help="position difference that counts as diverged")
     a = ap.parse_args()
+    TOL = a.tol
     runs = [r for r in sorted((DATA / "runs").iterdir())
             if (r / "real.txt").exists() and (DATA / "levels" / f"{r.name}.lvl").exists()]
     if a.ids:

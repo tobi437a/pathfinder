@@ -63,9 +63,12 @@ double roundVel(double velocity, bool upsideDown) {
 	return nVel * 54.0 * (upsideDown * 2 - 1);
 }
 
-void Player::moveY(double dy) {
-	// GD's player y is a float 90 higher (its ground is at 90), which rounds coarser than ours
-	pos.y = (float)((double)(pos.y + 90.f) + dy) - 90.f;
+void Player::moveY(double vel) {
+	// PlayerObject::update moves by m_yVelocity (vel / 54) times the step's dt (0.25 at 240 tps) * 0.9f, both
+	// floats, and adds that as a CCPoint to GD's player y: a float 90 higher (its ground is at 90), which rounds
+	// coarser than ours.
+	float step = (float)(dt * 60) * 0.9f;
+	pos.y = ((pos.y + 90.f) + (float)(vel / 54.0 * (double)step)) - 90.f;
 }
 
 float Player::flipValueAt(int f) const {
@@ -94,7 +97,7 @@ void Player::preCollision(bool pressed) {
 		flip.fromMirrored = flip.to == 1;
 
 	pos.x += player_speeds[(int)speed] * dt;
-	moveY(grav(velocity) * dt);
+	moveY(grav(velocity));
 
 	frame++;
 	timeElapsed += dt;
@@ -273,7 +276,7 @@ void Player::postCollision() {
 	if (ufoJump && velocityOverride && !groundedBefore && prevPlayer().grounded
 		&& prevPlayer().velocity == 0 && prevPlayer().gravBottom(*this) > prevPlayer().gravFloor()) {
 		double fallAccel = small ? -1308.96 : -1114.56; // ufoAcceleration at velocity 0
-		moveY(roundVel(prevPlayer().grav(fallAccel) * dt, prevPlayer().upsideDown) * dt);
+		moveY(roundVel(prevPlayer().grav(fallAccel) * dt, prevPlayer().upsideDown));
 	}
 
 	if (!velocityOverride) {
@@ -293,7 +296,7 @@ void Player::postCollision() {
 			if (fallAccel == 0 || vehicle.type == VehicleType::Ufo)
 				fallAccel = shipPress ? shipFall : acceleration;
 			if (!walkedOff)
-				moveY(roundVel(prevPlayer().grav(fallAccel) * dt, prevPlayer().upsideDown) * dt);
+				moveY(roundVel(prevPlayer().grav(fallAccel) * dt, prevPlayer().upsideDown));
 
 			// GD already had this frame's velocity (one step of gravity) when it touched a gravity
 			// portal, which multiplies it by -0.5 (flipGravity)

@@ -217,8 +217,8 @@ struct Player : public Entity {
 	/// PlayerObject::updateJump: part (share) of a slope's launch added to a jump from it
 	void slopeJump(float share);
 
-	/// Move by dy, rounding y like GD does
-	void moveY(double dy);
+	/// Move y by a step of velocity `vel` (gravity-relative sign already applied), like PlayerObject::update
+	void moveY(double vel);
 
 	/// Apply a size portal's size change if it hasn't been yet (see resizePending)
 	void applyResize();
