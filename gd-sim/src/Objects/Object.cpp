@@ -191,8 +191,10 @@ Object::Object(Vec2D s, std::unordered_map<int, std::string>&& fields) {
 bool Object::touching(Player const& player) const {
 	int r = std::abs(rotation);
 	// GD doesn't count a non-solid object (pad, orb, portal, hazard) the player only touches at its top or
-	// bottom edge; touching a left or right edge counts
-	if (prio != 1 && (r == 0 || r == 180)) {
+	// bottom edge; touching a left or right edge counts. (GD's rects do count edges, but a player standing on
+	// a block has moved a step of gravity into it when GD checks objects. On the mode floor it hasn't: GD
+	// puts it back onto the floor first.)
+	if (prio != 1 && (r == 0 || r == 180) && player.gravBottom(player) != player.gravFloor()) {
 		auto box = player.unrotatedHitbox();
 		if (box.getTop() == getBottom() || box.getBottom() == getTop())
 			return false;
