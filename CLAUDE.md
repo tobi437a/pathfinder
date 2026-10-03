@@ -217,6 +217,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   gravity portal or a pad. The sim (`Block::collide`) still lands the player on the frame of an orb
   click (`padHitBefore`).
 - `PlayerObject::flipGravity` multiplies y velocity by -0.5.
+- A yellow pad launches a ufo at 864 like a cube; the ufo's velocity cap (432, mini 508.248) cuts it on
+  the next step, after that step's gravity, so the first step up moves 432 / 240.
 - Orbs: `playerTouchedRing` appends each touched ring to `m_touchingRings` (0xa38); `resetTouchedRings`
   at the start of every step drops those not touched in the last step. A click (`pushButton`) tries
   them in that order (first touched first, custom rings type 36 before the rest), so with two orbs

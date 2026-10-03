@@ -46,7 +46,8 @@ const velocity_map<PadType, VehicleType, bool> pad_velocities = {
 	{{PadType::Yellow, VehicleType::Ball, false}, {518.4000206, 518.4000206, 518.4000206, 518.4000206}},
 	{{PadType::Yellow, VehicleType::Ball, true},  {414.7200165, 414.7200165, 414.7200165, 414.7200165}},
 
-	{{PadType::Yellow, VehicleType::Ufo, false},  {573.48,      432,         432,         432}},
+	// GD launches a ufo like a cube; the ufo's velocity cap (432) only applies on the next step
+	{{PadType::Yellow, VehicleType::Ufo, false},  {864,         864,         864,         864}},
 	{{PadType::Yellow, VehicleType::Ufo, true},   {458.784,     691.2,       691.2,       691.2}},
 
 
