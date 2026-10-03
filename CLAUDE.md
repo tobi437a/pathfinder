@@ -321,7 +321,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   wave rotations and objects' are counter-clockwise). `GJBaseGameLayer::update` calls
   `PlayerObject::updateRotation(dt)` after the step's collisions (dt 0.25 at 240 tps): the spin
   `m_rotationSpeed` (degrees/s) is added, times dt / 60, except that a cube on a slope and a cube
-  on the ground (`m_isOnGround2`, still set on the first step off a ledge) slerp to the nearest slope
+  on the ground (`m_isOnGround2`: set by landing, cleared by jumps, pads, rings, slope launches,
+  fly-mode portals and falling past -4, so also rising after a gravity flip) slerp to the nearest slope
   angle / multiple of 90 (rate `m_playerSpeed * 0.175 * dt`, x3 on the ground; a slope collision
   does it once more, `updateSlopeRotation`). `runNormalRotation`: +-180 / 0.4333 (mini 0.3333),
   minus when upside down, from a jump, a pad, a ring, starting to fall (velocity past -0.25) and

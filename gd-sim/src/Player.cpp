@@ -243,7 +243,7 @@ void Player::easeRotation(float target) {
 	float rate = player_speedmults[speed] * 0.175f;
 	if (vehicle.type == VehicleType::Ship)
 		rate *= 0.5f;
-	else if (vehicle.type == VehicleType::Cube && grounded && !slope.on && !slope.was)
+	else if (vehicle.type == VehicleType::Cube && onGround2 && !slope.on && !slope.was)
 		rate *= 3;
 	if (rate * t <= t)
 		t = rate * t;
@@ -258,6 +258,8 @@ void Player::updateRotation() {
 
 	// PlayerObject::hitGround (every step on the ground, before this): a cube stops spinning; a ball stops its
 	// flip spin (and a faster roll, off a slope) and rolls
+	if (grounded)
+		onGround2 = true;
 	if (grounded) {
 		if (vehicle.type == VehicleType::Cube) {
 			if (isRotating || slope.was)
@@ -275,13 +277,11 @@ void Player::updateRotation() {
 	}
 
 	// PlayerObject::updateRotation(dt): a cube eases to the slope it's on, or to the nearest 90 degrees on the
-	// ground (m_isOnGround2, which stays set for the first step off a ledge, unless rising); otherwise the
-	// spin goes on
-	bool onGround = grounded || (prevPlayer().grounded && !boosted);
+	// ground (m_isOnGround2, unless falling); otherwise the spin goes on
 	if (vehicle.type == VehicleType::Cube) {
 		if (slope.on) {
 			easeRotation(closestRotation((float)(slope.rotation * 57.295780181884766)));
-		} else if (onGround && !slope.was && (grounded || (upsideDown ? gdVelocity() <= 0.25 : gdVelocity() >= -0.25))) {
+		} else if (onGround2 && !slope.was && (grounded || (upsideDown ? gdVelocity() <= 0.25 : gdVelocity() >= -0.25))) {
 			// (A landed player isn't rising: the landing stopped it, though the sim only zeroes the velocity
 			// in the vehicle's update, after this)
 			stopRotation();
@@ -341,6 +341,7 @@ void Player::leaveSlope() {
 			grounded = false;
 			boosted = true;
 			accelerating = true;
+			onGround2 = false;
 			// ...which spins a cube the other way round, a little faster
 			if (vehicle.type == VehicleType::Cube) {
 				ballRotating = ballRotating2 = false;
@@ -354,6 +355,7 @@ void Player::leaveSlope() {
 			setGdVelocity((upsideDown ? -1 : 1) * -slope.yVelocity);
 			velocityOverride = false;
 			grounded = false;
+			onGround2 = false;
 			stopRotation();
 			if (vehicle.type == VehicleType::Ball)
 				runBallRotation();
@@ -482,11 +484,15 @@ void Player::postCollision() {
 	if (roundVelocity)
 		velocity = roundVel(velocity, upsideDown);
 
-	// PlayerObject::updateJump: a cube that starts falling (faster than 0.25) starts spinning
-	if (vehicle.type == VehicleType::Cube && !isRotating && !slope.on && gdVelocity() * (upsideDown ? -1 : 1) < -0.25) {
+	// PlayerObject::updateJump: a cube that starts falling (faster than 0.25) starts spinning, and one
+	// falling faster than 4 is off the ground
+	double fall = gdVelocity() * (upsideDown ? -1 : 1);
+	if (vehicle.type == VehicleType::Cube && !isRotating && !slope.on && fall < -0.25) {
 		stopRotation();
 		runNormalRotation();
 	}
+	if ((vehicle.type == VehicleType::Cube || vehicle.type == VehicleType::Ball) && fall < -4)
+		onGround2 = false;
 
 	// m_maybeIsBoosted ends when GD's updateJump finds the player falling (playerIsFallingBugged: y
 	// velocity below twice m_gravity, with the wrong sign upside down), except on the step of a jump

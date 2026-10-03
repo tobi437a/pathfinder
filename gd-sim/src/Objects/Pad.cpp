@@ -124,6 +124,7 @@ void Pad::collide(Player& p) const {
 	p.grounded = false;
 	p.gravityPortal = false;
 	p.hitPad = true;
+	p.onGround2 = false;
 	p.accelerating = false;
 	// PlayerObject::propellPlayer: launched, and off any slope
 	p.boosted = true;

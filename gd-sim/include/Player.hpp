@@ -168,6 +168,10 @@ struct Player : public Entity {
 	float rotationSpeed = 0;
 	bool isRotating = false, ballRotating = false, ballRotating2 = false;
 	float rotateSpeed = 1;
+	/// PlayerObject::m_isOnGround2: set by landing (hitGround), cleared by a jump, pad, ring, slope launch or
+	/// vehicle portal and by falling faster than 4 (GD units); a cube with it eases its rotation like on the
+	/// ground (updateRotation), even rising after a gravity flip
+	bool onGround2 = false;
 	/// An orb's new rotation, which starts after this frame's updateRotation: GD clicks the ring a step
 	/// after the sim (see Orb::collide)
 	struct Spin { float speed, rotateSpeed; bool isRotating, ballRotating, ballRotating2; };

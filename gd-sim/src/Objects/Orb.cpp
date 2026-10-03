@@ -122,6 +122,7 @@ void Orb::collide(Player& p) const {
 		p.vehicleBuffer = false;
 		p.clickedOrb = true;
 		p.clickUsedByOrb = true;
+		p.onGround2 = false;
 
 		EffectObject::collide(p);
 

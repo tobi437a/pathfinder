@@ -56,6 +56,8 @@ void VehiclePortal::collide(Player& player) const {
 		player.stopRotation();
 		if (flies(from) || flies(type) || from == VehicleType::Ball)
 			player.rotation = 0;
+		if (flies(from) || flies(type))
+			player.onGround2 = false;
 		// enter scales velocity; find by how much, for a walk-off step added later (Player::postCollision)
 		double velocity = player.velocity;
 		player.velocity = 1;

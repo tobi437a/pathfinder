@@ -108,6 +108,7 @@ Vehicle cube() {
 			p.slopeJump(0.25f);
 			p.stopRotation();
 			p.runNormalRotation();
+			p.onGround2 = false;
 		}
 	};
 
