@@ -105,6 +105,7 @@ void Orb::collide(Player& p) const {
 	if (p.buffer || (p.prevPlayer().buffer && !p.button) || (p.vehicle.type == VehicleType::Ball && p.vehicleBuffer)) {
 		p.buffer = false;
 		p.vehicleBuffer = false;
+		p.clickedOrb = true;
 
 		EffectObject::collide(p);
 

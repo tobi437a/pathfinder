@@ -113,6 +113,12 @@ struct Player : public Entity {
 	/// A pad was touched this frame (pads, unlike orbs, don't snap the player onto a block)
 	bool hitPad;
 
+	/// An orb was clicked this frame
+	bool clickedOrb = false;
+
+	/// The player was snapped onto a block top this frame (even if an orb click keeps it ungrounded)
+	bool onBlock = false;
+
 	/// GD caches the player's hitbox, so a size portal's new size only shows once the player is moved
 	/// (e.g. snapped onto a block) or at the end of the frame
 	bool resizePending = false;

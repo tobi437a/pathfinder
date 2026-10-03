@@ -137,6 +137,10 @@ void Block::collide(Player& p) const {
 	bool flippedOffGround = p.gravityPortal && p.upsideDown != p.prevPlayer().upsideDown && p.prevPlayer().grounded
 		&& p.prevPlayer().velocity == 0 && p.vehicle.type == VehicleType::Cube;
 
+	// Standing on this block whatever the velocity (an orb clicked on it), see Player::onBlock
+	if (p.gravTop(*this) - bottom <= landClip)
+		p.onBlock = true;
+
 	if (p.innerHitbox().intersects(*this)) {
 		// Hitting block head-on
 		p.dead = true;

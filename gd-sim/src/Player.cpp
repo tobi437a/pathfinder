@@ -73,6 +73,8 @@ void Player::preCollision(bool pressed) {
 	velocityOverride = false;
 	gravityPortal = false;
 	hitPad = false;
+	clickedOrb = false;
+	onBlock = false;
 	roundVelocity = true;
 
 	if (button != pressed) {
@@ -134,10 +136,11 @@ void Player::postCollision() {
 
 		// Player will fall off blocks a frame faster than expected. A grounded ship flipped by a gravity
 		// portal stays put for that frame (GD flips it after the move). A ship pressed this frame still
-		// walks off first (unless an orb or pad launched it), since GD handles the press one step later.
+		// walks off first (unless an orb or pad launched it), since GD handles the press one step later;
+		// so does a player clicking an orb.
 		bool shipPress = vehicle.type == VehicleType::Ship && button && !prevPlayer().button && velocity == 0;
 		double shipFall = small ? -1051.8984 : -894.11464;
-		if (!grounded && prevPlayer().grounded && ((!input && (prevPlayer().button || !button)) || buffer || coyoteJump || shipPress) && prevPlayer().gravBottom(*this) > prevPlayer().gravFloor() && prevPlayer().velocity == 0 && !(gravityPortal && vehicle.type == VehicleType::Ship)) {
+		if (!grounded && prevPlayer().grounded && ((!input && (prevPlayer().button || !button)) || buffer || (clickedOrb && !onBlock && upsideDown == prevPlayer().upsideDown) || coyoteJump || shipPress) && prevPlayer().gravBottom(*this) > prevPlayer().gravFloor() && prevPlayer().velocity == 0 && !(gravityPortal && vehicle.type == VehicleType::Ship)) {
 			// The level's first frame has no previous acceleration. A ufo's previous acceleration was
 			// chosen for its velocity before landing; GD falls with the one for velocity 0 (this frame's).
 			double fallAccel = prevPlayer().acceleration;
