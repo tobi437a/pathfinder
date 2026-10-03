@@ -96,11 +96,10 @@ void Block::collide(Player& p) const {
 	landClip += std::max(0.0, -(double)p.grav(p.pos.y - p.prevPlayer().pos.y));
 
 	// When hitting blue orbs, there is a single frame where block collisions arent done. A blue pad pushes
-	// the player towards the new floor, which GD lands it on in the same step, except when the player
-	// stood on a block: GD's step of gravity (undone only by the floor snap) moved it away first.
+	// the player towards the new floor, which GD lands it on in the same step if it reaches it (see
+	// Pad::collide for a player flipped off a block).
 	auto const& prev = p.prevPlayer();
-	bool padFromBlock = prev.grounded && prev.gravBottom(prev) > prev.gravFloor();
-	if (p.upsideDown != prev.upsideDown && !p.gravityPortal && !(p.hitPad && !padFromBlock))
+	if (p.upsideDown != prev.upsideDown && !p.gravityPortal && !p.hitPad)
 		return;
 
 	/*

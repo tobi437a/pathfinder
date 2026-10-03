@@ -149,6 +149,9 @@ struct Player : public Entity {
 	/// The player was below the mode floor after moving and was put back onto it before collisions
 	bool floorSnapped = false;
 
+	/// GD's walk-off step (a step of gravity for a player leaving a block) was already applied this frame
+	bool walkedOff = false;
+
 	/// GD caches the player's hitbox, so a size portal's new size only shows once the player is moved
 	/// (e.g. snapped onto a block) or at the end of the frame
 	bool resizePending = false;

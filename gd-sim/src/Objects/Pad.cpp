@@ -94,6 +94,14 @@ void Pad::collide(Player& p) const {
 		if (p.upsideDown == flipsToUpsideDown)
 			return;
 
+		// GD has already moved a player standing on a block by a step of its old gravity (into that
+		// block; only the block snap would undo it), so it may now miss the new floor by that much
+		auto const& prev = p.prevPlayer();
+		if (p.upsideDown == prev.upsideDown && prev.grounded && prev.velocity == 0 && prev.gravBottom(prev) > prev.gravFloor() && !p.walkedOff) {
+			p.moveY(roundVel(prev.grav(prev.acceleration) * p.dt, prev.upsideDown) * p.dt);
+			p.walkedOff = true;
+		}
+
 		p.upsideDown = flipsToUpsideDown;
 
 		if (p.vehicle.type == VehicleType::Wave)

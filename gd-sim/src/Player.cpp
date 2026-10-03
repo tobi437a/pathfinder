@@ -105,6 +105,7 @@ void Player::preCollision(bool pressed) {
 	clickedOrb = false;
 	onBlock = false;
 	headHit = false;
+	walkedOff = false;
 	roundVelocity = true;
 
 	if (button != pressed) {
@@ -195,7 +196,8 @@ void Player::postCollision() {
 			double fallAccel = prevPlayer().acceleration;
 			if (fallAccel == 0 || vehicle.type == VehicleType::Ufo)
 				fallAccel = shipPress ? shipFall : acceleration;
-			moveY(roundVel(prevPlayer().grav(fallAccel) * dt, prevPlayer().upsideDown) * dt);
+			if (!walkedOff)
+				moveY(roundVel(prevPlayer().grav(fallAccel) * dt, prevPlayer().upsideDown) * dt);
 
 			// GD already had this frame's velocity (one step of gravity) when it touched a gravity
 			// portal, which multiplies it by -0.5 (flipGravity)
