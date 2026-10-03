@@ -275,6 +275,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   sprite instead), so after a size portal the old size is still used for the rest of that step's
   portals and blocks until a block snap moves the player, e.g. standing on two blocks: the first
   snaps with the old size, the second with the new one. The sim models this with `resizePending`.
+  Leaving the wave likewise keeps the wave's small hitbox for the rest of that step (a mini portal
+  next to a ship portal is reached a step later).
 - Cube X-snap (`PlayerObject::checkSnapJumpToObject`, called on every cube step that lands or
   stands on a block): from the previous snap block to the new one, (dx, dy) = (A, +30), (B, -30) or
   (C, +60) within T snaps x to `new.x + offset` (clamped to +-T), offset = player x - block x stored

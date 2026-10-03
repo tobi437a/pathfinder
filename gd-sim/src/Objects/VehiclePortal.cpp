@@ -28,8 +28,13 @@ void VehiclePortal::collide(Player& player) const {
 	EffectObject::collide(player);
 
 	if (player.vehicle.type != type) {
-		player.size = Vec2D(30, 30) * (player.small ? 0.6 : 1);
-		player.resizePending = false;
+		// Leaving the wave, GD keeps the wave's (cached) hitbox for the rest of the step
+		if (player.vehicle.type == VehicleType::Wave) {
+			player.resizePending = true;
+		} else {
+			player.size = Vec2D(30, 30) * (player.small ? 0.6 : 1);
+			player.resizePending = false;
+		}
 
 		// GD's wave y velocity is the x speed (m_playerSpeed * m_speedMultiplier, rounded; not doubled when
 		// mini), up or down; the sim's moves the wave instead. The new vehicle's enter halves it (toggleDartMode).
