@@ -139,6 +139,7 @@ Offline loop over the batch (no game; uses the Debug `gd-sim-test`, ~1.5 min for
 python tools\regress.py --save base          # first real/sim divergence per run -> regress-base.json
 python tools\regress.py --base base          # after a sim change: which runs diverge later / earlier
 python tools\triage.py                       # sim mode + objects at each divergence -> triage.txt
+python tools\diverge.py <id> [--frame F]     # one run: real vs sim per frame, button, nearby objects
 ```
 A sim fix should make runs better and none worse; real paths only cover what the old macros did,
 so finish with `batch.py pathfind`/`verify`. Traces (verifier and `gd-sim-test`) end with
