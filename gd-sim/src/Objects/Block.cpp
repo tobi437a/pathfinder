@@ -107,8 +107,12 @@ void Block::collideBlock(Player& p, bool bare) const {
 	// the player towards the new floor, which GD lands it on in the same step if it reaches it (see
 	// Pad::collide for a player flipped off a block).
 	auto const& prev = p.prevPlayer();
-	if (p.upsideDown != prev.upsideDown && !p.gravityPortal && !p.hitPad)
+	if (p.upsideDown != prev.upsideDown && !p.gravityPortal && !p.hitPad) {
+		// (still standing on it in the old gravity, see Player::onBlock)
+		if (prev.gravTop(*this) - prev.gravBottom(p) <= landClip)
+			p.onBlock = true;
 		return;
+	}
 
 	double bottom = p.gravBottom(p);
 
