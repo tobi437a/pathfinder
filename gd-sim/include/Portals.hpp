@@ -21,6 +21,13 @@ struct SizePortal : public EffectObject {
     void collide(Player&) const override;
 };
 
+/// Mirror portal (45 on, 46 off). Only its effect on block sprites matters, see Player::flip
+struct MirrorPortal : public EffectObject {
+    bool mirrored;
+    MirrorPortal(Vec2D size, std::unordered_map<int, std::string>&& fields);
+    void collide(Player&) const override;
+};
+
 struct SpeedPortal : public EffectObject {
     int speed;
     SpeedPortal(Vec2D size, std::unordered_map<int, std::string>&& fields);

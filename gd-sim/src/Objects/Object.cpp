@@ -129,6 +129,8 @@ std::optional<ObjectContainer> Object::create(std::unordered_map<int, std::strin
 	objs(({ 10, 11 }), GravityPortal, 25, 75)
 
 	objs(({ 99, 101 }), SizePortal, 31, 90)
+	// Width from when GD starts the flip tween (verifier); height assumed from the sprite
+	objs(({ 45, 46 }), MirrorPortal, 44, 90)
 
 	objs(({ 143 }), BreakableBlock, 30, 30)
 

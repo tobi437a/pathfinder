@@ -63,7 +63,31 @@ double roundVel(double velocity, bool upsideDown) {
 	return nVel * 54.0 * (upsideDown * 2 - 1);
 }
 
+float Player::flipValueAt(int f) const {
+	if (flip.start == 0 || f < flip.start)
+		return flip.from;
+	float t = std::min(1.f, (f - flip.start + 1) / 96.f);
+	float eased = t < 0.5f ? 0.5f * std::pow(2 * t, 1.2f) : 1 - 0.5f * std::pow(2 - 2 * t, 1.2f);
+	return t >= 1 ? flip.to : flip.from + (flip.to - flip.from) * eased;
+}
+
+float Player::spriteShift(float x) const {
+	// PlayLayer::screenFlipObject only runs mid-flip
+	if (flip.value == 0 || flip.value == 1)
+		return 0;
+	float amount = flip.fromMirrored ? 1 - flip.value : flip.value;
+	float fromCamera = x - flip.camera;
+	return (level->screenWidth - (fromCamera + fromCamera)) * amount;
+}
+
 void Player::preCollision(bool pressed) {
+	// GD updates sprites (updateVisibility) between steps, with the camera and flip of the last step. The
+	// camera keeps the player screenWidth / 2 - 75 from its left edge.
+	flip.camera = pos.x - (level->screenWidth / 2 - 75);
+	flip.value = flipValueAt(frame);
+	if (flip.start != 0 && flip.value == flip.to)
+		flip.fromMirrored = flip.to == 1;
+
 	pos.x += player_speeds[(int)speed] * dt;
 	pos.y += grav(velocity) * dt;
 

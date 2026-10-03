@@ -31,6 +31,8 @@ class Level {
 	std::vector<ObjectContainer const*> hazards;
 
  	static constexpr uint32_t sectionSize = 100;
+ 	/// GD's window width in points (320 high, so 569 is 16:9). Mirror portal sprites move relative to it.
+ 	float screenWidth = 569;
  	bool debug = false;
 
  	Level(std::string const& lvlString);

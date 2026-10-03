@@ -409,6 +409,12 @@ class $modify(VerifyBGL, GJBaseGameLayer) {
 		run->stepSeconds += std::chrono::duration<double>(Clock::now() - start).count();
 	}
 
+	void toggleFlipped(bool flip, bool noEffects) {
+		if (auto run = activeRun(this); run && !run->finished)
+			run->realTrace += fmt::format("Flip {} {} {} from {:.6f}\n", run->step, flip, noEffects, m_gameState.m_levelFlipping);
+		GJBaseGameLayer::toggleFlipped(flip, noEffects);
+	}
+
 	void processCommands(float dt, bool isHalfTick, bool isLastTick) {
 		auto run = activeRun(this);
 		if (!run || run->finished)
@@ -447,6 +453,38 @@ class $modify(VerifyBGL, GJBaseGameLayer) {
 			run->step, rx, ry, vel, m_player1->getRotation(), realMode(m_player1));
 		run->simTrace += fmt::format("Frame {} X {:.8f} Y {:.8f} Vel {:.8f} Rot {:.8f} Mode {}\n",
 			run->step + 1, sx, sy, sim.velocity, sim.rotation, sim.modeString());
+		// Enter effects slide objects relative to the camera: `Cam <frame> <x> <y>`, and once per run
+		// `Screen <w> <h> <PlayLayer floats 0x325c 0x3268> enter <channel map> exit <channel map>`
+		if (run->step == 0) {
+			auto win = CCDirector::get()->getWinSize();
+			auto at = [&](int off) { return *reinterpret_cast<float*>(reinterpret_cast<char*>(this) + off); };
+			auto map = [](gd::vector<int> const& v) {
+				std::string s;
+				for (size_t i = 0; i < v.size() && i < 4; ++i) s += fmt::format(" {}", v[i]);
+				return fmt::format("{}:{}", v.size(), s);
+			};
+			run->realTrace += fmt::format("Screen {} {} {} {} enter {} exit {}\n", win.width, win.height,
+				at(0x325c), at(0x3268), map(m_gameState.m_enterChannelMap), map(m_gameState.m_exitChannelMap));
+		}
+		auto layerFloat = [&](int off) { return *reinterpret_cast<float*>(reinterpret_cast<char*>(this) + off); };
+		// `Cam <frame> <x> <y> vis <PlayLayer 0x50c 0x510, the camera updateVisibility uses> flip <level flip>`
+		run->realTrace += fmt::format("Cam {} {:.4f} {:.4f} vis {:.4f} {:.4f} flip {:.6f} {}\n", run->step,
+			m_gameState.m_cameraPosition.x, m_gameState.m_cameraPosition.y, layerFloat(0x50c), layerFloat(0x510),
+			m_gameState.m_levelFlipping, layerFloat(0x3204));
+		// The player's last X-snap block (PlayerObject 0x888), when its sprite isn't where it collides:
+		// `SnapObj <frame> <id> real <x> <y> sprite <x> <y> enter <right> <left> <channel> margin <0x354> <0x400>`
+		auto obj = *reinterpret_cast<GameObject**>(reinterpret_cast<char*>(m_player1) + 0x888);
+		if (obj) {
+			auto real = obj->getRealPosition();
+			auto sprite = obj->getPosition();
+			if (real.x != sprite.x || real.y != sprite.y) {
+				auto at = [&](int off) { return reinterpret_cast<char*>(obj) + off; };
+				run->realTrace += fmt::format("SnapObj {} {} real {:.4f} {:.4f} sprite {:.4f} {:.4f} enter {} {} {} margin {:.4f} {}\n",
+					run->step, obj->m_objectID, real.x, real.y - 90, sprite.x, sprite.y - 90,
+					*reinterpret_cast<short*>(at(0x3f8)), *reinterpret_cast<short*>(at(0x3fa)),
+					*reinterpret_cast<short*>(at(0x3fc)), *reinterpret_cast<float*>(at(0x354)), (int)*at(0x400));
+			}
+		}
 
 		float diff = std::max(std::abs(rx - sx), std::abs(ry - sy));
 		if (run->simDeathFrame < 0 || run->step <= run->simDeathFrame)

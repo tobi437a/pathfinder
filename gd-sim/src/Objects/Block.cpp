@@ -78,8 +78,10 @@ void trySnap(Block const& b, Player& p) {
 	diff.y = p.grav(diff.y);
 
 	if (float threshold = snapThreshold(diff, p); threshold > 0) {
+		// GD aims at the new block's sprite plus the player's offset from the old block's sprite back then
+		// (PlayerObject::checkSnapJumpToObject); the pattern above uses hitbox positions
 		p.pos.x = std::clamp(
-			p.level->getState(snapData.playerFrame).nextPlayer()->pos.x + diff.x,
+			p.level->getState(snapData.playerFrame).nextPlayer()->pos.x + diff.x + p.spriteShift(b.pos.x) - snapData.spriteDx,
 			p.pos.x - threshold,
 			p.pos.x + threshold
 		);
@@ -166,6 +168,7 @@ void Block::collide(Player& p) const {
 
 			p.snapData.playerFrame = p.level->currentFrame();
 			p.snapData.object = *this;
+			p.snapData.spriteDx = p.spriteShift(pos.x);
 		}
 	} else {
 		// Ship and ufo can hit the ceiling of a block without dying

@@ -68,7 +68,31 @@ struct Player : public Entity {
 	struct {
 		Entity object;
 		int playerFrame = 0;
+		/// How far the block's sprite was from its hitbox then (see spriteShift)
+		float spriteDx = 0;
 	} snapData;
+
+	/**
+	 * Mirror portals (GJBaseGameLayer::toggleFlipped) tween GD's level flip from flipFrom to flipTo over
+	 * 0.4 s (96 steps, ease in-out rate 1.2), starting with the step the portal is touched (frame flipStart).
+	 * While it runs, PlayLayer::screenFlipObject moves every block's sprite towards its mirrored position;
+	 * hitboxes stay put, but X-snapping reads sprite positions.
+	 */
+	struct {
+		/// Target of the last mirror portal (GD ignores a portal that doesn't change it)
+		bool mirrored = false;
+		float from = 0, to = 0;
+		int start = 0;
+		/// After a completed flip to mirrored, GD measures the shift from the mirrored side (1 - flip)
+		bool fromMirrored = false;
+		/// Flip value and camera x GD moved the sprites with before this step's collisions (end of last step)
+		float value = 0, camera = 0;
+	} flip;
+
+	/// Flip value at the end of the step with the given frame
+	float flipValueAt(int frame) const;
+	/// How far GD has moved the sprite of a block at x from x this step (see flip)
+	float spriteShift(float x) const;
 
 	float ceiling;
 	float floor;

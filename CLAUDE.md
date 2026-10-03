@@ -100,8 +100,11 @@ frame + positions, max diff) and `verify\<level>\real.txt`, `sim.txt`, `level.lv
 - `-Minimize` waits until the mod has taken `verify.json` before minimising: minimised during the
   loading screen, GD pauses before mods load and never finishes loading.
 - Eclipse hacks that change physics (TPS bypass, noclip) or a playing macro would skew results.
-- real.txt also gets a `Snap <frame> obj <x> <y> prev <x> <y> offset <o> x <before> -> <after>` line
-  (sim coords) per GD X-snap call; the tools skip lines not starting with `Frame`.
+- real.txt also gets (sim coords; the tools skip lines not starting with `Frame`): per GD X-snap
+  call `Snap <frame> obj <x> <y> prev <x> <y> offset <o> x <before> -> <after>`; per step
+  `Cam <frame> <x> <y> vis <x> <y> flip <value> <dir>` and, while the last snap block's sprite is
+  off its hitbox, `SnapObj <frame> <id> real <x> <y> sprite <x> <y> enter <r> <l> <channel> ...`;
+  `Flip <frame> <on> ...` per mirror portal; once `Screen <w> <h> ... enter/exit <channel maps>`.
 
 ## Batch testing online levels
 
@@ -191,11 +194,22 @@ Offsets are `PlayerObject` members in 2.2081: `0x9a0` = y velocity (double, grav
 - Cube X-snap (`PlayerObject::checkSnapJumpToObject`, called on every cube step that lands or
   stands on a block): from the previous snap block to the new one, (dx, dy) = (A, +30), (B, -30) or
   (C, +60) within T snaps x to `new.x + offset` (clamped to +-T), offset = player x - block x stored
-  at each call. The pattern uses the blocks' original positions, the offset and target their
-  current ones, so a block still sliding in from an enter effect (ids 22-28, 55-59; not
-  simulated) shifts the snap.
+  at each call. The pattern uses the blocks' hitbox positions (`getRealPosition`), the offset and
+  target their sprite positions (`getPosition`), which differ while a mirror portal flips the level.
   slow T1 A90 B120 C60; normal T1 A120 B150 C90; fast T2 A150 B195 C120; faster T2 A180 B225 C135;
   fastest T1 A120 B150 C90; mini makes A 90 (except slow/fastest). Only `resetObject` clears it.
+- Camera x (`m_gameState.m_cameraPosition`) = player x - (winWidth / 2 - 75) every step until the
+  level end; winSize is 569x320 here. `PlayLayer::updateVisibility` (once per step, before the
+  step's collisions, with the previous step's camera) sets block sprites: enter effects, and
+  mid-flip `screenFlipObject`: sprite x = x + (569 - 2 (x - camera x)) * flip. Hitboxes don't move.
+- Mirror portal (45/46, touched with a 44-wide hitbox) -> `toggleFlipped`: `m_levelFlipping`
+  tweens to 1/0 over 0.4 s, ease in-out rate 1.2, value at the end of touch step + k =
+  ease((k + 1) / 96); from 0/1 it starts at 1e-5/0.99999. After a completed flip to 1,
+  `screenFlipObject` uses 1 - flip (PlayLayer 0x3204 = -1) until a flip back to 0 completes.
+- Enter effect triggers set a per-channel type for objects entering from the right (`enter`) or
+  leaving at the left (`exit`): 22 -> -2 (fade only, the default), 23 -> -6, 24 -> -5, 25 -> -7,
+  26 -> -8, 27 -> -3, 28 -> -4, 55 -> -11, 56 -> -10, 57 -> -9, 58 -> -12, 59 -> -13. They only move
+  sprites within 70 of the screen edges, so they don't reach a block the player stands on.
 - `PlayerObject::updateJump` rounds y velocity to 3 decimals (in 1/54 units) right after adding
   gravity, so a ball jump is rounded when gravity is applied on that step and not when the jump
   velocity is set without it (buffered jump, e.g. mini ball landing with the button held).
