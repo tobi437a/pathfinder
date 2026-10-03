@@ -330,7 +330,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   Landing (`hitGround`) stops it. Ball: rolls at +-120 / (0.2 * f) on the ground (mini x1/0.8; f per
   speed 1.2406 1 0.8042 0.6658 0.5409) and spins -+340 / (0.8 * f) after a flip. A fresh orb click's
   new spin starts a step later (GD handles the click at its next step). Ship/ufo/wave portals (on
-  or off) and leaving the ball set the rotation to 0.
+  or off) and leaving the ball set the rotation to 0; leaving the ship/ufo/wave for the cube spins it
+  (`resetPlayerIcon`), for the ball doesn't (`toggleRollMode` stops it).
 - A solid block's hitbox is its sprite's size (`GameObject::customSetup` only overrides it for
   some types), so ids sharing a sprite shape share a hitbox: `invis_`/`color` variants match the
   plain one (204 `invis_plank_01_small` = 196 `plank_01_small`, 15x8). Check with `gdtools frame`.

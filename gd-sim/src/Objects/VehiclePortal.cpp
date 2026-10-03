@@ -58,6 +58,10 @@ void VehiclePortal::collide(Player& player) const {
 			player.rotation = 0;
 		if (flies(from) || flies(type))
 			player.onGround2 = false;
+		// ...and switching the ship, ufo or wave off (resetPlayerIcon) starts a cube's spin (a ball's roll too,
+		// but toggleRollMode stops that again)
+		if (flies(from) && type == VehicleType::Cube)
+			player.runNormalRotation();
 		// enter scales velocity; find by how much, for a walk-off step added later (Player::postCollision)
 		double velocity = player.velocity;
 		player.velocity = 1;
