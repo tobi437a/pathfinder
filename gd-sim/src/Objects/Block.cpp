@@ -80,8 +80,10 @@ void trySnap(Block const& b, Player& p) {
 	if (float threshold = snapThreshold(diff, p); threshold > 0) {
 		// GD aims at the new block's sprite plus the player's offset from the old block's sprite back then
 		// (PlayerObject::checkSnapJumpToObject); the pattern above uses hitbox positions
+		float fromX = snapData.playerFrame <= p.level->baseFrame ? snapData.playerX
+			: p.level->getState(snapData.playerFrame).nextPlayer()->pos.x;
 		p.pos.x = std::clamp(
-			p.level->getState(snapData.playerFrame).nextPlayer()->pos.x + diff.x + p.spriteShift(b.pos.x) - snapData.spriteDx,
+			fromX + diff.x + p.spriteShift(b.pos.x) - snapData.spriteDx,
 			p.pos.x - threshold,
 			p.pos.x + threshold
 		);

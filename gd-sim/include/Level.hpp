@@ -19,6 +19,9 @@ class Level {
  	 */
 	std::vector<Player> gameStates;
 
+	/// Frames before gameStates[0] (which is frame baseFrame + 1). Non-zero after `resume`.
+	int baseFrame = 0;
+
 	size_t objectCount = 0;
 
 	/// Sections are used just like real GD. See Object.hpp for more info on ObjectContainer.
@@ -40,8 +43,15 @@ class Level {
  	/// The main update function. Every frame is associated with a press/release state.
  	Player& runFrame(bool pressed, float dt = 1/240.);
 
- 	/// Go back to a certain frame. Used in Pathfinder.
+ 	/// Go back to a certain frame. Used in Pathfinder. Never drops gameStates[0].
  	void rollback(int frame);
+
+ 	/**
+ 	 * Continue from a player state made outside the sim (e.g. copied from GD) instead of the level start.
+ 	 * `state.frame` is kept, so frame numbers stay those of the whole level; earlier frames don't exist
+ 	 * and getState returns the first state for them.
+ 	 */
+ 	void resume(Player state);
 
  	int currentFrame() const;
  	Player const& getState(int frame) const;

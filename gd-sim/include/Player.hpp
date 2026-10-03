@@ -70,6 +70,8 @@ struct Player : public Entity {
 		int playerFrame = 0;
 		/// How far the block's sprite was from its hitbox then (see spriteShift)
 		float spriteDx = 0;
+		/// The player's x after that snap, for a snap from before Level::resume (playerFrame <= baseFrame)
+		float playerX = 0;
 	} snapData;
 
 	/**

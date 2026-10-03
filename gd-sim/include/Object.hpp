@@ -28,6 +28,9 @@ struct Object : public Entity {
 
     /// Create an object from a given level string mapping.
     static std::optional<ObjectContainer> create(std::unordered_map<int, std::string>&& ob);
+
+    /// Whether the sim models objects with this id at all (others are left out of the level)
+    static bool supported(int id);
 };
 
 /**

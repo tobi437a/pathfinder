@@ -24,6 +24,7 @@ std::string realTxt = "";
 static int frames = 0;
 
 bool verifierRunning();  // verify.cpp
+bool pathfinderBotActive();  // engine/Bot.cpp
 
 class Replay2 : public gdr::Replay<Replay2, gdr::Input<"">> {
  public:
@@ -260,6 +261,9 @@ class $modify(LevelEditorLayer) {
 class $modify(GJBaseGameLayer) {
     void updateCamera(float dt) {
         GJBaseGameLayer::updateCamera(1 / 4.);
+        // The engine search runs thousands of steps per second that aren't one attempt
+        if (pathfinderBotActive())
+            return;
 
         static double prevVel = 0;
         static double prevX = 0;

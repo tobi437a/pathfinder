@@ -17,6 +17,10 @@
  *    "exit": true}
  * Each run appends a line to `verify-results.jsonl` and writes real.txt / sim.txt / level.lvl to
  * `verify/<level>/` (`gdtools compare real.txt sim.txt --shift 1` reads them).
+ *
+ * A job with `"mode": "solve"` runs the bot's search on the level instead (no macro needed), with
+ * optional `"searchMode"` ("Hybrid" | "Engine only") and `"timeLimit"` (seconds), and logs whether it
+ * found a path, how long it took and how much of it came from the simulator.
  */
 #include <Geode/Geode.hpp>
 #include <Geode/modify/AppDelegate.hpp>
@@ -30,6 +34,9 @@
 #include <gdr/gdr.hpp>
 #include <Level.hpp>
 #include <chrono>
+#include "engine/Bot.hpp"
+
+#undef small
 
 using namespace geode::prelude;
 
@@ -52,6 +59,10 @@ struct Job {
 	std::filesystem::path macro;
 	/// Raw downloadGJLevel22 response, for levels that aren't in the save
 	std::filesystem::path levelFile;
+	/// "verify" (play the macro) or "solve" (search the level)
+	std::string mode = "verify";
+	std::string searchMode;
+	int timeLimit = 0;
 };
 
 struct Run {
@@ -108,9 +119,11 @@ bool s_exitWhenDone = false;
 bool s_jobMode = false;
 std::unique_ptr<Run> s_run;
 bool s_runBound = false;
+/// A solve job is running (the bot drives the level)
+bool s_solving = false;
 
 bool verifying() {
-	return s_run || !s_jobs.empty();
+	return s_run || !s_jobs.empty() || s_solving;
 }
 
 Run* activeRun(GJBaseGameLayer* layer) {
@@ -262,6 +275,85 @@ void finishRun(Run& run, std::string result) {
 	});
 }
 
+void appendResult(matjson::Value const& json) {
+	auto line = json.dump(matjson::NO_INDENTATION);
+	log::info("verify: {}", line);
+	std::ofstream(Mod::get()->getSaveDir() / "verify-results.jsonl", std::ios::app) << line << "\n";
+}
+
+/// Settings a solve job changes, put back when it's done
+std::vector<std::pair<std::string, matjson::Value>> s_savedSettings;
+
+template <class T>
+void overrideSetting(std::string const& key, T value) {
+	s_savedSettings.emplace_back(key, matjson::Value(Mod::get()->getSettingValue<T>(key)));
+	Mod::get()->setSettingValue<T>(key, value);
+}
+
+void restoreSettings() {
+	for (auto it = s_savedSettings.rbegin(); it != s_savedSettings.rend(); ++it) {
+		if (it->second.isString())
+			Mod::get()->setSettingValue<std::string>(it->first, it->second.asString().unwrapOr(""));
+		else if (it->second.isBool())
+			Mod::get()->setSettingValue<bool>(it->first, it->second.asBool().unwrapOr(false));
+	}
+	s_savedSettings.clear();
+}
+
+Result<> startSolve(Job const& job, GJGameLevel* level) {
+	if (!level)
+		return Err("level {} not found", job.level);
+	if (!job.searchMode.empty())
+		overrideSetting<std::string>("search-mode", job.searchMode);
+	// Every run starts from scratch: no cached or partial paths, no macro left in Eclipse's folder
+	overrideSetting<bool>("resume-saved", false);
+	overrideSetting<bool>("export-macro", false);
+
+	auto& bot = gdpf::Bot::get();
+	bot.requestSolve(level, false, false);
+	if (job.timeLimit > 0)
+		bot.setSolveTimeLimit(job.timeLimit);
+	auto started = Clock::now();
+	std::string key = job.level, mode = job.searchMode;
+	bot.onFinished = [key, mode, started](gdpf::Bot& b) {
+		bool found = !b.runResults().empty() && b.runResults().back().completed;
+		auto pl = PlayLayer::get();
+		float percent = pl ? b.progressPercent() : 0.f;
+		auto json = matjson::makeObject({
+			{"level", key},
+			{"mode", "solve"},
+			{"searchMode", mode.empty() ? Mod::get()->getSettingValue<std::string>("search-mode") : mode},
+			{"result", found ? "found" : "failed"},
+			{"failure", b.lastFailure()},
+			{"seconds", std::chrono::duration<double>(Clock::now() - started).count()},
+			{"percent", percent},
+			{"ticks", found ? b.runResults().back().endTick : 0},
+			{"inputs", (int) b.inputs().size()},
+			{"simRounds", b.simRounds()},
+			{"simTicks", b.simTicks()},
+		});
+		appendResult(json);
+		// Keep the path for later checks
+		if (found) {
+			auto dir = Mod::get()->getSaveDir() / "verify" / "solved";
+			(void)file::createDirectoryAll(dir);
+			auto name = key;
+			for (auto& c : name) if (!std::isalnum((unsigned char) c)) c = '_';
+			(void)file::writeBinary(dir / fmt::format("{}.gdr2", name),
+				exportMacro(gdpf::hybrid::toSim(b.inputs())));
+		}
+		restoreSettings();
+		queueInMainThread([] {
+			s_solving = false;
+			if (auto pl = PlayLayer::get())
+				pl->onQuit();
+		});
+	};
+	s_solving = true;
+	CCDirector::get()->replaceScene(PlayLayer::scene(level, false, false));
+	return Ok();
+}
+
 /// Drives the job queue between runs (a run itself is driven by the hooks below)
 class JobRunner : public CCObject {
  public:
@@ -275,7 +367,7 @@ class JobRunner : public CCObject {
 	}
 
 	void tick(float) {
-		if (!s_jobMode || s_run || PlayLayer::get())
+		if (!s_jobMode || s_run || s_solving || PlayLayer::get())
 			return;
 		if (typeinfo_cast<CCTransitionScene*>(CCDirector::get()->getRunningScene()))
 			return;
@@ -291,7 +383,8 @@ class JobRunner : public CCObject {
 		auto job = s_jobs.front();
 		s_jobs.pop_front();
 		auto level = job.levelFile.empty() ? resolveLevel(job.level) : levelFromResponse(job.levelFile);
-		if (auto res = startRun(job.level, level, job.macro); res.isErr()) {
+		auto res = job.mode == "solve" ? startSolve(job, level) : startRun(job.level, level, job.macro);
+		if (res.isErr()) {
 			log::error("verify: {}: {}", job.level, res.unwrapErr());
 			auto line = matjson::makeObject({
 				{"level", job.level},
@@ -338,6 +431,9 @@ void loadJobFile() {
 				j["level"].isString() ? j["level"].asString().unwrapOr("") : std::to_string(j["level"].asInt().unwrapOr(0)),
 				j["macro"].asString().unwrapOr(""),
 				j["levelFile"].asString().unwrapOr(""),
+				j["mode"].asString().unwrapOr("verify"),
+				j["searchMode"].asString().unwrapOr(""),
+				(int) j["timeLimit"].asInt().unwrapOr(0),
 			});
 		}
 	}

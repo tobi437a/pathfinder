@@ -3,6 +3,7 @@
 #include <Level.hpp>
 #include <string>
 #include <cmath>
+#include <mutex>
 
 #include <Block.hpp>
 #include <Hazard.hpp>
@@ -160,6 +161,15 @@ std::optional<ObjectContainer> Object::create(std::unordered_map<int, std::strin
 	return {};
 }
 
+
+bool Object::supported(int id) {
+	static std::unordered_map<int, bool> cache;
+	static std::mutex lock;
+	std::lock_guard guard(lock);
+	if (auto it = cache.find(id); it != cache.end())
+		return it->second;
+	return cache[id] = create({{1, std::to_string(id)}}).has_value();
+}
 
 Object::Object(Vec2D s, std::unordered_map<int, std::string>&& fields) {
 	size = s;

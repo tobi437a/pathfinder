@@ -181,19 +181,27 @@ Player& Level::runFrame(bool pressed, float dt) {
 
 
 void Level::rollback(int frame) {
-	gameStates.resize(frame > 0 ? frame : 1);
+	gameStates.resize(std::max(frame - baseFrame, 1));
+}
+
+void Level::resume(Player state) {
+	state.level = this;
+	baseFrame = state.frame - 1;
+	gameStates.clear();
+	gameStates.push_back(std::move(state));
 }
 
 int Level::currentFrame() const {
-	return gameStates.size();
+	return gameStates.size() + baseFrame;
 }
 
 Player const& Level::getState(int frame) const {
-	if (frame == 0)
+	int index = frame - 1 - baseFrame;
+	if (index <= 0)
 		return gameStates[0];
-	if (gameStates.size() < frame)
+	if (index >= (int)gameStates.size())
 		return gameStates.back();
-	return gameStates[frame - 1];
+	return gameStates[index];
 }
 
 Player& Level::latestState() {

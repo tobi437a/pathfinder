@@ -1,8 +1,6 @@
 #include <Geode/Geode.hpp>
 #include <Geode/utils/web.hpp>
 #include <Geode/utils/coro.hpp>
-#include <Geode/modify/EditLevelLayer.hpp>
-#include <Geode/modify/LevelInfoLayer.hpp>
 #include <UIBuilder.hpp>
 #include "pathfinder.hpp"
 #include <future>
@@ -163,55 +161,7 @@ public:
 
 };
 
-class $modify(EditLevelLayer) {
-    bool init(GJGameLevel* p0) {
-        EditLevelLayer::init(p0);
-
-        auto btn = Build<BasedButtonSprite>::create(
-            CCSprite::create("pathfinder.png"_spr),
-            BaseType::Circle,
-            4,
-            3
-        ).scale(0.8);
-
-        btn->setTopRelativeScale(1.4);
-
-        btn.intoMenuItem([this]() {
-                auto lvlString = ZipUtils::decompressString(m_level->m_levelString, true, 0);
-                Build<PathfinderNode>::create(m_level->m_levelName, lvlString).parent(this).zOrder(100);
-        }).id("pathfinder-button")
-          .intoNewParent(CCMenu::create())
-          .parent(this)
-          .id("pathfinder-menu")
-          .matchPos(getChildByIDRecursive("delete-button"))
-          .move(-45, 0);
-
-
-        return true;
-    }
-};
-
-class $modify(LevelInfoLayer) {
-    bool init(GJGameLevel* level, bool challenge) {
-        LevelInfoLayer::init(level, challenge);
-
-        auto btn = Build<BasedButtonSprite>::create(
-            CCSprite::create("pathfinder.png"_spr),
-            BaseType::Circle,
-            4,
-            3
-        ).scale(0.8);
-
-        btn->setTopRelativeScale(1.4);
-
-        btn.intoMenuItem([this]() {
-                auto lvlString = ZipUtils::decompressString(m_level->m_levelString, true, 0);
-                Build<PathfinderNode>::create(m_level->m_levelName, lvlString).parent(this).zOrder(100);
-        }).id("pathfinder-button")
-          .parent(getChildByID("other-menu"))
-          .matchPos(getChildByIDRecursive("list-button"))
-          .move(0, 45);
-
-        return true;
-    }
-};
+void openSimOnlyPathfinder(CCNode* parent, GJGameLevel* level) {
+    auto lvlString = ZipUtils::decompressString(level->m_levelString, true, 0);
+    Build<PathfinderNode>::create(level->m_levelName, lvlString).parent(parent).zOrder(100);
+}

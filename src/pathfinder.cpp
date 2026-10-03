@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <chrono>
 #include <Level.hpp>
 #include <random>
 #include <gdr/gdr.hpp>
@@ -43,10 +44,6 @@ struct InputSet {
 	bool empty() const { return frames.empty(); }
 };
 
-bool isLevelEnd(Level2& lvl) {
-	return lvl.latestState().pos.x >= lvl.length;
-}
-
 int tryInputs(Level2& lvl, InputSet inputs) {
 	auto frame = lvl.currentFrame();
 	auto press_before = lvl.press;
@@ -60,7 +57,7 @@ int tryInputs(Level2& lvl, InputSet inputs) {
 		lvl.runFrame(lvl.press);
 	}
 	int final = lvl.currentFrame();
-	float lastX = lvl.latestState().pos.y;
+	float lastX = lvl.latestState().pos.x;
 	float lastY = lvl.latestState().pos.y;
 
 	lvl.rollback(frame);
@@ -72,19 +69,31 @@ int tryInputs(Level2& lvl, InputSet inputs) {
 	return final;
 }
 
-std::vector<uint8_t> pathfind(std::string const& lvlString, std::atomic_bool& stop, std::function<void(double)> callback, uint32_t seed) {
-	Level2 lvl(lvlString);
+SimResult pathfindSim(SimSearch const& search, std::atomic_bool& stop, std::function<void(double)> callback) {
+	using Clock = std::chrono::steady_clock;
+	auto started = Clock::now();
+	auto lastGain = started;
+	auto seconds = [](Clock::time_point since) { return std::chrono::duration<double>(Clock::now() - since).count(); };
 
-	std::mt19937 rng(seed ? seed : std::random_device()());
+	Level2 lvl(search.levelString);
+	if (search.start) {
+		lvl.resume(*search.start);
+		lvl.press = search.start->button;
+	}
+	float goal = std::min(lvl.length, search.targetX);
+	// No rolling back to before the start
+	int first = lvl.baseFrame + 1;
+
+	std::mt19937 rng(search.seed ? search.seed : std::random_device()());
 	std::uniform_int_distribution<int> dist(0, 999);
 
-	int trueBest = 0;
+	int trueBest = first;
 	int fail = 1;
 	int numAway = 1000;
 
 	Level2 lvlBest = lvl;
 
-	while (lvl.gameStates.back().pos.x < lvl.length) {
+	while (lvl.gameStates.back().pos.x < goal) {
 		auto frame = lvl.currentFrame();
 
 		InputSet bestInputs;
@@ -109,7 +118,7 @@ std::vector<uint8_t> pathfind(std::string const& lvlString, std::atomic_bool& st
 		}
 
 		if (bestFrame == frame) {
-			lvl.rollback(std::max(std::max(frame - fail, trueBest - numAway), 1));
+			lvl.rollback(std::max(std::max(frame - fail, trueBest - numAway), first));
 
 			fail += 5;
 
@@ -119,8 +128,8 @@ std::vector<uint8_t> pathfind(std::string const& lvlString, std::atomic_bool& st
 
 				if (numAway > 10000) {
 					numAway = 1000;
-					trueBest = 0;
-					lvl.rollback(1);
+					trueBest = first;
+					lvl.rollback(first);
 				}
 			} else if (fail > 100) {
 				fail += 50;
@@ -141,6 +150,7 @@ std::vector<uint8_t> pathfind(std::string const& lvlString, std::atomic_bool& st
 		}
 		if (lvl.currentFrame() > lvlBest.currentFrame()) {
 			lvlBest = lvl;
+			lastGain = Clock::now();
 		}
 
 		if (callback)
@@ -149,13 +159,38 @@ std::vector<uint8_t> pathfind(std::string const& lvlString, std::atomic_bool& st
 
 		if (stop)
 			break;
+		if (search.timeLimit > 0 && seconds(started) > search.timeLimit)
+			break;
+		if (search.stallLimit > 0 && seconds(lastGain) > search.stallLimit)
+			break;
 	}
 
+	// lvlBest's states still point at lvl (Player::level), so compare them with each other, not prevPlayer()
+	SimResult result;
+	auto& states = lvlBest.gameStates;
+	result.startButton = states.front().button;
+	result.startFrame = states.front().frame;
+	for (size_t i = 1; i < states.size(); ++i) {
+		if (states[i].button != states[i - 1].button)
+			result.inputs.push_back({states[i].frame, states[i].button});
+	}
+	result.endFrame = states.back().frame;
+	result.endX = states.back().pos.x;
+	result.reachedEnd = result.endX >= lvlBest.length;
+	result.reachedTarget = result.endX >= goal;
+	return result;
+}
+
+std::vector<uint8_t> exportMacro(std::vector<SimInput> const& inputs) {
 	Replay2 output;
-	for (auto& i : lvlBest.gameStates) {
-	    if (i.frame > 1 && i.button != i.prevPlayer().button)
-	        output.inputs.push_back(gdr::Input(i.frame, 1, false, i.button));
-	}
-
+	for (auto& i : inputs)
+		output.inputs.push_back(gdr::Input(i.frame, 1, false, i.down));
 	return output.exportData().unwrapOr({});
+}
+
+std::vector<uint8_t> pathfind(std::string const& lvlString, std::atomic_bool& stop, std::function<void(double)> callback, uint32_t seed) {
+	SimSearch search;
+	search.levelString = lvlString;
+	search.seed = seed;
+	return exportMacro(pathfindSim(search, stop, callback).inputs);
 }
