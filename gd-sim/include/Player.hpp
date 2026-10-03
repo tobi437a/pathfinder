@@ -153,6 +153,8 @@ struct Player : public Entity {
 
 	/// Entering a gravity portal can cause the next frame to have certain edge cases
 	bool gravityPortal = false;
+	/// Frame of the last gravity flip (PlayerObject::m_lastFlipTime), 0 if none
+	int lastFlipFrame = 0;
 
 	/// A pad was touched this frame (pads, unlike orbs, don't snap the player onto a block)
 	bool hitPad;

@@ -195,8 +195,21 @@ void Block::collideBlock(Player& p, bool bare) const {
 		p.onBlock = true;
 
 	if (p.innerHitbox().intersects(*this)) {
-		// Hitting block head-on
-		p.dead = true;
+		// Hitting block head-on. Within 0.1 s of a gravity flip GD instead puts the player on the block's far
+		// side from its (new) floor and grounds it there (hitGround: velocity 0, on ground if slow enough), if the
+		// block is on its head side: its bottom at least the landing clip above the player's (before or after
+		// this frame's move)
+		double clip = (p.vehicle.type == VehicleType::Ufo || p.vehicle.type == VehicleType::Ship) ? 6 : 10;
+		double rise = p.grav(p.pos.y - p.prevPlayer().pos.y);
+		bool headSide = p.gravBottom(*this) >= std::min(bottom + clip, bottom + clip - rise);
+		if (headSide && p.lastFlipFrame > 0 && (p.frame - p.lastFlipFrame) * p.dt < 0.1 - 1e-9 && p.vehicle.type != VehicleType::Wave) {
+			p.pos.y = p.grav(p.gravBottom(*this)) - p.grav(p.size.y / 2);
+			if (p.velocity <= 270)
+				p.grounded = true;
+			p.velocity = 0;
+			p.headHit = true;
+		} else
+			p.dead = true;
 	} else if (p.vehicle.type != VehicleType::Wave && p.gravTop(*this) - bottom <= landClip && (padHitBefore || p.velocity <= 0 || p.slope.was) && !flippedOffGround && !coverFeet) {
 		p.pos.y = p.grav(p.gravTop(*this)) + p.grav(p.size.y / 2);
 		p.applyResize();

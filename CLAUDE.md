@@ -287,6 +287,9 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
 - `PlayerObject::hitGround` sets the on-ground flag (0x9c1; `flipGravity` clears it) only at
   gravity-relative y velocity <= 5 (270 in sim units); a ball jumps (flips) while the button is
   held and that flag is set, so a ball reaching the mode ceiling faster doesn't flip.
+- A player whose inner hitbox hits a block within 0.1 s (`m_lastFlipTime`) of a gravity flip, with the
+  block on its head side, isn't killed (and doesn't break a breakable block): `collidedWithObjectInternal`
+  puts it on the block's far side (upside down: on its top) and calls `hitGround`.
 - An upside-down cube reaching the ground (y 0) doesn't die: it is put back on it with velocity 0,
   and grounded for a step (no gravity) if it was that slow.
 - Ship/UFO/ball hitting the ceiling (without flipping): velocity becomes 0, and the next step adds gravity *chosen for

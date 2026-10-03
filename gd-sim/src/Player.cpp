@@ -173,6 +173,8 @@ void Player::preCollision(bool pressed) {
 void Player::flipGravity(bool to) {
 	if (to != upsideDown && (slope.was || slope.on))
 		slope.downhill = !slope.downhill;
+	if (to != upsideDown)
+		lastFlipFrame = frame;
 	upsideDown = to;
 }
 
