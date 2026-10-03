@@ -25,6 +25,18 @@ Pad::Pad(Vec2D size, std::unordered_map<int, std::string>&& fields) : EffectObje
 	}
 }
 
+bool Pad::touching(Player const& p) const {
+	if (!EffectObject::touching(p))
+		return false;
+	// GD doesn't trigger a pad the player only touches at its bottom or top edge
+	if ((int)std::abs(rotation) % 180 == 0) {
+		auto box = p.unrotatedHitbox();
+		if (box.getTop() == getBottom() || box.getBottom() == getTop())
+			return false;
+	}
+	return true;
+}
+
 const velocity_map<PadType, VehicleType, bool> pad_velocities = {
 	//											   slow speed   1x speed    2x speed   3x speed
 	{{PadType::Yellow, VehicleType::Cube, false}, {864,         864,         864,         864}},
