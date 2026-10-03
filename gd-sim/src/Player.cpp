@@ -138,8 +138,11 @@ void Player::postCollision() {
 		bool shipPress = vehicle.type == VehicleType::Ship && button && !prevPlayer().button && velocity == 0;
 		double shipFall = small ? -1051.8984 : -894.11464;
 		if (!grounded && prevPlayer().grounded && ((!input && (prevPlayer().button || !button)) || buffer || coyoteJump || shipPress) && prevPlayer().gravBottom(*this) > prevPlayer().gravFloor() && size == prevPlayer().size && prevPlayer().velocity == 0 && !(gravityPortal && vehicle.type == VehicleType::Ship)) {
-			// The level's first frame has no previous acceleration
-			double fallAccel = prevPlayer().acceleration != 0 ? prevPlayer().acceleration : (shipPress ? shipFall : acceleration);
+			// The level's first frame has no previous acceleration. A ufo's previous acceleration was
+			// chosen for its velocity before landing; GD falls with the one for velocity 0 (this frame's).
+			double fallAccel = prevPlayer().acceleration;
+			if (fallAccel == 0 || vehicle.type == VehicleType::Ufo)
+				fallAccel = shipPress ? shipFall : acceleration;
 			pos.y += roundVel(prevPlayer().grav(fallAccel) * dt, prevPlayer().upsideDown) * dt;
 
 			// GD already had this frame's velocity (one step of gravity) when it touched a gravity
