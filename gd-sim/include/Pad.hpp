@@ -12,6 +12,5 @@ struct Pad : public EffectObject {
 	PadType type;
 
 	Pad(Vec2D size, std::unordered_map<int, std::string>&& fields);
-	bool touching(Player const&) const override;
 	void collide(Player&) const override;
 };

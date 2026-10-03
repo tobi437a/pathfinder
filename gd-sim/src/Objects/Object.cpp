@@ -179,6 +179,13 @@ Object::Object(Vec2D s, std::unordered_map<int, std::string>&& fields) {
 
 bool Object::touching(Player const& player) const {
 	int r = std::abs(rotation);
+	// GD doesn't count a non-solid object (pad, orb, portal, hazard) the player only touches at its top or
+	// bottom edge; touching a left or right edge counts
+	if (prio != 1 && (r == 0 || r == 180)) {
+		auto box = player.unrotatedHitbox();
+		if (box.getTop() == getBottom() || box.getBottom() == getTop())
+			return false;
+	}
 	return intersects((r == 0 || r == 90 || r == 180 || r == 270) ? player.unrotatedHitbox() : (Entity&)player);
 }
 
