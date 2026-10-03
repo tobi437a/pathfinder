@@ -24,7 +24,11 @@ void Player::setVelocity(double v, bool override) {
 
 void Player::applyResize() {
 	if (resizePending) {
-		size = small ? (size * 0.6) : (size / 0.6);
+		// From the base size, like GD's scale (0.6 or exactly 1), so mini and back doesn't drift in float
+		if (vehicle.type == VehicleType::Wave)
+			size = small ? Vec2D(6, 6) : Vec2D(10, 10);
+		else
+			size = Vec2D(30, 30) * (small ? 0.6 : 1);
 		resizePending = false;
 	}
 }
