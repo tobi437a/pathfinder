@@ -58,7 +58,8 @@ def resim(run, lvl):
     """Debug sim trace of a run's macro -> runs/<id>/simdbg.txt (inputs padded so it runs to the end)."""
     _, inputs = read_gdr2(run / "macro.gdr2")
     inp = run / "simdbg.inp"
-    inp.write_text(to_inp(inputs) + "0" * 40000)
+    enc = to_inp(inputs)
+    inp.write_text(enc + enc[-1] * 40000)  # macros may end holding the button
     with open(run / "simdbg.txt", "w") as out:
         subprocess.run([str(SIM_TEST), str(lvl), str(inp)], stdout=out, stderr=subprocess.DEVNULL)
 

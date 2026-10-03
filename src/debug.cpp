@@ -60,7 +60,7 @@ void runTestSim(std::string const& level, std::filesystem::path const& path) {
     bool currentHold = false;
 
     int maxFrame = inputs.back().frame;
-    for (int i = 1; i < maxFrame; ++i) {
+    for (int i = 1; i <= maxFrame; ++i) {
         if (i == inputs.front().frame) {
             currentHold = inputs.front().down;
             inputs.erase(inputs.begin());

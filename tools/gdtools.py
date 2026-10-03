@@ -197,7 +197,7 @@ def to_inp(inputs) -> str:
     if not ins:
         return "0"
     out, hold, k = ["0"], False, 0
-    for f in range(1, ins[-1]["frame"]):
+    for f in range(1, ins[-1]["frame"] + 1):
         while k < len(ins) and ins[k]["frame"] == f:
             hold = ins[k]["down"]
             k += 1
