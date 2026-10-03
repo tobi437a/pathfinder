@@ -234,6 +234,7 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   otherwise rot in 91..269 or -269..-91, xor flipY. So a sideways pad's target depends on flipY.
   The flipped player lands on a block on its new side in the same step if it touches it; one that
   stood on a block has already moved a step of its old gravity into that block, so it can miss.
+  Any pad launches a player standing on a block from that step into the block (no snap back).
 - Each `toggleFlyMode` / `toggleBirdMode` / `toggleDartMode` (ship, ufo, wave; on or off) halves y
   velocity; ball and cube have none. Per portal: a ship and a ufo portal touched in one step by a
   cube halve it three times (ship on, ship off, ufo on). A wave's `m_yVelocity` is +-round3(m_playerSpeed *
