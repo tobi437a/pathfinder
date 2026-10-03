@@ -91,6 +91,27 @@ void trySnap(Block const& b, Player& p) {
 	}
 }
 
+void Block::snapX(Player& p) const {
+	if (p.vehicle.type != VehicleType::Cube)
+		return;
+	if (!p.prevPlayer().grounded) {
+		if (p.snapData.playerFrame > 0 && p.snapData.playerFrame + 1 < p.frame && p.snapData.fromSolid) {
+			float before = p.pos.x;
+			trySnap(*this, p);
+			// Like the verifier's Snap lines in real.txt (sim frame = real frame + 1)
+			if (p.level->debug)
+				std::cout << "Snap " << p.frame - 1 << " obj " << pos.x << " " << pos.y << " prev "
+						  << p.snapData.object.pos.x << " " << p.snapData.object.pos.y << " x " << before
+						  << " -> " << p.pos.x << std::endl;
+		}
+	}
+
+	p.snapData.playerFrame = p.level->currentFrame();
+	p.snapData.object = *this;
+	p.snapData.fromSolid = !dynamic_cast<BreakableBlock const*>(this);
+	p.snapData.spriteDx = p.spriteShift(pos.x);
+}
+
 void Block::collide(Player& p) const {
 	collideBlock(p, false);
 }
@@ -116,8 +137,15 @@ void Block::collideBlock(Player& p, bool bare) const {
 		if (prev.gravTop(*this) - oldBottom <= oldClip) {
 			// (still standing on it in the old gravity, see Player::onBlock)
 			p.onBlock = true;
-			if (!p.innerHitbox().intersects(*this) && prev.velocity <= 0 && oldBottom < prev.gravTop(*this))
+			if (!p.innerHitbox().intersects(*this) && prev.velocity <= 0 && oldBottom < prev.gravTop(*this)) {
 				p.pos.y = prev.grav(prev.gravTop(*this)) + prev.grav(p.size.y / 2);
+				// (X-snap in the gravity it landed in)
+				if (!bare) {
+					p.upsideDown = prev.upsideDown;
+					snapX(p);
+					p.upsideDown = !prev.upsideDown;
+				}
+			}
 		}
 		return;
 	}
@@ -177,25 +205,8 @@ void Block::collideBlock(Player& p, bool bare) const {
 		if (!padHitBefore)
 			p.grounded = true;
 
-		// X-snapping
-		if (p.vehicle.type == VehicleType::Cube && !bare) {
-			if (!p.prevPlayer().grounded) {
-				if (p.snapData.playerFrame > 0 && p.snapData.playerFrame + 1 < p.frame && p.snapData.fromSolid) {
-					float before = p.pos.x;
-					trySnap(*this, p);
-					// Like the verifier's Snap lines in real.txt (sim frame = real frame + 1)
-					if (p.level->debug)
-						std::cout << "Snap " << p.frame - 1 << " obj " << pos.x << " " << pos.y << " prev "
-								  << p.snapData.object.pos.x << " " << p.snapData.object.pos.y << " x " << before
-								  << " -> " << p.pos.x << std::endl;
-				}
-			}
-
-			p.snapData.playerFrame = p.level->currentFrame();
-			p.snapData.object = *this;
-			p.snapData.fromSolid = !dynamic_cast<BreakableBlock const*>(this);
-			p.snapData.spriteDx = p.spriteShift(pos.x);
-		}
+		if (!bare)
+			snapX(p);
 	} else {
 		// Ship and ufo can hit the ceiling of a block without dying
 		// Same tolerance as landing: 10 (6 for ship/ufo) plus how far the player rose this frame
