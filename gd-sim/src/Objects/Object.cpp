@@ -141,21 +141,22 @@ std::optional<ObjectContainer> Object::create(std::unordered_map<int, std::strin
 	objs(({ 203 }), SpeedPortal, 65, 56)
 	objs(({ 1334 }), SpeedPortal, 69, 56)
 
+	// Slopes are GD's object type 25 (GameObject::customSetup); the spike slopes set m_slopeIsHazard
 	objs(({
 		289, 294, 299, 305, 309, 315, 321, 326, 331, 337,
-		343, 349, 353, 371, 483, 492, 651, 665,
+		343, 349, 353, 371, 483, 492, 523, 651, 665,
 		673, 709, 711, 726, 728, 886, 1338, 1341, 1344,
-		1723, 1743, 1745, 1747, 1749, 1906
+		1743, 1745, 1747, 1749, 1906
 	}), Slope, 30, 30)
-	objs(({ 363, 1717 }), SlopeHazard, 30, 30);
+	objs(({ 363, 366, 1717, 1723 }), SlopeHazard, 30, 30);
 
 	objs(({
 		291, 295, 301, 307, 311, 317, 323, 327, 333, 339,
-		345, 351, 355, 367, 372, 484, 493, 652, 666,
+		345, 351, 355, 372, 484, 493, 522, 652, 666,
 		674, 710, 712, 727, 729, 887, 1339, 1342, 1345,
-		1724, 1744, 1746, 1748, 1750, 1907
+		1744, 1746, 1748, 1750, 1907
 	}), Slope, 60, 30)
-	objs(({ 364, 366, 1718 }), SlopeHazard, 60, 30);
+	objs(({ 364, 367, 1718, 1724 }), SlopeHazard, 60, 30);
 
 	// Any block that isnt' defined is ignored
 	return {};
