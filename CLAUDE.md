@@ -120,7 +120,8 @@ frame + positions, max diff) and `verify\<level>\real.txt`, `sim.txt`, `level.lv
   call `Snap <frame> obj <x> <y> prev <x> <y> offset <o> x <before> -> <after>`; per step
   `Cam <frame> <x> <y> vis <x> <y> flip <value> <dir>` and, while the last snap block's sprite is
   off its hitbox, `SnapObj <frame> <id> real <x> <y> sprite <x> <y> enter <r> <l> <channel> ...`;
-  `Flip <frame> <on> ...` per mirror portal; once `Screen <w> <h> ... enter/exit <channel maps>`.
+  `Flip <frame> <on> ...` per mirror portal; once `Screen <w> <h> ... enter/exit <channel maps>`;
+  `Acc <frame> <real> <sim>` whenever GD's `m_isAccelerating` changes.
 
 ## Batch testing online levels
 
@@ -242,6 +243,12 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   The flipped player lands on a block on its new side in the same step if it touches it; one that
   stood on a block has already moved a step of its old gravity into that block, so it can miss.
   Any pad launches a player standing on a block from that step into the block (no snap back).
+- `m_isAccelerating` (0x952): set by a slope launch (`boostPlayer`) and a black (drop, type 32) or
+  red ring, cleared by pads (not red) and, at the start of `updateJump`, for a ship/ufo/wave/swing
+  whose y velocity is within [0, 8) up or (-6.4, 0] down (/ 0.85 mini). While set, the ship and ufo
+  velocity caps (-6.4 / 8) don't apply and the ship's gravity factor changes: falling and not held
+  -1 (its fall slows by 4.644 per step), rising and held 0.8 (it slows down). So a cube that left a
+  slope earlier and enters a ship falling faster than the cap isn't clamped to it.
 - Each `toggleFlyMode` / `toggleBirdMode` / `toggleDartMode` (ship, ufo, wave; on or off) halves y
   velocity; ball and cube have none. Per portal: a ship and a ufo portal touched in one step by a
   cube halve it three times (ship on, ship off, ufo on). A wave's `m_yVelocity` is +-round3(m_playerSpeed *

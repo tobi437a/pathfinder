@@ -118,11 +118,22 @@ Vehicle cube() {
 }
 
 double shipAcceleration(Player const& p) {
-	if (p.input) {
+	// PlayerObject::updateJump: gravity * a factor, 1.2 / 0.8 falling or -1 rising (* 0.5 / 0.4 held,
+	// by playerIsFallingBugged). While m_isAccelerating, a held ship that is rising gets the 0.8 (it
+	// slows down), and one falling without being held gets the -1 (it slows its fall).
+	bool rising = p.velocity >= 0;
+	if (p.input && !(p.accelerating && rising)) {
 		if (p.velocity <= p.grav(velocity_thresholds[p.speed]))
 			return p.small ? 1643.5872 : 1397.0491;
 		return p.small ? 1314.86976 : 1117.64328;
 	}
+	if (p.input) {
+		if (p.velocity <= p.grav(velocity_thresholds[p.speed]))
+			return p.small ? -1314.86976 : -1117.64328;
+		return p.small ? -1051.8984 : -894.11464;
+	}
+	if (p.accelerating && !rising)
+		return p.small ? 1314.86976 : 1117.64328;
 	if (p.velocity >= p.grav(velocity_thresholds[p.speed]))
 		return p.small ? -1577.85408 : -1341.1719;
 	return p.small ? -1051.8984 : -894.11464;
@@ -150,11 +161,12 @@ Vehicle ship() {
 		// Can't buffer clicks on ship
 		p.buffer = false;
 
-		// Max velocity
-		p.velocity = std::clamp(p.velocity, 
-			p.small ? -406.566 : -345.6,
-			p.small ? 508.248 : 432.0
-		);
+		// Max velocity, not while m_isAccelerating
+		if (!p.accelerating)
+			p.velocity = std::clamp(p.velocity,
+				p.small ? -406.566 : -345.6,
+				p.small ? 508.248 : 432.0
+			);
 
 		//TODO deal with slope velocity more consistently
 
@@ -309,10 +321,12 @@ Vehicle ufo() {
 	};
 
 	v.clamp = +[](Player& p) {
-		p.velocity = std::clamp(p.velocity, 
-			p.small ? -406.566 : -345.6,
-			p.small ? 508.248 : 432.0
-		);
+		// Max velocity, not while m_isAccelerating
+		if (!p.accelerating)
+			p.velocity = std::clamp(p.velocity,
+				p.small ? -406.566 : -345.6,
+				p.small ? 508.248 : 432.0
+			);
 
 		p.input = p.button;
 

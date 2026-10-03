@@ -68,6 +68,7 @@ struct Run {
 	bool realHeld = false;
 	bool pendingCompare = false;
 	bool finished = false;
+	int realAccelerating = -1; // last m_isAccelerating written to realTrace
 
 	std::string result;
 	int divergeFrame = -1;
@@ -456,6 +457,11 @@ class $modify(VerifyBGL, GJBaseGameLayer) {
 			run->step, rx, ry, vel, m_player1->getRotation(), realMode(m_player1));
 		run->simTrace += fmt::format("Frame {} X {:.8f} Y {:.8f} Vel {:.8f} Rot {:.8f} Mode {}\n",
 			run->step + 1, sx, sy, sim.velocity, sim.rotation, sim.modeString());
+		// `Acc <frame> <real m_isAccelerating> <sim accelerating>` whenever GD's flag changes
+		if (m_player1->m_isAccelerating != run->realAccelerating) {
+			run->realAccelerating = m_player1->m_isAccelerating;
+			run->realTrace += fmt::format("Acc {} {} {}\n", run->step, run->realAccelerating, (int)sim.accelerating);
+		}
 		// Enter effects slide objects relative to the camera: `Cam <frame> <x> <y>`, and once per run
 		// `Screen <w> <h> <PlayLayer floats 0x325c 0x3268> enter <channel map> exit <channel map>`
 		if (run->step == 0) {

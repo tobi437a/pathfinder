@@ -156,6 +156,12 @@ struct Player : public Entity {
 	/// Frame of the last gravity flip (PlayerObject::m_lastFlipTime), 0 if none
 	int lastFlipFrame = 0;
 
+	/// PlayerObject::m_isAccelerating: set by a black orb click and a slope launch
+	/// (boostPlayer), cleared by a pad, and at the start of a ship /
+	/// ufo / wave step whose velocity is within the ship's caps. While set, the ship and ufo velocity caps
+	/// don't apply, and a falling ship that isn't held is pushed back up (shipAcceleration).
+	bool accelerating = false;
+
 	/// A pad was touched this frame (pads, unlike orbs, don't snap the player onto a block)
 	bool hitPad;
 

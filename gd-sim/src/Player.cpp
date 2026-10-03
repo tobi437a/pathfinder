@@ -220,6 +220,7 @@ void Player::leaveSlope() {
 			velocityOverride = false;
 			grounded = false;
 			boosted = true;
+			accelerating = true;
 		}
 	} else if (!upsideDown ? sv < 0 : 0 < sv) {
 		// Off the bottom of a downhill slope: keeps falling at its speed
@@ -290,6 +291,15 @@ void Player::postCollision() {
 	bool ufoJump = vehicle.type == VehicleType::Ufo && buffer;
 	bool groundedBefore = grounded;
 	bool boostedBefore = boosted;
+
+	// PlayerObject::updateJump first ends m_isAccelerating for a ship, ufo or wave whose velocity is
+	// within the ship's caps: [0, 8) up or (-6.4, 0] down (/ 0.85 when mini)
+	if (vehicle.type == VehicleType::Ship || vehicle.type == VehicleType::Ufo || vehicle.type == VehicleType::Wave) {
+		float size = small ? 0.85f : 1;
+		double v = velocity / 54;
+		if ((v >= 0 && v < (double)(8.0f / size)) || (v <= 0 && v > (double)(-6.4f / size)))
+			accelerating = false;
+	}
 
 	vehicle.update(*this);
 
