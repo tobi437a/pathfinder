@@ -165,16 +165,14 @@ Vehicle ship() {
 			p.velocity = std::max(p.velocity, p.small ? -406.566 : -345.6);*/
 
 
-		// (possibly already put back under it before collisions, see Player::preCollision)
-		bool over = p.gravTop(p) > p.gravCeiling();
-		if (over || (p.ceilingSnapped && p.upsideDown == p.prevPlayer().upsideDown)) {
+		// Put back under the ceiling before collisions (Player::preCollision, like GD); something that moves
+		// it over the ceiling later in the frame (a size portal) only counts next frame
+		if (p.ceilingSnapped && p.upsideDown == p.prevPlayer().upsideDown) {
 			// GD zeroes velocity when it hits the ceiling and adds gravity before the next move
 			if (p.velocity > 0) {
 				p.setVelocity(0, false);
 				p.velocity = roundVel(shipAcceleration(p) * p.dt, p.upsideDown);
 			}
-			if (over)
-				p.pos.y = p.grav(p.gravCeiling()) - p.grav(p.size.y / 2);
 		}
 	};
 
@@ -319,9 +317,9 @@ Vehicle ufo() {
 
 		p.input = p.button;
 
-		// (possibly already put back under it before collisions, see Player::preCollision)
-		bool over = p.gravTop(p) > p.gravCeiling();
-		if (over || (p.ceilingSnapped && p.upsideDown == p.prevPlayer().upsideDown)) {
+		// Put back under the ceiling before collisions (Player::preCollision, like GD); something that moves
+		// it over the ceiling later in the frame (a size portal) only counts next frame
+		if (p.ceilingSnapped && p.upsideDown == p.prevPlayer().upsideDown) {
 			// GD zeroes velocity when it hits the ceiling and adds gravity before the next move. A jump
 			// this frame (GD's next step) still moves up into the ceiling first, so the ufo stays there
 			// a step longer (preCollision stops it).
@@ -329,8 +327,6 @@ Vehicle ufo() {
 				p.setVelocity(0, false);
 				p.velocity = roundVel(ufoAcceleration(p) * p.dt, p.upsideDown);
 			}
-			if (over)
-				p.pos.y = p.grav(p.gravCeiling()) - p.grav(p.size.y / 2);
 		}
 
 	};
