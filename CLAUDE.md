@@ -217,6 +217,10 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   gravity portal or a pad. The sim (`Block::collide`) still lands the player on the frame of an orb
   click (`padHitBefore`).
 - `PlayerObject::flipGravity` multiplies y velocity by -0.5.
+- Orbs: `playerTouchedRing` appends each touched ring to `m_touchingRings` (0xa38); `resetTouchedRings`
+  at the start of every step drops those not touched in the last step. A click (`pushButton`) tries
+  them in that order (first touched first, custom rings type 36 before the rest), so with two orbs
+  touched the older one wins, whatever the object order.
 - Blue pad (`collisionCheckObjects`, type 10) sets upside down = `!GameObject::isFacingDown(pad)`,
   only if that changes it. isFacingDown: rotation a multiple of 90 -> (|rot| == 180) xor flipY;
   otherwise rot in 91..269 or -269..-91, xor flipY. So a sideways pad's target depends on flipY.
@@ -241,6 +245,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   target their sprite positions (`getPosition`), which differ while a mirror portal flips the level.
   slow T1 A90 B120 C60; normal T1 A120 B150 C90; fast T2 A150 B195 C120; faster T2 A180 B225 C135;
   fastest T1 A120 B150 C90; mini makes A 90 (except slow/fastest). Only `resetObject` clears it.
+  It only snaps if the previous snap object is a plain solid (`getType() == 0`): not from a
+  breakable block (type 21), though onto one it does. The sim prints `Snap` lines like the verifier's.
 - Camera x (`m_gameState.m_cameraPosition`) = player x - (winWidth / 2 - 75) every step until the
   level end; winSize is 569x320 here. `PlayLayer::updateVisibility` (once per step, before the
   step's collisions, with the previous step's camera) sets block sprites: enter effects, and

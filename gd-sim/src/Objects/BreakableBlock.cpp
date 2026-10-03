@@ -18,8 +18,6 @@ void BreakableBlock::collide(Player& p) const {
 
 	// Reset fields that block sets
 	p.dead = false;
-	if (p.grounded)
-		p.snapData.playerFrame = 0;
 }
 
 bool BreakableBlock::stopsHead(Player const& p) const {

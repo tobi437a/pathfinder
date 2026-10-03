@@ -5,6 +5,7 @@
 #include <cmath>
 #include <array>
 #include <algorithm>
+#include <iostream>
 
 Block::Block(Vec2D s, std::unordered_map<int, std::string>&& fields) : Object(s, std::move(fields)) {
 	// Blocks have a prio of 1, so they are processed later than most other objects.
@@ -166,12 +167,20 @@ void Block::collideBlock(Player& p, bool bare) const {
 		// X-snapping
 		if (p.vehicle.type == VehicleType::Cube && !bare) {
 			if (!p.prevPlayer().grounded) {
-				if (p.snapData.playerFrame > 0 && p.snapData.playerFrame + 1 < p.frame)
+				if (p.snapData.playerFrame > 0 && p.snapData.playerFrame + 1 < p.frame && p.snapData.fromSolid) {
+					float before = p.pos.x;
 					trySnap(*this, p);
+					// Like the verifier's Snap lines in real.txt (sim frame = real frame + 1)
+					if (p.level->debug)
+						std::cout << "Snap " << p.frame - 1 << " obj " << pos.x << " " << pos.y << " prev "
+								  << p.snapData.object.pos.x << " " << p.snapData.object.pos.y << " x " << before
+								  << " -> " << p.pos.x << std::endl;
+				}
 			}
 
 			p.snapData.playerFrame = p.level->currentFrame();
 			p.snapData.object = *this;
+			p.snapData.fromSolid = !dynamic_cast<BreakableBlock const*>(this);
 			p.snapData.spriteDx = p.spriteShift(pos.x);
 		}
 	} else {
