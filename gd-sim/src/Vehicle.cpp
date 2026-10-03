@@ -215,13 +215,18 @@ Vehicle ball() {
 		// GD stops the ball with its top at the ceiling
 		if (p.gravTop(p) >= p.gravCeiling() && p.velocity > 0) {
 			p.pos.y = p.grav(p.gravCeiling()) - p.grav(p.size.y / 2);
+			double hitVelocity = p.velocity;
 			p.setVelocity(0, true);
 
-			// Hitting the ceiling with the button held flips the ball, which uses up the click
-			if (p.input) {
+			// Hitting the ceiling with the button held flips the ball, which uses up the click. GD's hitGround
+			// only counts the ceiling as ground when the ball reaches it at y velocity <= 5 (270 here).
+			if (p.input && hitVelocity <= 270) {
 				p.upsideDown = !p.upsideDown;
 				p.input = false;
 				p.buffer = false;
+			} else {
+				// Otherwise it leaves the ceiling on the next step, which adds gravity before the move
+				p.velocity = roundVel(-1676.46672 * p.dt, p.upsideDown);
 			}
 		}
 	};
