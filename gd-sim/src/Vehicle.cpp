@@ -19,6 +19,13 @@ constexpr double velocity_thresholds[] = {
 	103.809492
 };
 
+/// PlayerObject::updateJump's fall: m_yVelocity -= float(dt * gravity * mult) each step, with GD's dt 0.25f * 0.9f
+/// at 240 tps. As an acceleration in sim units (54x, per second).
+double gdFall(Player const& p, float gravity, float mult) {
+	float dt = (float)(p.dt * 60) * 0.9f;
+	return -(double)(dt * gravity * mult) * 54.0 / p.dt;
+}
+
 /// When the cube lands, it's rotation is snapped to whichever 90 degree angle is closest
 float normalizeRotation(Player const& p, float angle) {
     float playerRotation = (int)p.rotation % 360;
@@ -65,15 +72,9 @@ Vehicle cube() {
 	};
 
 	v.update = +[](Player& p) {
-		// Fall speeds
-		static double accelerations[] = {
-			-2747.52,
-			-2794.1082, 
-			-2786.4,
-			-2799.36,
-			-2799.36
-		};
-		p.acceleration = accelerations[p.speed];
+		// m_gravity per speed (updateTimeMod)
+		static float const gravity[] = {0.940199f, 0.958199f, 0.957199f, 0.961199f, 0.961199f};
+		p.acceleration = gdFall(p, gravity[p.speed], 1);
 
 		//TODO add rotation
 		p.rotation = 0;
@@ -220,7 +221,7 @@ Vehicle ball() {
 				p.buffer = false;
 			} else {
 				// Otherwise it leaves the ceiling on the next step, which adds gravity before the move
-				p.velocity = roundVel(-1676.46672 * p.dt, p.upsideDown);
+				p.velocity = roundVel(gdFall(p, 0.958199f, 0.6f) * p.dt, p.upsideDown);
 			}
 		}
 	};
@@ -240,7 +241,8 @@ Vehicle ball() {
 	};
 
 	v.update = +[](Player& p) {
-		p.acceleration = -1676.46672;
+		// A ball falls with GD's fixed 0.958199 (not m_gravity), times 0.6
+		p.acceleration = gdFall(p, 0.958199f, 0.6f);
 
 		if (!p.input)
 			p.vehicleBuffer = false;

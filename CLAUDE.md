@@ -263,6 +263,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   leaving at the left (`exit`): 22 -> -2 (fade only, the default), 23 -> -6, 24 -> -5, 25 -> -7,
   26 -> -8, 27 -> -3, 28 -> -4, 55 -> -11, 56 -> -10, 57 -> -9, 58 -> -12, 59 -> -13. They only move
   sprites within 70 of the screen edges, so they don't reach a block the player stands on.
+- Cube and ball fall: `updateJump` subtracts `float(0.225f * g * mult)` from m_yVelocity, g = `(float)m_gravity`
+  for the cube (mult 1) and the fixed 0.958199 for the ball (mult 0.6), unrounded; then rounds (below).
 - `PlayerObject::updateJump` rounds y velocity to 3 decimals (in 1/54 units) right after adding
   gravity, so a ball jump is rounded when gravity is applied on that step and not when the jump
   velocity is set without it (buffered jump, e.g. mini ball landing with the button held).
