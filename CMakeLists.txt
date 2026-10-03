@@ -43,6 +43,10 @@ endif()
 setup_geode_mod(${PROJECT_NAME})
 target_compile_definitions(${PROJECT_NAME} PRIVATE $<$<CONFIG:Debug>:DEBUG_MODE=1>)
 target_compile_options(${PROJECT_NAME} PRIVATE $<$<CONFIG:Debug>:-g> -O3 -fno-math-errno -fno-trapping-math -fvisibility=hidden -fomit-frame-pointer)
+# clang-cl ignores -O3; optimise every config (Debug too: the engine search is ~100x slower without it)
+if (MSVC)
+    target_compile_options(${PROJECT_NAME} PRIVATE /O2)
+endif()
 target_link_libraries(${PROJECT_NAME} gd-sim UIBuilder libGDR)
 
 # Standalone pathfinder for tools/batch.py (no Geode). Build it in Release:

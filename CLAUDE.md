@@ -67,7 +67,9 @@ job): restore/construct a GD state, `capture` it into the sim, step both with th
 report the first differing field; sweep inputs (hold lengths, speeds, sizes, gravity) to read
 constants off GD (y, velocity per tick); confirm the logic in Ghidra (`PlayerObject::updateJump`,
 `collidedWithObjectInternal`, ...); then fuzz random states until nothing differs. Order: fix
-`capture` drift, then robot, spider, swing, dash orbs, spider pad/orb, teleport, dual, triggers.
+`capture` drift; the sim's ship path in Hexagon Force (main:16) dies in GD at x 4265 (spike 145,
+speed 1.1), which hands the rest of that level to the slow engine (~100-700 steps/s there even
+optimised) - find that sim bug; then robot, spider, swing, dash orbs, spider pad/orb, teleport, dual, triggers.
 New vehicles need `VehicleType` + `Vehicle.cpp`, portal ids in `Object.cpp`, `Player::modeString`
 letters (r p i), `capture` mapping, and the verifier's `realMode`.
 GD's fly-mode floor/ceiling are `GJBaseGameLayer::getMinPortalY/getMaxPortalY` (they depend on camera
