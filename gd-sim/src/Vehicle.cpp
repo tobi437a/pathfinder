@@ -172,13 +172,16 @@ Vehicle ship() {
 			p.velocity = std::max(p.velocity, p.small ? -406.566 : -345.6);*/
 
 
-		if (p.gravTop(p) > p.gravCeiling()) {
+		// (possibly already put back under it before collisions, see Player::preCollision)
+		bool over = p.gravTop(p) > p.gravCeiling();
+		if (over || (p.ceilingSnapped && p.upsideDown == p.prevPlayer().upsideDown)) {
 			// GD zeroes velocity when it hits the ceiling and adds gravity before the next move
 			if (p.velocity > 0) {
 				p.setVelocity(0, false);
 				p.velocity = roundVel(shipAcceleration(p) * p.dt, p.upsideDown);
 			}
-			p.pos.y = p.grav(p.gravCeiling()) - p.grav(p.size.y / 2);
+			if (over)
+				p.pos.y = p.grav(p.gravCeiling()) - p.grav(p.size.y / 2);
 		}
 	};
 
@@ -317,13 +320,16 @@ Vehicle ufo() {
 
 		p.input = p.button;
 
-		if (p.gravTop(p) > p.gravCeiling()) {
+		// (possibly already put back under it before collisions, see Player::preCollision)
+		bool over = p.gravTop(p) > p.gravCeiling();
+		if (over || (p.ceilingSnapped && p.upsideDown == p.prevPlayer().upsideDown)) {
 			// GD zeroes velocity when it hits the ceiling and adds gravity before the next move
 			if (p.velocity > 0) {
 				p.setVelocity(0, false);
 				p.velocity = roundVel(ufoAcceleration(p) * p.dt, p.upsideDown);
 			}
-			p.pos.y = p.grav(p.gravCeiling()) - p.grav(p.size.y / 2);
+			if (over)
+				p.pos.y = p.grav(p.gravCeiling()) - p.grav(p.size.y / 2);
 		}
 
 	};

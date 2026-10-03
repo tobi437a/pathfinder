@@ -124,6 +124,15 @@ void Player::preCollision(bool pressed) {
 	if (floorSnapped)
 		pos.y = grav(gravFloor()) + grav(size.y / 2);
 
+	// ...and a ship or ufo above the ceiling back under it, stopping it (the vehicle's clamp then adds the
+	// gravity of the next step), so portals touched this frame start from there
+	ceilingSnapped = (vehicle.type == VehicleType::Ship || vehicle.type == VehicleType::Ufo) && gravTop(*this) > gravCeiling();
+	if (ceilingSnapped) {
+		pos.y = grav(gravCeiling()) - grav(size.y / 2);
+		if (velocity > 0)
+			velocity = 0;
+	}
+
 	potentialSlopes.clear();
 
 	// Downhill slopes snap you automatically

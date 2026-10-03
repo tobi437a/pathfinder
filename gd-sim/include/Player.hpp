@@ -148,6 +148,8 @@ struct Player : public Entity {
 
 	/// The player was below the mode floor after moving and was put back onto it before collisions
 	bool floorSnapped = false;
+	/// A ship or ufo above the mode ceiling after moving was put back under it before collisions
+	bool ceilingSnapped = false;
 
 	/// GD's walk-off step (a step of gravity for a player leaving a block) was already applied this frame
 	bool walkedOff = false;
