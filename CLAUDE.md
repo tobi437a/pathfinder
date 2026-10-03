@@ -225,7 +225,9 @@ Offsets are `PlayerObject` members in 2.2081: `0x9a0` = y velocity (double, grav
   velocity 0* (the lighter one) before moving, so the player leaves the ceiling on that step.
 - `GJBaseGameLayer::checkCollisions` snaps a normal-gravity cube below the floor onto the floor
   (no velocity check) *before* `collisionCheckObjects`, so a pad touched while landing on the floor
-  still starts from floor height. The sim does this in `Player::postCollision` (`hitPad`).
+  still starts from floor height, and a block hitting the head after that can push the player
+  below the floor (still grounded). The sim snaps in `Player::preCollision` (`floorSnapped`) and
+  grounds in `postCollision`.
 - A solid block's hitbox is its sprite's size (`GameObject::customSetup` only overrides it for
   some types), so ids sharing a sprite shape share a hitbox: `invis_`/`color` variants match the
   plain one (204 `invis_plank_01_small` = 196 `plank_01_small`, 15x8). Check with `gdtools frame`.

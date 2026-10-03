@@ -117,6 +117,12 @@ void Player::preCollision(bool pressed) {
 		i(*this);
 	actions.clear();
 
+	// GJBaseGameLayer::checkCollisions puts a player below the mode floor back onto it before object
+	// collisions (postCollision then decides about grounding)
+	floorSnapped = gravBottom(*this) < gravFloor();
+	if (floorSnapped)
+		pos.y = grav(gravFloor()) + grav(size.y / 2);
+
 	potentialSlopes.clear();
 
 	// Downhill slopes snap you automatically
@@ -126,11 +132,12 @@ void Player::preCollision(bool pressed) {
 }
 
 void Player::postCollision() {
-	// GD snaps to the floor before object collisions, so a pad touched this frame still gets snapped
-	// (but launches the player rather than grounding them)
-	// (so a block that stopped the player's head after that can leave it below the floor)
-	if (gravBottom(*this) <= gravFloor() && !velocityOverride && (velocity <= 0 || hitPad) && !headHit) {
-		pos.y = grav(gravFloor()) + grav(size.y / 2);
+	// GD snaps to the floor before object collisions (see preCollision), so a pad touched this frame still
+	// gets snapped (but launches the player rather than grounding them), and a block that stopped the
+	// player's head after that can leave it below the floor (still grounded)
+	if (gravBottom(*this) <= gravFloor() && !velocityOverride && (velocity <= 0 || hitPad)) {
+		if (!headHit)
+			pos.y = grav(gravFloor()) + grav(size.y / 2);
 		if (!hitPad) {
 			grounded = true;
 			snapData.playerFrame = 0;

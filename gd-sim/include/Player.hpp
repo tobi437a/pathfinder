@@ -146,6 +146,9 @@ struct Player : public Entity {
 	/// A block stopped the player's head this frame
 	bool headHit = false;
 
+	/// The player was below the mode floor after moving and was put back onto it before collisions
+	bool floorSnapped = false;
+
 	/// GD caches the player's hitbox, so a size portal's new size only shows once the player is moved
 	/// (e.g. snapped onto a block) or at the end of the frame
 	bool resizePending = false;

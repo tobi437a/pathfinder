@@ -180,7 +180,8 @@ void Block::collide(Player& p) const {
 			// walking off (GD has already applied that step's gravity)
 			bool shipFlipped = p.gravityPortal && p.vehicle.type == VehicleType::Ship && p.prevPlayer().grounded;
 			// A landing this frame counts whatever the sim's velocity is: GD zeroes it when landing.
-			bool rising = p.velocity > 0 || p.grounded || (p.velocity == 0 && (p.prevPlayer().velocity > 0 || shipFlipped));
+			// So does a snap onto the mode floor this frame.
+			bool rising = p.velocity > 0 || p.grounded || p.floorSnapped || (p.velocity == 0 && (p.prevPlayer().velocity > 0 || shipFlipped));
 			if (p.gravTop(p) - p.gravBottom(*this) <= headClip && rising) {
 				if (!stopsHead(p)) {
 					p.dead = true;
