@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Group batch divergences by the objects around them, to find sim bugs shared by many levels.
 
-  python tools/triage.py [--ids 1,2] [--dx 45] [--dy 60] [--top 40] [--resim]
+  python tools/triage.py [--regress NAME] [--ids 1,2] [--dx 45] [--dy 60] [--top 40] [--resim]
 
 For every batch run whose real GD path diverges from the sim (runs/<id>/verify.json), lists the
 objects of levels/<id>.lvl within --dx/--dy of the player at the first divergence (real frame,
@@ -9,7 +9,8 @@ objects of levels/<id>.lvl within --dx/--dy of the player at the first divergenc
 prints how often each id shows up near a divergence. Per-level lines go to build/re/batch/triage.txt.
 --resim reruns each level through gd-sim-test (Debug build) into runs/<id>/simdbg.txt, whose `Mode`
 column (vehicle c s b u w, + u upside down, m mini, g grounded) gives the sim's mode at the
-divergence; without it the existing simdbg.txt files are used.
+divergence; without it the existing simdbg.txt files are used. --regress NAME takes the divergences
+from `regress.py --save NAME` (the current sim, simdbg.txt) instead of the verifier's verify.json.
 """
 import argparse
 import collections
@@ -24,7 +25,7 @@ REPO = Path(__file__).resolve().parent.parent
 DATA = REPO / "build" / "re" / "batch"
 SIM_TEST = REPO / "build" / "gd-sim" / "Debug" / "gd-sim-test.exe"
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from gdtools import read_gdr2, to_inp  # noqa: E402
+from gdtools import read_gdr2, read_path, to_inp  # noqa: E402
 
 
 def sim_ids():
@@ -81,16 +82,24 @@ def main():
     ap.add_argument("--dy", type=float, default=60)
     ap.add_argument("--top", type=int, default=40)
     ap.add_argument("--resim", action="store_true")
+    ap.add_argument("--regress")
     a = ap.parse_args()
     known = sim_ids()
     near_count, unknown_count, mode_count = collections.Counter(), collections.Counter(), collections.Counter()
     lines = []
     want = set(a.ids.split(",")) if a.ids else None
+    regress = json.loads((DATA / f"regress-{a.regress}.json").read_text(encoding="utf-8")) if a.regress else None
     for vpath in sorted((DATA / "runs").glob("*/verify.json")):
         lid = vpath.parent.name
         if want and lid not in want:
             continue
         v = json.loads(vpath.read_text(encoding="utf-8"))
+        if regress is not None:
+            if regress.get(lid, {}).get("diverge", -1) < 0:
+                continue
+            f = regress[lid]["diverge"]
+            real, sim = read_path(vpath.parent / "real.txt"), read_path(vpath.parent / "simdbg.txt")
+            v = dict(v, divergeFrame=f, divergeReal=real[f][:2], divergeSim=sim[f + 1][:2])
         if v.get("divergeFrame", -1) < 0 or not v.get("divergeReal"):
             continue
         lvl = DATA / "levels" / f"{lid}.lvl"
