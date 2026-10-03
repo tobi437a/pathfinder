@@ -13,7 +13,9 @@ untouched original) that searches by running GD's own engine in-process: support
 **The user's goal: everything simulated, so it's fast.** Port every GD feature the sim lacks (robot,
 spider, swing, dash orbs, spider pads/orbs, teleport portals, dual, triggers, 2.2 block flags, ...)
 into `gd-sim`, using the engine backend as an oracle (see "Porting with the engine oracle"). The
-hybrid search only keeps levels working meanwhile; the engine's share should shrink to zero.
+hybrid search only keeps levels working meanwhile; the engine's share should shrink to zero. Don't put
+work into the engine search or the hybrid: when something is slow or broken there, find what the
+sim gets wrong or lacks and fix that.
 
 ## Layout
 
@@ -144,8 +146,10 @@ tools\verify.ps1 jobs.json [-Minimize]   # launches GD via Steam, runs the jobs,
 the level must be in the GD save (main levels always are). A job `{"level": ..., "mode": "solve",
 "searchMode": "Hybrid" | "Engine only", "timeLimit": 300}` runs the bot's search instead (resume,
 cache and macro export off) and logs found/failed, seconds, ticks and `simTicks` (how much came
-from the sim); solved macros go to `verify\solved\`. Hybrid solves main:1, 3, 5 in ~2 s. Untested yet:
-16 Hexagon Force (dual), 19/20 (robot, spider), 21 (dash orbs), 22 Dash (swing). Each job plays the macro in a
+from the sim); solved macros go to `verify\solved\`. Hybrid solves main:1, 3, 5 in ~2 s; `pathfinder-cli`
+alone beats main:17 and 18 (verified). main:16 Hexagon Force: the sim gets to the dual portals
+(x 6138) in ~1 s, then the engine crawls (~7 steps/s, its ball planner rebuilds for ~1.5 s each);
+dual is next. Untested: 19/20 (robot, spider), 21 (dash orbs), 22 Dash (swing). Each job plays the macro in a
 `PlayLayer` at ~20-30k physics steps/s and compares the player with the in-process sim every step.
 Results: `verify-results.jsonl` in the mod save dir (`complete`/`died`/`timeout`, first divergence
 frame + positions, max diff) and `verify\<level>\real.txt`, `sim.txt`, `level.lvl`, which
