@@ -219,7 +219,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   fall, velocity >= 0, so 0 after an earlier landing or head hit in the same step still counts, as does a ship's
   velocity reaching exactly 0 in the air); a ufo head-hitting a breakable block breaks it instead. This also holds on the frame the player touches a
   gravity portal or a pad. The sim (`Block::collide`) still lands the player on the frame of an orb
-  click (`padHitBefore`).
+  click (`padHitBefore`), GD's click being a step later; but an orb first touched with the button
+  already held fires in GD's collisions, before the block, so that player doesn't land.
 - `PlayerObject::flipGravity` multiplies y velocity by -0.5.
 - A yellow pad launches a ufo at 864 like a cube; the ufo's velocity cap (432, mini 508.248) cuts it on
   the next step, after that step's gravity, so the first step up moves 432 / 240.

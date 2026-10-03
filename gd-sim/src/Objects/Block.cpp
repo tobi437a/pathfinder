@@ -143,10 +143,11 @@ void Block::collideBlock(Player& p, bool bare) const {
 	bool coverFeet = p.upsideDown ? coverBottom : coverTop;
 	bool coverHead = p.upsideDown ? coverTop : coverBottom;
 
-	// An orb clicked this frame (orbs run before blocks here) still lands the player on the block.
-	// Pads and gravity portals don't: GD only lands when moving towards the block (yVelocity <= 0), or
-	// when it was on a slope last frame.
-	bool padHitBefore = (!p.gravityPortal && !p.hitPad && !p.prevPlayer().grounded && p.prevPlayer().velocity <= 0 && p.velocity > 0);
+	// An orb clicked this frame (orbs run before blocks here) still lands the player on the block: GD
+	// handles the click a step later. Not one taken with the button held as it's touched, which GD
+	// activates in this step's collisions. Pads and gravity portals don't: GD only lands when moving
+	// towards the block (yVelocity <= 0), or when it was on a slope last frame.
+	bool padHitBefore = (!p.gravityPortal && !p.hitPad && !p.prevPlayer().grounded && p.prevPlayer().velocity <= 0 && p.velocity > 0 && !(p.clickedOrb && p.prevPlayer().button));
 
 	// A grounded cube flipped by a gravity portal has GD's walk-off velocity times -0.5 (positive) by now,
 	// so it doesn't land this frame (see Player::postCollision). A ball or ufo lands right away.
