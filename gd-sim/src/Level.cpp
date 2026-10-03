@@ -1,6 +1,8 @@
 #include <sstream>
 #include <iomanip>
 #include <Level.hpp>
+#include <Orb.hpp>
+#include <algorithm>
 
 // Otherwise gameStates copies every Player (instead of moving) whenever it grows
 static_assert(std::is_nothrow_move_constructible_v<Player>);
@@ -123,6 +125,12 @@ Player& Level::runFrame(bool pressed, float dt) {
 
 	size_t numCollisions = 0;
 
+	// A click is handled by PlayerObject::pushButton, after this step's collisions, which tries the rings in
+	// m_touchingRings (touched this step or the last) in the order they were first touched: a ring stays
+	// in it while the player keeps touching it (resetTouchedRings).
+	bool clicked = p.button && !p.prevPlayer().button;
+	std::vector<Orb const*> clickOrbs;
+
 	for (auto section : sections) {
 		if (section == nullptr) continue;
 		for (auto& o : *section) {
@@ -133,9 +141,32 @@ Player& Level::runFrame(bool pressed, float dt) {
 				hazards.push_back(&o);
 			else if (o->touching(p)) {
 				++numCollisions;
-				o->collide(p);
+				if (auto orb = clicked ? dynamic_cast<Orb const*>(o.operator->()) : nullptr)
+					clickOrbs.push_back(orb);
+				else
+					o->collide(p);
 			}
 		}
+	}
+
+	if (clickOrbs.size() > 1) {
+		auto firstTouched = [&](Orb const* orb) {
+			int f = orb->Object::touching(p) ? p.frame : p.frame - 1;
+			while (f - 1 > baseFrame && orb->Object::touching(getState(f - 1)))
+				--f;
+			return f;
+		};
+		std::vector<std::pair<int, Orb const*>> order;
+		for (auto orb : clickOrbs)
+			order.push_back({firstTouched(orb), orb});
+		std::stable_sort(order.begin(), order.end(), [](auto& a, auto& b) { return a.first < b.first; });
+		for (size_t i = 0; i < order.size(); ++i)
+			clickOrbs[i] = order[i].second;
+	}
+	for (auto orb : clickOrbs) {
+		if (p.dead) break;
+		if (orb->touching(p))
+			orb->collide(p);
 	}
 
 	// Blocks are processed in descending order
