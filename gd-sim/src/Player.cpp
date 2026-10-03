@@ -183,14 +183,14 @@ void Player::postCollision() {
 	if (!velocityOverride) {
 		double newVel = velocity + acceleration * dt;
 
-		// Player will fall off blocks a frame faster than expected. A grounded ship or ufo flipped by a
+		// Player will fall off blocks a frame faster than expected. A grounded ship, ufo or ball flipped by a
 		// gravity portal stays put for that frame (GD flips it after the move). A ship pressed this frame still
 		// walks off first (unless an orb or pad launched it), since GD handles the press one step later;
 		// so does a player clicking an orb, or a ball clicking as it leaves a block.
 		bool shipPress = vehicle.type == VehicleType::Ship && button && !prevPlayer().button && velocity == 0;
 		double shipFall = small ? -1051.8984 : -894.11464;
 		bool ballPress = vehicle.type == VehicleType::Ball && button && !prevPlayer().button && !onBlock && !clickedOrb;
-		if (!grounded && prevPlayer().grounded && ((!input && (prevPlayer().button || !button)) || buffer || (clickedOrb && !onBlock && upsideDown == prevPlayer().upsideDown) || coyoteJump || shipPress || ballPress) && prevPlayer().gravBottom(*this) > prevPlayer().gravFloor() && prevPlayer().velocity == 0 && !(gravityPortal && (vehicle.type == VehicleType::Ship || vehicle.type == VehicleType::Ufo))) {
+		if (!grounded && prevPlayer().grounded && ((!input && (prevPlayer().button || !button)) || buffer || (clickedOrb && !onBlock && upsideDown == prevPlayer().upsideDown) || coyoteJump || shipPress || ballPress) && prevPlayer().gravBottom(*this) > prevPlayer().gravFloor() && prevPlayer().velocity == 0 && !(gravityPortal && vehicle.type != VehicleType::Cube)) {
 			// The level's first frame has no previous acceleration. A ufo's previous acceleration was
 			// chosen for its velocity before landing; GD falls with the one for velocity 0 (this frame's).
 			double fallAccel = prevPlayer().acceleration;
