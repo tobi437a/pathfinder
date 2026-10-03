@@ -174,6 +174,9 @@ struct Player : public Entity {
 
 	void setVelocity(double v, bool override=false);
 
+	/// Move by dy, rounding y like GD does
+	void moveY(double dy);
+
 	/// Apply a size portal's size change if it hasn't been yet (see resizePending)
 	void applyResize();
 

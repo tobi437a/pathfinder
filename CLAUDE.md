@@ -62,6 +62,7 @@ python tools\gdtools.py objects build\re\x.lvl 11260 11360 -y 150 260   # object
 python tools\gdtools.py frame 196 204       # object id -> sprite frame name, read from the GD exe
 ```
 Level-string object coords are sim coords (`pos`); the printed sim/real `Y` is `pos.y - 15`.
+GD's player y (float) is sim y + 90, so it rounds coarser; the sim moves y through `Player::moveY`.
 `Entity::rotation` (objects and player) is in degrees.
 Macros live in `%LOCALAPPDATA%\GeometryDash\geode\mods\eclipse.eclipse-menu\replays\`. The
 simulator runs 240 tps; a non-240 macro won't line up. GD's `real.txt` counts from 0 at reset and
