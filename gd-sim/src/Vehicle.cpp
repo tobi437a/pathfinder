@@ -19,11 +19,11 @@ constexpr double velocity_thresholds[] = {
 	103.809492
 };
 
-/// PlayerObject::updateJump's fall: m_yVelocity -= float(dt * gravity * mult) each step, with GD's dt 0.25f * 0.9f
-/// at 240 tps. As an acceleration in sim units (54x, per second).
-double gdFall(Player const& p, float gravity, float mult) {
+/// PlayerObject::updateJump's fall: m_yVelocity -= float(dt * gravity * mult) / size each step (size 0.85 for a
+/// mini ship or ufo), with GD's dt 0.25f * 0.9f at 240 tps. As an acceleration in sim units (54x, per second).
+double gdFall(Player const& p, float gravity, float mult, float size) {
 	float dt = (float)(p.dt * 60) * 0.9f;
-	return -(double)(dt * gravity * mult) * 54.0 / p.dt;
+	return -(double)(dt * gravity * mult / size) * 54.0 / p.dt;
 }
 
 /// When the cube lands, it's rotation is snapped to whichever 90 degree angle is closest
@@ -129,9 +129,10 @@ double shipAcceleration(Player const& p) {
 }
 
 double ufoAcceleration(Player const& p) {
+	float size = p.small ? 0.85f : 1;
 	if (p.velocity > p.grav(velocity_thresholds[p.speed]))
-		return p.small ? -1969.92 : -1671.84;
-	return p.small ? -1308.96 : -1114.56;
+		return gdFall(p, 0.958199f, 0.6f, size);
+	return gdFall(p, 0.958199f, 0.4f, size);
 }
 
 Vehicle ship() {

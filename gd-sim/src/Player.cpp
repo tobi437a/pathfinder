@@ -276,7 +276,7 @@ void Player::postCollision() {
 	// level's first frame) still takes GD's walk-off step: GD walks off one step and jumps on the next
 	if (ufoJump && velocityOverride && !groundedBefore && prevPlayer().grounded
 		&& prevPlayer().velocity == 0 && prevPlayer().gravBottom(*this) > prevPlayer().gravFloor()) {
-		double fallAccel = small ? -1308.96 : -1114.56; // ufoAcceleration at velocity 0
+		double fallAccel = gdFall(*this, 0.958199f, 0.4f, small ? 0.85f : 1); // ufoAcceleration at velocity 0
 		moveY(roundVel(prevPlayer().grav(fallAccel) * dt, prevPlayer().upsideDown));
 	}
 

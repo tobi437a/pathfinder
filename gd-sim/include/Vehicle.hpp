@@ -29,3 +29,6 @@ struct Vehicle {
 
 	static Vehicle from(VehicleType v);
 };
+
+/// GD's per-step fall (PlayerObject::updateJump) as an acceleration in sim units, see Vehicle.cpp
+double gdFall(Player const& p, float gravity, float mult, float size = 1);
