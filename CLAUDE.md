@@ -177,7 +177,7 @@ Offsets are `PlayerObject` members in 2.2081: `0x9a0` = y velocity (double, grav
   positive velocity GD only handles moving blocks. It lands if the player's bottom is at most
   `clip + distance fallen this step` below the block top (clip 10; 6 for ship/ufo/wave/swing; 5 in
   platformer). Ship/ufo/ball heads hit a block's underside with the same rule (rise instead of
-  fall); a ufo head-hitting a breakable block breaks it instead. This also holds on the frame the player touches a
+  fall, velocity >= 0, so 0 after an earlier landing or head hit in the same step still counts); a ufo head-hitting a breakable block breaks it instead. This also holds on the frame the player touches a
   gravity portal or a pad. The sim (`Block::collide`) still lands the player on the frame of an orb
   click (`padHitBefore`).
 - `PlayerObject::flipGravity` multiplies y velocity by -0.5.

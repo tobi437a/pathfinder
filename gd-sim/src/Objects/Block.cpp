@@ -168,7 +168,12 @@ void Block::collide(Player& p) const {
 		// Same tolerance as landing: 10 (6 for ship/ufo) plus how far the player rose this frame
 		if (p.vehicle.type == VehicleType::Ship || p.vehicle.type == VehicleType::Ufo || p.vehicle.type == VehicleType::Ball) {
 			double headClip = (p.vehicle.type == VehicleType::Ball ? 10 : 6) + std::max(0.0, (double)p.grav(p.pos.y - p.prevPlayer().pos.y));
-			if (p.gravTop(p) - p.gravBottom(*this) <= headClip && p.velocity > 0) {
+			// GD checks velocity >= 0: 0 counts when another block's head hit or a landing zeroed it this
+			// frame, or for a grounded ship that a gravity portal flipped in place, but not for a player
+			// walking off (GD has already applied that step's gravity)
+			bool shipFlipped = p.gravityPortal && p.vehicle.type == VehicleType::Ship && p.prevPlayer().grounded;
+			bool rising = p.velocity > 0 || (p.velocity == 0 && (p.prevPlayer().velocity > 0 || p.grounded || shipFlipped));
+			if (p.gravTop(p) - p.gravBottom(*this) <= headClip && rising) {
 				if (!stopsHead(p)) {
 					p.dead = true;
 				} else {
