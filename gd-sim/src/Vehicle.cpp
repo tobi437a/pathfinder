@@ -301,8 +301,8 @@ Vehicle ufo() {
 
 	v.clamp = +[](Player& p) {
 		p.velocity = std::clamp(p.velocity, 
-			p.small ? -406.56 : -345.6,
-			p.small ? 508.24 : 432.0
+			p.small ? -406.566 : -345.6,
+			p.small ? 508.248 : 432.0
 		);
 
 		p.input = p.button;
