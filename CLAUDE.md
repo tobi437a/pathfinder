@@ -157,6 +157,7 @@ Offline loop over the batch (no game; uses the Debug `gd-sim-test`, ~1.5 min for
 ```powershell
 python tools\regress.py --save base          # first real/sim divergence per run -> regress-base.json
 python tools\regress.py --base base          # after a sim change: which runs diverge later / earlier
+python tools\regress.py --rot --save r0       # also a cube's/ball's rotation (mod 90) must match GD's
 python tools\triage.py                       # sim mode + objects at each divergence -> triage.txt
 python tools\diverge.py <id> [--frame F]     # one run: real vs sim per frame, button, nearby objects
 ```
@@ -316,6 +317,19 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
 - An object rotated by a non-multiple of 90 (pad, orb, portal, ...) is touched only if its bounding
   rect (of the rotated box) overlaps the player's unrotated rect, edges included, and then its
   oriented box overlaps the player's (rotated) one (`collisionCheckObjects`, `OBB2D::overlaps1Way`).
+- So the cube's and ball's rotation matters (the sim keeps it in GD's clockwise degrees; ship, ufo and
+  wave rotations and objects' are counter-clockwise). `GJBaseGameLayer::update` calls
+  `PlayerObject::updateRotation(dt)` after the step's collisions (dt 0.25 at 240 tps): the spin
+  `m_rotationSpeed` (degrees/s) is added, times dt / 60, except that a cube on a slope and a cube
+  on the ground (`m_isOnGround2`, still set on the first step off a ledge) slerp to the nearest slope
+  angle / multiple of 90 (rate `m_playerSpeed * 0.175 * dt`, x3 on the ground; a slope collision
+  does it once more, `updateSlopeRotation`). `runNormalRotation`: +-180 / 0.4333 (mini 0.3333),
+  minus when upside down, from a jump, a pad, a ring, starting to fall (velocity past -0.25) and
+  leaving a downhill slope; a slope launch (`boostPlayer`) spins -+180 / 0.8667 (mini 0.6667).
+  Landing (`hitGround`) stops it. Ball: rolls at +-120 / (0.2 * f) on the ground (mini x1/0.8; f per
+  speed 1.2406 1 0.8042 0.6658 0.5409) and spins -+340 / (0.8 * f) after a flip. A fresh orb click's
+  new spin starts a step later (GD handles the click at its next step). Ship/ufo/wave portals (on
+  or off) and leaving the ball set the rotation to 0.
 - A solid block's hitbox is its sprite's size (`GameObject::customSetup` only overrides it for
   some types), so ids sharing a sprite shape share a hitbox: `invis_`/`color` variants match the
   plain one (204 `invis_plank_01_small` = 196 `plank_01_small`, 15x8). Check with `gdtools frame`.
