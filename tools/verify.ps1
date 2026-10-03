@@ -9,8 +9,6 @@
 
 .NOTES
   jobs.json: {"jobs": [{"level": "77239587" | "main:3" | "<local level name>", "macro": "<path>.gdr2"}]}
-  A job {"level": ..., "mode": "solve", "searchMode": "Hybrid" | "Engine only", "timeLimit": 300}
-  runs the bot's search instead (solved macros go to verify\solved\).
   The level must be in the GD save. GD must not already be running. Results:
   %LOCALAPPDATA%\GeometryDash\geode\mods\camila314.pathfinder\verify-results.jsonl, plus
   verify\<level>\real.txt, sim.txt, level.lvl for `gdtools compare ... --shift 1`.
@@ -65,10 +63,6 @@ if (-not (Test-Path $results)) { throw "No results written ($results)." }
 Get-Content $results | ForEach-Object {
     $j = $_ | ConvertFrom-Json
     if ($j.result -eq 'error') { "{0,-24} ERROR {1}" -f $j.level, $j.error; return }
-    if ($j.mode -eq 'solve') {
-        "{0,-24} solve {1,-12} {2,-7} {3,7:N1} s  {4,5:N1}%  ticks {5,-6} from sim {6,-6} ({7} rounds) {8}" -f $j.level, $j.searchMode, $j.result, $j.seconds, $j.percent, $j.ticks, $j.simTicks, $j.simRounds, $j.failure
-        return
-    }
     $verdict = if ($j.divergeFrame -lt 0) { 'matches sim' } else { "diverges @ {0} (real {1:N3},{2:N3} sim {3:N3},{4:N3}), max {5:N3}" -f $j.divergeFrame, $j.divergeReal[0], $j.divergeReal[1], $j.divergeSim[0], $j.divergeSim[1], $j.maxDiff }
     "{0,-24} {1,-8} frames {2,-6} sim died {3,-6} {4}  ({5:N0} steps/s)" -f $j.name, $j.result, $j.frames, $j.simDeathFrame, $verdict, $j.stepsPerSecond
 }

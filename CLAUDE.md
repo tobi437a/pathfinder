@@ -6,36 +6,16 @@ Rules for this file:
 
 Geode mod for Geometry Dash 2.2081 that bots levels: `gd-sim/` is a standalone GD physics
 simulator (reverse-engineered from GD), `src/pathfinder.cpp` searches it for inputs that beat a
-level. `src/engine/` is a second backend (from the Neoexm pathfinder, `Neoexm-Pathfinder/` is the
-untouched original) that searches by running GD's own engine in-process: supports everything, but
-~4k steps/s. Upstream: camila314/pathfinder. Fork: `tobi437a/pathfinder`.
-
-**The user's goal: everything simulated, so it's fast.** Port every GD feature the sim lacks (robot,
-spider, swing, dash orbs, spider pads/orbs, teleport portals, dual, triggers, 2.2 block flags, ...)
-into `gd-sim`, using the engine backend as an oracle (see "Porting with the engine oracle"). The
-hybrid search only keeps levels working meanwhile; the engine's share should shrink to zero. Don't put
-work into the engine search or the hybrid: when something is slow or broken there, find what the
-sim gets wrong or lacks and fix that.
+level and exports a `.gdr2` macro. The user's goal is fixing simulator/search bugs and adding
+support for newer GD features (robot, spider, swing, dash orbs, teleport portals, dual, triggers,
+...). Upstream: camila314/pathfinder. Fork: `tobi437a/pathfinder`.
 
 ## Layout
 
-- `src/engine/ui/Buttons.cpp` - the pathfinder button (`LevelInfoLayer`, `EditLevelLayer`,
-  `LevelPage` for main levels). Setting `search-mode`: Hybrid (default) / Engine only open the level
-  and run `gdpf::Bot`; Simulator only opens `src/main.cpp`'s old offline popup (`pathfind()` on a
-  thread, exports `.gdr2`, no check in GD).
-- `src/pathfinder.cpp` - the sim search `pathfindSim(SimSearch)`: random toggle-frame sets, keep
-  whichever survives longest, roll back on failure. Takes a start state (`Level::resume`), target x,
-  time and stall limits; returns button changes (`SimInput`, gdr2 frames). `pathfind()` wraps it.
-- `src/engine/` - engine backend, namespace `gdpf`: `Bot` (session state machine, segments,
-  verification, playback, hybrid loop), `Solver` (engine search per segment), `Engine` (step/reset,
-  `step()` = one `pl->update(1/240)`), `Snapshot` (save/restore PlayerObject + objects + items),
-  `Hooks.cpp` (takes over `GJBaseGameLayer::update`, swallows deaths, disables other mods' gameplay
-  hooks while searching), `Autorun` (launch-arg test modes), `Experiments`, `Corridor`/`Layout`/
-  `*Plan` (solver heuristics), `ui/ProgressPopup`. Found paths: `paths/<key>.json` in the save dir
-  (reused when `use-cache`), `.partial.json` for resuming; macro `<name> - pathfinder.gdr2`.
-- `src/engine/Hybrid.cpp` - sim<->engine bridge: `scanLevel` (x of every object the sim doesn't
-  model: `Object::supported(id)`, gameplay triggers not in `kVisualTriggers`, passable/no-touch/2.2
-  flags), `capture` (GD player 1 -> sim `Player`), `toEngine`/`toSim`, `saveMacro`.
+- `src/main.cpp` - UI: pathfinder button on `EditLevelLayer` (my levels) and `LevelInfoLayer`
+  (online); runs `pathfind()` on a thread, saves the macro (into Eclipse's `replays` dir if loaded).
+- `src/pathfinder.cpp` - the search: random toggle-frame sets, keep whichever survives longest,
+  roll back on failure. Builds a `gdr::Replay` from the state history.
 - `src/debug.cpp` - debug tooling (see "In-game debug loop").
 - `src/verify.cpp` - verifier: plays a macro in real GD at full speed against the sim (see "Verifier").
 - `src/checker.cpp` - commented out. `src/subprocess.hpp` - vendored lib, don't edit.
@@ -50,35 +30,11 @@ sim gets wrong or lacks and fix that.
 - `tools/` - helper scripts written for this work (below). `build/` is gitignored scratch;
   `build/re/` holds tool output.
 
-## Hybrid search (Bot, `SimPhase`)
+## New GD features
 
-The sim searches from the current boundary to 60 units before the next unmodelled object
-(worker thread, `sim-round-seconds`, 10 s stall limit); the engine plays that path from the
-boundary snapshot (`Checking`) cutting it into 240-tick segments; on a death it keeps segments up to
-120 ticks before it and the Solver continues; after each engine segment the sim takes over again if
-the path so far replayed in the sim lands exactly where GD is (else `capture` + a 12-step check).
-4 rounds in a row gaining < 1 s turn the sim off for the session. Every final path is replayed from
-a fresh start in GD before it counts. Log lines: `[hybrid]`. Engine tick T = gdr2 frame T + 1 = sim
-state frame T + 1; an engine input at tick T is applied before step T.
-`capture` (copying GD's state field by field) still drifts 0.06-0.1 in y within 2-4 steps (cube and
-ship, cause unknown: acceleration left 0? GD's double position?) - fix this first, the oracle needs it.
-
-## Porting with the engine oracle (the plan)
-
-Goal per feature: GD and the sim agree step for step, then the sim handles it and `scanLevel`
-stops flagging it. Build a harness on `src/engine` (e.g. an `Experiments.cpp` mode or a verify
-job): restore/construct a GD state, `capture` it into the sim, step both with the same inputs and
-report the first differing field; sweep inputs (hold lengths, speeds, sizes, gravity) to read
-constants off GD (y, velocity per tick); confirm the logic in Ghidra (`PlayerObject::updateJump`,
-`collidedWithObjectInternal`, ...); then fuzz random states until nothing differs. Order: fix
-`capture` drift (it also refuses a player on a slope); then robot, spider, swing, dash orbs, spider
-pad/orb, teleport, dual, triggers. For checking a feature end to end, `pathfinder-cli` a main level
-that uses it (`gdtools level main:N`), verify the macro in GD and `compare`; batch levels are 1.x
-(no slopes or later features).
 New vehicles need `VehicleType` + `Vehicle.cpp`, portal ids in `Object.cpp`, `Player::modeString`
-letters (r p i), `capture` mapping, and the verifier's `realMode`.
-GD's fly-mode floor/ceiling are `GJBaseGameLayer::getMinPortalY/getMaxPortalY` (they depend on camera
-zoom); `capture` uses them minus 90.
+letters (r p i), and the verifier's `realMode`. GD's fly-mode floor/ceiling are
+`GJBaseGameLayer::getMinPortalY/getMaxPortalY` (they depend on camera zoom).
 
 ## Build & install
 
@@ -143,13 +99,10 @@ where X stops changing.
 tools\verify.ps1 jobs.json [-Minimize]   # launches GD via Steam, runs the jobs, GD exits, prints summary
 ```
 `jobs.json`: `{"jobs": [{"level": "77239587" | "main:15" | "<local name>", "macro": "<path>.gdr2"}]}`;
-the level must be in the GD save (main levels always are). A job `{"level": ..., "mode": "solve",
-"searchMode": "Hybrid" | "Engine only", "timeLimit": 300}` runs the bot's search instead (resume,
-cache and macro export off) and logs found/failed, seconds, ticks and `simTicks` (how much came
-from the sim); solved macros go to `verify\solved\`. Hybrid solves main:1, 3, 5 in ~2 s; `pathfinder-cli`
-alone beats main:17 and 18 (verified). main:16 Hexagon Force: the sim gets to the dual portals
-(x 6138) in ~1 s, then the engine crawls (~7 steps/s, its ball planner rebuilds for ~1.5 s each);
-dual is next. Untested: 19/20 (robot, spider), 21 (dash orbs), 22 Dash (swing). Each job plays the macro in a
+the level must be in the GD save (main levels always are; GD writes the save only on exit, so a level
+just downloaded isn't there yet: give it a `"levelFile"`, see "Batch testing"). `pathfinder-cli`
+beats main:17 and 18 (verified); main:16 Hexagon Force needs dual. Untested: 19/20 (robot,
+spider), 21 (dash orbs), 22 Dash (swing). Each job plays the macro in a
 `PlayLayer` at ~20-30k physics steps/s and compares the player with the in-process sim every step.
 Results: `verify-results.jsonl` in the mod save dir (`complete`/`died`/`timeout`, first divergence
 frame + positions, max diff) and `verify\<level>\real.txt`, `sim.txt`, `level.lvl`, which

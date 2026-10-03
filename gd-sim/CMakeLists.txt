@@ -9,7 +9,7 @@ add_library(gd-sim STATIC ${SOURCES})
 
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 target_compile_options(gd-sim PRIVATE $<$<CONFIG:Debug>:-g> -O3 -fno-math-errno -fno-trapping-math -fomit-frame-pointer $<$<CONFIG:Release>:-fno-rtti -fvisibility=hidden>)
-# clang-cl ignores -O3; optimise every config (Debug too: the engine search is ~100x slower without it)
+# clang-cl ignores -O3; optimise every config
 if (MSVC)
     target_compile_options(gd-sim PRIVATE /O2)
 endif()

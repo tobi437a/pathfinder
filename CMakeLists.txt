@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.21)
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
 set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreadedDLL)
@@ -7,16 +7,13 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 project(pathfinder VERSION 1.0.0)
 
-# The engine backend: searches by running GD's own engine (see src/engine/Bot.hpp)
-file(GLOB_RECURSE ENGINE_SOURCES CONFIGURE_DEPENDS src/engine/*.cpp)
-
 add_library(${PROJECT_NAME} SHARED
     src/main.cpp
     src/pathfinder.cpp
     src/checker.cpp
     src/debug.cpp
     src/verify.cpp
-    ${ENGINE_SOURCES}
+    # Add any extra C++ source files here
 )
 
 if (NOT DEFINED ENV{GEODE_SDK})
@@ -43,7 +40,7 @@ endif()
 setup_geode_mod(${PROJECT_NAME})
 target_compile_definitions(${PROJECT_NAME} PRIVATE $<$<CONFIG:Debug>:DEBUG_MODE=1>)
 target_compile_options(${PROJECT_NAME} PRIVATE $<$<CONFIG:Debug>:-g> -O3 -fno-math-errno -fno-trapping-math -fvisibility=hidden -fomit-frame-pointer)
-# clang-cl ignores -O3; optimise every config (Debug too: the engine search is ~100x slower without it)
+# clang-cl ignores -O3; optimise every config
 if (MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE /O2)
 endif()

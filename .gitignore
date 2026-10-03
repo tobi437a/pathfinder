@@ -63,5 +63,3 @@ build-*/
 # CLion
 .idea/
 /cmake-build-*/__pycache__/
-
-Neoexm-Pathfinder/
