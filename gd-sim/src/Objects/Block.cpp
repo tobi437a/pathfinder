@@ -93,9 +93,12 @@ void Block::collide(Player& p) const {
 	double landClip = (p.vehicle.type == VehicleType::Ufo || p.vehicle.type == VehicleType::Ship) ? 6 : 10;
 	landClip += std::max(0.0, -(double)p.grav(p.pos.y - p.prevPlayer().pos.y));
 
-	// When hitting blue orbs/pads, there is a single frame where block collisions arent done.
-	// TODO might be able to be merged with the other pad check
-	if (p.upsideDown != p.prevPlayer().upsideDown && !p.gravityPortal)
+	// When hitting blue orbs, there is a single frame where block collisions arent done. A blue pad pushes
+	// the player towards the new floor, which GD lands it on in the same step, except when the player
+	// stood on a block: GD's step of gravity (undone only by the floor snap) moved it away first.
+	auto const& prev = p.prevPlayer();
+	bool padFromBlock = prev.grounded && prev.gravBottom(prev) > prev.gravFloor();
+	if (p.upsideDown != prev.upsideDown && !p.gravityPortal && !(p.hitPad && !padFromBlock))
 		return;
 
 	/*
