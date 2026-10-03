@@ -152,8 +152,17 @@ void Player::postCollision() {
 	// An upside down cube that just left a block can still jump (see cube update), but GD moves it
 	// off the block first
 	bool coyoteJump = vehicle.type == VehicleType::Cube && !grounded && upsideDown && input && coyoteFrames < 10;
+	bool ufoJump = vehicle.type == VehicleType::Ufo && buffer;
 
 	vehicle.update(*this);
+
+	// A mini ufo starts above the floor, and falls on the level's first frame even if pressed: GD only jumps
+	// on the next step
+	if (ufoJump && velocityOverride && !grounded && prevPlayer().grounded && prevPlayer().acceleration == 0
+		&& prevPlayer().velocity == 0 && prevPlayer().gravBottom(*this) > prevPlayer().gravFloor()) {
+		double fallAccel = small ? -1308.96 : -1114.56; // ufoAcceleration at velocity 0
+		pos.y += roundVel(prevPlayer().grav(fallAccel) * dt, prevPlayer().upsideDown) * dt;
+	}
 
 	if (!velocityOverride) {
 		double newVel = velocity + acceleration * dt;
