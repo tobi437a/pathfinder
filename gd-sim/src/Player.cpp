@@ -96,7 +96,8 @@ void Player::preCollision(bool pressed) {
 	if (flip.start != 0 && flip.value == flip.to)
 		flip.fromMirrored = flip.to == 1;
 
-	pos.x += player_speeds[(int)speed] * dt;
+	// PlayerObject::update adds the step as a CCPoint, so it is rounded to a float first
+	pos.x += (float)(player_speeds[(int)speed] * dt);
 	moveY(grav(velocity));
 
 	frame++;
