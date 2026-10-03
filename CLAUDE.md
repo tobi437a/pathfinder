@@ -229,7 +229,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   touched the older one wins, whatever the object order. A ring touched in the step a size portal
   was touched counts with the old (cached) hitbox size.
 - Blue pad (`collisionCheckObjects`, type 10) sets upside down = `!GameObject::isFacingDown(pad)`,
-  only if that changes it. isFacingDown: rotation a multiple of 90 -> (|rot| == 180) xor flipY;
+  only if that changes it, and `propellPlayer(0.8)` then `flipGravity`: -345.6 sim units at any
+  speed (x0.8 mini, x0.6 ball). isFacingDown: rotation a multiple of 90 -> (|rot| == 180) xor flipY;
   otherwise rot in 91..269 or -269..-91, xor flipY. So a sideways pad's target depends on flipY.
   The flipped player lands on a block on its new side in the same step if it touches it; one that
   stood on a block has already moved a step of its old gravity into that block, so it can miss.

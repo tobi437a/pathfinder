@@ -51,17 +51,18 @@ const velocity_map<PadType, VehicleType, bool> pad_velocities = {
 	{{PadType::Yellow, VehicleType::Ufo, true},   {458.784,     691.2,       691.2,       691.2}},
 
 
+	// GD: propellPlayer(0.8) (x16, x0.8 mini, x0.6 ball) then flipGravity's x-0.5, whatever the speed
 	{{PadType::Blue, VehicleType::Cube, false},   {-345.6,      -345.6,      -345.6,      -345.6}},
 	{{PadType::Blue, VehicleType::Cube, true},    {-276.48,     -276.48,     -276.48,     -276.48}},
 
-	{{PadType::Blue, VehicleType::Ship, false},   {-229.392,    -345.6,      -345.6,      -345.6}},
-	{{PadType::Blue, VehicleType::Ship, true},    {-183.519,    -276.48,     -276.48,     -165.888}},
+	{{PadType::Blue, VehicleType::Ship, false},   {-345.6,      -345.6,      -345.6,      -345.6}},
+	{{PadType::Blue, VehicleType::Ship, true},    {-276.48,     -276.48,     -276.48,     -276.48}},
 
-	{{PadType::Blue, VehicleType::Ball, false},   {-160.574397, -207.360008, -207.360008, -207.360008}},
-	{{PadType::Blue, VehicleType::Ball, true},    {-128.463298, -165.888007, -165.888007, -165.888007}},
+	{{PadType::Blue, VehicleType::Ball, false},   {-207.360008, -207.360008, -207.360008, -207.360008}},
+	{{PadType::Blue, VehicleType::Ball, true},    {-165.888007, -165.888007, -165.888007, -165.888007}},
 
-	{{PadType::Blue, VehicleType::Ufo, false},    {-229.392,    -345.6,      -345.6,      -345.6}},
-	{{PadType::Blue, VehicleType::Ufo, true},     {-183.519,    -276.48,     -276.48,     -276.48}},
+	{{PadType::Blue, VehicleType::Ufo, false},    {-345.6,      -345.6,      -345.6,      -345.6}},
+	{{PadType::Blue, VehicleType::Ufo, true},     {-276.48,     -276.48,     -276.48,     -276.48}},
 
 
 	{{PadType::Pink, VehicleType::Cube, false},   {561.6,       561.6,       561.6,       561.6}},
