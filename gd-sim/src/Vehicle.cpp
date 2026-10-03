@@ -234,8 +234,7 @@ Vehicle ball() {
 	};
 
 	v.update = +[](Player& p) {
-		if (!p.prevPlayer().velocityOverride || p.prevPlayer().slopeData.slope)
-			p.acceleration = -1676.46672;
+		p.acceleration = -1676.46672;
 
 		if (!p.input)
 			p.vehicleBuffer = false;
