@@ -12,11 +12,13 @@ levels that got better (diverge later) or worse; --save writes build/re/batch/re
 --tol as diverged, for checking the player rotation that rotated objects are tested against.
 --p2 also compares player 2 in dual mode (P2 lines of the traces).
 A run whose sim dies at another step than GD (verify.json "died") counts as diverged at the earlier death.
+Each divergence has a kind: p1 / p2 (position), rot, death-gd (GD dies first), death-sim (the sim does).
 --runs DIR scores another copy of the runs (e.g. runs-pre1.8, a snapshot kept before re-pathfinding).
 The real paths only cover what the old sim told the pathfinder to do, so a level whose divergence
 moves later may still die further on; batch.py pathfind/verify is the real check.
 """
 import argparse
+import collections
 import concurrent.futures
 import json
 import subprocess
@@ -55,7 +57,7 @@ def p2_path(path: Path):
 
 
 def score(run: Path):
-    """(first diverging real frame or -1, compared frames, sim mode there) for one run."""
+    """(first diverging real frame or -1, compared frames, kind: p1 p2 rot death) for one run."""
     lvl = DATA / "levels" / f"{run.name}.lvl"
     _, inputs = read_gdr2(run / "macro.gdr2")
     inp = run / "simdbg.inp"
@@ -81,24 +83,27 @@ def score(run: Path):
     for f in frames:
         (rx, ry, _, rr), (sx, sy, _, sr) = real[f], sim[f + 1]
         if abs(rx - sx) > TOL or abs(ry - sy) > TOL:
-            return f, len(frames)
+            return f, len(frames), "p1"
         if f in real2:
             if f + 1 not in sim2:
-                return f, len(frames)
+                return f, len(frames), "p2"
             (rx2, ry2), (sx2, sy2) = real2[f], sim2[f + 1]
             if abs(rx2 - sx2) > TOL or abs(ry2 - sy2) > TOL:
-                return f, len(frames)
+                return f, len(frames), "p2"
         if ROT and real_modes.get(f, "")[:1] in ("c", "b"):
             d = (rr - sr) % 90
             if min(d, 90 - d) > TOL:
-                return f, len(frames)
+                return f, len(frames), "rot"
     if frames:
         real_death = max(real) if real_died else None
         sim_death = max(sim) - 1 if sim_died else None
+        if not real_died and sim_death is not None and sim_death > frames[-1]:
+            sim_death = None  # gd-sim-test plays on past the level end GD reached
         if real_death != sim_death:
             deaths = [d for d in (real_death, sim_death) if d is not None]
-            return min(min(deaths), frames[-1]), len(frames)
-    return -1, len(frames)
+            kind = "death-gd" if real_death is not None and (sim_death is None or real_death < sim_death) else "death-sim"
+            return min(min(deaths), frames[-1]), len(frames), kind
+    return -1, len(frames), ""
 
 
 def main():
@@ -123,9 +128,11 @@ def main():
         runs = [r for r in runs if r.name in want]
     with concurrent.futures.ThreadPoolExecutor(a.jobs) as ex:
         results = dict(zip((r.name for r in runs), ex.map(score, runs)))
-    out = {k: {"diverge": d, "frames": n} for k, (d, n) in results.items()}
+    out = {k: {"diverge": d, "frames": n, "kind": c} for k, (d, n, c) in results.items()}
     clean = sum(1 for v in out.values() if v["diverge"] < 0)
-    print(f"{len(out)} runs, {clean} match GD to the end of the recording")
+    kinds = collections.Counter(v["kind"] for v in out.values() if v["diverge"] >= 0)
+    print(f"{len(out)} runs, {clean} match GD to the end of the recording ("
+          + ", ".join(f"{k} {n}" for k, n in kinds.most_common()) + ")")
     if a.save:
         path = DATA / f"regress-{a.save}.json"
         path.write_text(json.dumps(out, indent=0), encoding="utf-8")

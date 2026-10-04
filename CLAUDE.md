@@ -64,7 +64,7 @@ runs match GD to the end for player 1 (`regress-cur12.json`), 325 for both playe
   player 1, and the sim gives player 2 no button there.
 - Known unexplained: a pad then a slope in the same step (2284379 frame 778) - GD keeps the pad's
   spin, so its slope collision skips `hitGround` there; the sim doesn't.
-- `regress.py --rot` scores cube/ball rotation (for rotated objects); look for remaining rotation
+- `regress.py` labels each divergence p1, p2, rot, death-gd or death-sim. `--rot` scores cube/ball rotation (for rotated objects); look for remaining rotation
   bugs with it too.
 - End-to-end: rebuild Release `pathfinder-cli`, `batch.py --redo pathfind`, `batch.py --redo
   verify` (GD minimised, ~25 min; a long background job can get killed under memory pressure -
