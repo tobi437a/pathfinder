@@ -408,8 +408,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   after earlier portals in object order) onto player 1, which keeps its own rotation, slope state etc.
   and adds gravity to the copied velocity on its next step, and releases all of player 2's buttons. GD steps player 2 (update, collisions) right after player 1 (not once player 1
   died in that step), from the step after dual starts, so its first `updateJump` adds gravity before
-  it moves. It copies player 1 as the portal finds it: one standing on a block (not a slope) has
-  fallen a step of gravity into it by then (the block puts player 1 back later). In a level that starts
+  it moves. Both copies take the player as the portal finds it: one standing on a block (not a
+  slope) has fallen a step of gravity into it by then (the block puts it back later). In a level that starts
   in dual (`kA8`) player 2 is stepped from the first step, off the ground. `handleButton` presses and
   releases player 2 only while dual is on, but `m_jumpBuffered` is the held flag (`pushButton` sets
   it, `releaseButton` or an orb clears it), so a button held into a dual portal is held by both.

@@ -3,6 +3,17 @@
 
 DualPortal::DualPortal(Vec2D size, std::unordered_map<int, std::string>&& fields) : EffectObject(size, std::move(fields)), on(std::stoi(fields[1]) == 286) {}
 
+/// A player standing on a block (not a slope) has fallen a step of gravity into it when GD checks a portal (the block
+/// puts it back afterwards, see Pad::collide); the player that copies it (copyAttributes) copies that
+static void copyWalkOff(Player const& p, Player& copy) {
+	auto const& prev = p.prevPlayer();
+	if (prev.grounded && prev.velocity == 0 && p.velocity == 0 && p.upsideDown == prev.upsideDown
+		&& prev.gravBottom(prev) > prev.gravFloor() && !p.walkedOff && !prev.slope.on) {
+		copy.moveY(roundVel(prev.grav(prev.acceleration) * p.dt, prev.upsideDown));
+		copy.velocity = roundVel(prev.acceleration * p.dt, prev.upsideDown);
+	}
+}
+
 void DualPortal::collide(Player& p) const {
 	EffectObject::collide(p);
 	if (!p.partner || p.dual == on)
@@ -17,14 +28,7 @@ void DualPortal::collide(Player& p) const {
 		Player& q = *p.partner;
 		q.resetObject();
 		q.copyAttributes(p);
-		// A player standing on a block (not a slope) has fallen a step of gravity into it when GD checks the portal (the block
-		// puts it back afterwards, see Pad::collide); player 2 copies that
-		auto const& prev = p.prevPlayer();
-		if (prev.grounded && prev.velocity == 0 && p.velocity == 0 && p.upsideDown == prev.upsideDown
-			&& prev.gravBottom(prev) > prev.gravFloor() && !p.walkedOff && !prev.slope.on) {
-			q.moveY(roundVel(prev.grav(prev.acceleration) * p.dt, prev.upsideDown));
-			q.velocity = roundVel(prev.acceleration * p.dt, prev.upsideDown);
-		}
+		copyWalkOff(p, q);
 		q.flipGravity(!p.upsideDown);
 		q.grounded = false;
 		q.onGround2 = false;
@@ -38,6 +42,7 @@ void DualPortal::collide(Player& p) const {
 	Player& p1 = p.isP2 ? *p.partner : p;
 	if (p.isP2) {
 		p1.copyAttributes(p);
+		copyWalkOff(p, p1);
 		p1.copiedFromP2 = true;
 	}
 	p1.dual = false;
