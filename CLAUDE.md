@@ -282,6 +282,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   GD's deaths only that way) kills on a block, except when the player rises (y velocity > 0, not off a
   slope) with its feet within the landing distance of the block's top: then GD neither lands nor kills.
 - `PlayerObject::flipGravity` multiplies y velocity by -0.5.
+- A ufo click (`updateJump`) sets y velocity to 7 (mini 0.85 * 8) only if the ufo is slower than that
+  (relative to gravity), then adds the step's gravity; a faster ufo ignores the click.
 - A yellow pad launches a ufo at 864 like a cube; the ufo's velocity cap (432, mini 508.248) cuts it on
   the next step, after that step's gravity, so the first step up moves 432 / 240.
 - Orbs: `playerTouchedRing` appends each touched ring to `m_touchingRings` (0xa38); `resetTouchedRings`

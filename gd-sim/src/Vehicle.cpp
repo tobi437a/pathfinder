@@ -335,9 +335,16 @@ Vehicle ufo() {
 	};
 
 	v.update = +[](Player& p) {
-		if (p.buffer) {
-			double jump = p.small ? 358.992 : 371.034; // the jump (7, mini 0.85 * 8) after the step's gravity
-			if (p.velocity < jump && (p.slope.was || p.slope.on) && 0 < p.slope.velocity) {
+		// PlayerObject::updateJump: a click sets the jump velocity (7, mini 0.85 * 8) only if the ufo is slower;
+		// a faster one just keeps falling
+		double jumpSpeed = (p.small ? (double)(0.85f * 8.0f) : 7.0) * 54;
+		if (p.buffer && !(p.velocity < jumpSpeed)) {
+			p.buffer = false;
+			p.grounded = false;
+			p.acceleration = ufoAcceleration(p);
+		} else if (p.buffer) {
+			double jump = p.small ? 358.992 : 371.034; // the jump after the step's gravity
+			if ((p.slope.was || p.slope.on) && 0 < p.slope.velocity) {
 				// PlayerObject::updateJump: jumping from a slope adds half its launch speed (m_slopeVelocity, not
 				// relative to gravity), up to 1.4 times the jump, before that step's gravity
 				p.setGdVelocity(p.grav((double)(p.small ? 0.85f * 8.0f : 7.0f)));
@@ -346,7 +353,7 @@ Vehicle ufo() {
 				p.setGdVelocity(std::min(p.gdVelocity(), (double)cap));
 				p.velocity = roundVel(p.velocity + ufoAcceleration(p) * p.dt, p.upsideDown);
 			} else {
-				p.velocity = std::max(p.velocity, jump);
+				p.velocity = jump;
 			}
 			p.velocityOverride = true;
 			p.buffer = false;
