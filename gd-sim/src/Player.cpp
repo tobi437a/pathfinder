@@ -517,6 +517,8 @@ void Player::leaveSlope() {
 	float sv = slope.velocity;
 	bool launches = (sv < 0 && sv < v && slope.ceiling) || (0 < sv && v < sv && !slope.ceiling);
 	bool flyOrBall = vehicle.type != VehicleType::Cube;
+	if (std::getenv("PF_SLOPE"))
+		printf("LeaveDbg %d p2 %d v %.4f sv %.4f ceil %d down %d boosted %d launches %d b %.4f up %d\n", frame, isP2, v, sv, slope.ceiling, slope.downhill, boosted, launches, (float)((double)sv * slopeTimeFactor(*this, false)), upsideDown);
 	if ((!boosted || flyOrBall) && launches) {
 		// Launched at the slope's speed (less in its first 0.1 s) if that's faster: boostPlayer
 		float b = (float)((double)sv * slopeTimeFactor(*this, false));

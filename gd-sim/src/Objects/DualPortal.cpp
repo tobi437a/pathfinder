@@ -12,6 +12,10 @@ static void copyWalkOff(Player const& p, Player& copy) {
 		&& prev.gravBottom(prev) > prev.gravFloor() && !p.walkedOff && !prev.slope.on) {
 		copy.moveY(roundVel(prev.grav(prev.acceleration) * p.dt, prev.upsideDown));
 		copy.velocity = roundVel(prev.acceleration * p.dt, prev.upsideDown);
+	} else if (p.walkedOff && prev.slope.on && !p.slope.on && p.velocity == 0) {
+		// Likewise on a slope the portal comes before in the collisions: the walk-off step (Player::preCollision)
+		// has moved it already, and GD's velocity is that step's gravity
+		copy.velocity = roundVel(prev.acceleration * p.dt, prev.upsideDown);
 	}
 }
 
