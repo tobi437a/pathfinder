@@ -1,5 +1,6 @@
 #include <Portals.hpp>
 #include <Player.hpp>
+#include <Level.hpp>
 
 DualPortal::DualPortal(Vec2D size, std::unordered_map<int, std::string>&& fields) : EffectObject(size, std::move(fields)), on(std::stoi(fields[1]) == 286) {}
 
@@ -32,6 +33,11 @@ void DualPortal::collide(Player& p) const {
 		q.flipGravity(!p.upsideDown);
 		q.grounded = false;
 		q.onGround2 = false;
+		// In two-player mode player 2 lets go of player 1's button (m_jumpBuffered, m_stateRingJump cleared)
+		if (p.level->twoPlayer) {
+			q.button = q.input = q.buffer = false;
+			q.clickUsed = true;
+		}
 		// Both players get the dual ground (updateDualGround)
 		p.updateGround((float)pos.y);
 		return;
