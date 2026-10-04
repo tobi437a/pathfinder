@@ -87,5 +87,6 @@ void VehiclePortal::collide(Player& player) const {
 	if (player.dual && player.partner && player.partner->vehicle.type == type && player.upsideDown == player.partner->upsideDown) {
 		player.velocity = -player.velocity / 2;
 		player.flipGravity(!player.partner->upsideDown);
+		player.modeFlip = true;
 	}
 }

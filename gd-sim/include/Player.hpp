@@ -156,6 +156,9 @@ struct Player : public Entity {
 
 	/// Entering a gravity portal can cause the next frame to have certain edge cases
 	bool gravityPortal = false;
+	/// Flipped this frame by entering the mode the other player is in (dual mode, VehiclePortal): like a gravity
+	/// portal, it flips a grounded player in place
+	bool modeFlip = false;
 	/// Frame of the last gravity flip (PlayerObject::m_lastFlipTime), 0 if none
 	int lastFlipFrame = 0;
 

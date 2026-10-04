@@ -249,7 +249,7 @@ void Block::collideBlock(Player& p, bool bare) const {
 			// GD checks velocity >= 0: 0 counts when another block's head hit or a landing zeroed it this
 			// frame, or for a grounded ship, ufo or ball that a gravity portal flipped in place (GD resolved the block before the portal), but not for a player
 			// walking off (GD has already applied that step's gravity)
-			bool flippedOnGround = p.gravityPortal && p.vehicle.type != VehicleType::Cube && p.prevPlayer().grounded;
+			bool flippedOnGround = (p.gravityPortal || p.modeFlip) && p.vehicle.type != VehicleType::Cube && p.prevPlayer().grounded;
 			// A landing this frame counts whatever the sim's velocity is: GD zeroes it when landing.
 			// So does a snap onto the mode floor this frame.
 			// A flying player whose velocity just reached 0 (a ship slowing its fall) counts too.
