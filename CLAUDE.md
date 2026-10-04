@@ -262,7 +262,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   them in that order (first touched first, custom rings type 36 before the rest), so with two orbs
   touched the older one wins, whatever the object order. A ring touched in the step a size portal
   was touched counts with the old (cached) hitbox size. A ball walking off a block as it clicks a
-  blue orb still takes the walk-off step (a step of gravity) first.
+  blue orb still takes the walk-off step (a step of gravity) first; a ball jumping from a slope doesn't
+  (it flips on the slope, `pushButton` -> `updateJump`).
 - Blue pad (`collisionCheckObjects`, type 10) sets upside down = `!GameObject::isFacingDown(pad)`,
   only if that changes it, and `propellPlayer(0.8)` then `flipGravity`: -345.6 sim units at any
   speed (x0.8 mini, x0.6 ball). isFacingDown: rotation a multiple of 90 -> (|rot| == 180) xor flipY;
