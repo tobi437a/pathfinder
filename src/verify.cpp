@@ -477,6 +477,10 @@ class $modify(VerifyBGL, GJBaseGameLayer) {
 				p == m_player1 ? "Flags" : "Flags2", run->step, (int)p->m_isOnGround, (int)p->m_isOnGround2,
 				(int)p->m_isRotating, p->m_rotationSpeed, (int)p->m_isOnSlope, (int)p->m_wasOnSlope,
 				(int)p->m_maybeIsBoosted, (int)p->m_isAccelerating, (int)p->m_jumpBuffered);
+			// GD-only: `GD <frame> <player> cws <m_isCollidingWithSlope> ground <m_lastGroundObject id or -1>`
+			auto ground = reinterpret_cast<GameObject*>(p->m_lastGroundObject);
+			run->realTrace += fmt::format("GD {} {} cws {} ground {}\n", run->step, p == m_player1 ? 1 : 2,
+				(int)p->m_isCollidingWithSlope, ground ? ground->m_objectID : -1);
 		}
 		// `Acc <frame> <real m_isAccelerating> <sim accelerating>` whenever GD's flag changes
 		if (m_player1->m_isAccelerating != run->realAccelerating) {

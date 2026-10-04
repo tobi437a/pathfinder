@@ -62,10 +62,6 @@ runs match GD to the end for player 1 (`regress-cur12.json`), 325 for both playe
   but not all of them. Search improvements are for after 1.8 support.
 - Two-player levels (`kA10`, 4 in the batch) need player-2 inputs: the pathfinder only presses
   player 1, and the sim gives player 2 no button there.
-- Open leads (`regress.py --runs runs-pre1.8`, then `diverge.py`/`gdtools compare --p2`): 2376766
-  frame 1041 (4 copies of one level): an upside-down cube easing to 270 after a launch starts its
-  falling spin in the sim, not in GD (some `updateRotation`/`updateJump` condition); the rest are
-  one-offs.
 - Known unexplained: a pad then a slope in the same step (2284379 frame 778) - GD keeps the pad's
   spin, so its slope collision skips `hitGround` there; the sim doesn't.
 - `regress.py --rot` scores cube/ball rotation (for rotated objects); look for remaining rotation
@@ -353,6 +349,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   for the cube (mult 1) and the fixed 0.958199 for the ball (mult 0.6), unrounded; then rounds (below).
   Ship/ufo use the fixed 0.958199 too and divide by 0.85 when mini; ufo mult 0.4 (0.6 above the
   velocity threshold). The sim computes all of these with `gdFall` (Vehicle.cpp).
+- While `m_maybeIsBoosted` (0xa1c) is set, `updateJump` only applies gravity: no falling spin, no
+  "falling past 4" ground-flag clear; once `playerIsFallingBugged` it clears boosted and `m_isOnGround2`.
 - `PlayerObject::updateJump` rounds y velocity to 3 decimals (in 1/54 units) right after adding
   gravity, so a ball jump is rounded when gravity is applied on that step and not when the jump
   velocity is set without it (buffered jump, e.g. mini ball landing with the button held).

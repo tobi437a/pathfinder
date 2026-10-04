@@ -648,19 +648,24 @@ void Player::postCollision() {
 		velocity = roundVel(velocity, upsideDown);
 
 	// PlayerObject::updateJump: a cube that starts falling (faster than 0.25) starts spinning, and one
-	// falling faster than 4 is off the ground
+	// falling (playerIsFallingBugged) faster than 4 is off the ground. Not while m_maybeIsBoosted: then GD
+	// only applies gravity, and ends it once the player is falling (playerIsFallingBugged: y velocity below
+	// twice m_gravity, with the wrong sign upside down), which also takes it off the ground (m_isOnGround2).
+	// (Not on the step of a jump.)
 	double fall = gdVelocity() * (upsideDown ? -1 : 1);
-	if (vehicle.type == VehicleType::Cube && !isRotating && !slope.on && fall < -0.25) {
-		stopRotation();
-		runNormalRotation();
+	if (boostedBefore) {
+		if (boosted && fallingBugged()) {
+			boosted = false;
+			onGround2 = false;
+		}
+	} else {
+		if (vehicle.type == VehicleType::Cube && !isRotating && !slope.on && fall < -0.25) {
+			stopRotation();
+			runNormalRotation();
+		}
+		if ((vehicle.type == VehicleType::Cube || vehicle.type == VehicleType::Ball) && fall < -4 && fallingBugged())
+			onGround2 = false;
 	}
-	if ((vehicle.type == VehicleType::Cube || vehicle.type == VehicleType::Ball) && fall < -4)
-		onGround2 = false;
-
-	// m_maybeIsBoosted ends when GD's updateJump finds the player falling (playerIsFallingBugged: y
-	// velocity below twice m_gravity, with the wrong sign upside down), except on the step of a jump
-	if (boosted && boostedBefore && fallingBugged())
-		boosted = false;
 
 	// Ensure the player hasn't gone beyond the bounds of the vehicle
 	vehicle.clamp(*this);
