@@ -76,6 +76,11 @@ Level::Level(std::string const& lvlString) {
 				obj[atoi(k.c_str())] = v;
 		}
 
+		// PlayLayer::createObjectsFromSetupFinished puts the end portal 340 past the last object (any object), and
+		// checkForEnd completes the level once player 1 reaches its spawn point, 300 before that
+		if (obj.count(2))
+			length = std::max(length, (float)stod_def(obj[2], 0) + 40);
+
 		if (obj[1] == "31") {
 			initLevelSettings(objstr, player);
 			player.pos.x = stod_def(obj[2], 0);
@@ -94,8 +99,6 @@ Level::Level(std::string const& lvlString) {
 				sections.resize(sectionPos + 1);
 			sections[sectionPos].push_back(ob);
 
-			if (ob->pos.x > length)
-				length = ob->pos.x + 100;
 		}
 	}
 

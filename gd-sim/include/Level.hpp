@@ -29,6 +29,7 @@ class Level {
 	/// Sections are used just like real GD. See Object.hpp for more info on ObjectContainer.
 	std::vector<std::vector<ObjectContainer>> sections;
 
+	/// x at which the level is complete: the last object's x + 40 (see Level::Level)
 	float length = 0.0;
 
 	/// Two-player mode (level setting kA10, LevelSettingsObject 0x154): in dual mode each player gets only its own
