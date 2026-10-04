@@ -267,7 +267,9 @@ void Player::preCollision(bool pressed) {
 	// collisions (postCollision then decides about grounding)
 	startFloor = floor;
 	startCeiling = ceiling;
-	floorSnapped = gravBottom(*this) < gravFloor();
+	// (not a launched cube, m_maybeIsBoosted: one that jumps below the floor, off a downhill slope, rises from there)
+	bool cubeBounds = vehicle.type == VehicleType::Cube && !upsideDown && !dual;
+	floorSnapped = gravBottom(*this) < gravFloor() && !(cubeBounds && boosted);
 	if (floorSnapped) {
 		pos.y = grav(gravFloor()) + grav(size.y / 2);
 		// For a cube on the ground (not in dual mode, where the mode bounds work like a flying mode's) that's
