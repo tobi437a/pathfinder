@@ -11,6 +11,7 @@ levels that got better (diverge later) or worse; --save writes build/re/batch/re
 --rot also counts a cube or ball whose rotation (mod 90: the hitbox is square) differs by more than
 --tol as diverged, for checking the player rotation that rotated objects are tested against.
 --p2 also compares player 2 in dual mode (P2 lines of the traces).
+--runs DIR scores another copy of the runs (e.g. runs-pre1.8, a snapshot kept before re-pathfinding).
 The real paths only cover what the old sim told the pathfinder to do, so a level whose divergence
 moves later may still die further on; batch.py pathfind/verify is the real check.
 """
@@ -97,9 +98,11 @@ def main():
     ap.add_argument("--tol", type=float, default=TOL, help="position difference that counts as diverged")
     ap.add_argument("--rot", action="store_true", help="a cube's or ball's rotation (mod 90) counts too")
     ap.add_argument("--p2", action="store_true", help="player 2 (dual mode) counts too")
+    ap.add_argument("--runs", help="runs directory under build/re/batch (default runs)")
     a = ap.parse_args()
     TOL, ROT, P2 = a.tol, a.rot, a.p2
-    runs = [r for r in sorted((DATA / "runs").iterdir())
+    runs_dir = DATA / a.runs if a.runs else DATA / "runs"
+    runs = [r for r in sorted(runs_dir.iterdir())
             if (r / "real.txt").exists() and (DATA / "levels" / f"{r.name}.lvl").exists()]
     if a.ids:
         want = set(a.ids.split(","))
