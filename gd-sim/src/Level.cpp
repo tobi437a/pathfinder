@@ -281,7 +281,7 @@ int Level::stepPlayer(Player& p, bool pressed, float dt) {
 	auto trace = [&](Object const& o) {
 		if (tracing)
 			std::cout << "Trace " << p.frame - 1 << " " << (p.isP2 ? 2 : 1) << " id " << o.id << " at " << o.pos.x << " "
-					  << o.pos.y << " -> y " << p.pos.y - 15 << " vel " << p.velocity << std::endl;
+					  << o.pos.y << " -> y " << p.pos.y - 15 << " vel " << p.velocity << " g " << p.grounded << std::endl;
 	};
 
 	// A click is handled by PlayerObject::pushButton, after this step's collisions, which tries the rings in

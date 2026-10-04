@@ -112,6 +112,18 @@ void Block::snapX(Player& p) const {
 	p.snapData.spriteDx = p.spriteShift(pos.x);
 }
 
+bool Block::touching(Player const& p) const {
+	if (Object::touching(p))
+		return true;
+	// GD keeps a player resting on a block at its float y (block top + half its height, rounded in GD's
+	// coordinates), which can be a hair above the top; it still touches the block, since every step's gravity
+	// moves it into the block before the collisions. The sim's resting player doesn't move.
+	if (!p.prevPlayer().grounded || p.velocity != 0)
+		return false;
+	double gap = p.gravBottom(p) - p.gravTop(*this);
+	return gap > 0 && gap < 1e-3 && p.getRight() >= getLeft() && getRight() >= p.getLeft();
+}
+
 void Block::collide(Player& p) const {
 	collideBlock(p, false);
 }

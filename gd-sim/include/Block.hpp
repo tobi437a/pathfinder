@@ -4,6 +4,7 @@
 struct Block : public Object {
     Block(Vec2D size, std::unordered_map<int, std::string>&& fields);
     void collide(Player&) const override;
+    bool touching(Player const& p) const override;
 
     /// PlayerObject::collidedWithObjectInternal. bare: a slope's side, which GD passes as a rect without an
     /// object (no X-snap off it, and every nearby slope can cover it)
