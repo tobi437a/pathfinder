@@ -152,7 +152,12 @@ Player& Level::runFrame(bool pressed, float dt) {
 		stepPlayer(q, twoPlayer ? q.button : pressed, dt);
 		if (q.dead)
 			p.dead = true;
-		// Player 2 left dual mode through a solo portal: player 1 took its place (DualPortal::collide)
+		// Player 2 left dual mode through a solo portal: player 1 took its place (DualPortal::collide) with
+		// player 2's velocity as GD's collisions saw it, which GD's next step adds gravity to (like a new player 2)
+		if (p.copiedFromP2) {
+			p.copiedFromP2 = false;
+			p.startDual();
+		}
 	} else if (p.dual) {
 		q.startDual();
 	}

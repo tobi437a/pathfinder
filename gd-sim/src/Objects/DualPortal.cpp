@@ -15,6 +15,7 @@ void DualPortal::collide(Player& p) const {
 		p.dual = true;
 		p.dualPortalY = (float)pos.y;
 		Player& q = *p.partner;
+		q.resetObject();
 		q.copyAttributes(p);
 		// A player standing on a block (not a slope) has fallen a step of gravity into it when GD checks the portal (the block
 		// puts it back afterwards, see Pad::collide); player 2 copies that
@@ -35,8 +36,10 @@ void DualPortal::collide(Player& p) const {
 	// Solo portal: dual mode ends. If player 2 took it, player 1 takes its place (copyAttributes).
 	p.dual = false;
 	Player& p1 = p.isP2 ? *p.partner : p;
-	if (p.isP2)
+	if (p.isP2) {
 		p1.copyAttributes(p);
+		p1.copiedFromP2 = true;
+	}
 	p1.dual = false;
 	p1.updateGround(p1.modePortalY);
 }

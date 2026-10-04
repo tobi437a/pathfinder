@@ -469,13 +469,14 @@ class $modify(VerifyBGL, GJBaseGameLayer) {
 				sim2.pos.x, sim2.pos.y - 15, sim2.velocity, sim2.rotation, sim2.modeString());
 		}
 		// `Flags <frame> og .. og2 .. rotating .. spin .. slope <on><was> boosted .. acc .. btn ..`: player 1's
-		// state flags, in the format of gd-sim-test's Flags lines (PF_FLAGS=1)
-		{
-			auto p = m_player1;
-			run->realTrace += fmt::format("Flags {} og {} og2 {} rotating {} spin {:.8f} slope {}{} boosted {} acc {} btn {}\n",
-				run->step, (int)p->m_isOnGround, (int)p->m_isOnGround2, (int)p->m_isRotating, p->m_rotationSpeed,
-				(int)p->m_isOnSlope, (int)p->m_wasOnSlope, (int)p->m_maybeIsBoosted, (int)p->m_isAccelerating,
-				(int)p->m_jumpBuffered);
+		// state flags, in the format of gd-sim-test's Flags lines (PF_FLAGS=1); `Flags2` for player 2 in dual mode
+		for (auto p : {m_player1, m_player2}) {
+			if (p == m_player2 && !m_gameState.m_isDualMode)
+				break;
+			run->realTrace += fmt::format("{} {} og {} og2 {} rotating {} spin {:.8f} slope {}{} boosted {} acc {} btn {}\n",
+				p == m_player1 ? "Flags" : "Flags2", run->step, (int)p->m_isOnGround, (int)p->m_isOnGround2,
+				(int)p->m_isRotating, p->m_rotationSpeed, (int)p->m_isOnSlope, (int)p->m_wasOnSlope,
+				(int)p->m_maybeIsBoosted, (int)p->m_isAccelerating, (int)p->m_jumpBuffered);
 		}
 		// `Acc <frame> <real m_isAccelerating> <sim accelerating>` whenever GD's flag changes
 		if (m_player1->m_isAccelerating != run->realAccelerating) {

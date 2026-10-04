@@ -88,20 +88,42 @@ bool Player::fallingBugged() const {
 }
 
 void Player::copyAttributes(Player const& other) {
-	float rot = rotation, rotSpeed = rotationSpeed, rotMult = rotateSpeed;
-	bool rotating = isRotating, ball = ballRotating, ball2 = ballRotating2;
-	bool p2 = isP2;
-	Player* other2 = partner;
+	// PlayerObject::copyAttributes copies the position, mode, gravity, speed, size, y velocity and jump buffer.
+	// The player keeps the rest: its rotation and spin, slope state, m_maybeIsBoosted, m_isAccelerating,
+	// m_isOnGround2 and X-snap block. A gravity change (flipGravity) counts as a flip. (GD's on-ground flag stays
+	// too, but the sim's `grounded` also means standing still, which the copied velocity decides.)
+	Player own = std::move(*this);
 	*this = other;
-	rotation = rot;
-	rotationSpeed = rotSpeed;
-	rotateSpeed = rotMult;
-	isRotating = rotating;
-	ballRotating = ball;
-	ballRotating2 = ball2;
+	rotation = own.rotation;
+	rotationSpeed = own.rotationSpeed;
+	rotateSpeed = own.rotateSpeed;
+	isRotating = own.isRotating;
+	ballRotating = own.ballRotating;
+	ballRotating2 = own.ballRotating2;
 	pendingSpin.reset();
-	isP2 = p2;
-	partner = other2;
+	isP2 = own.isP2;
+	partner = own.partner;
+	slope = own.slope;
+	potentialSlopes = std::move(own.potentialSlopes);
+	boosted = own.boosted;
+	accelerating = own.accelerating;
+	onGround2 = own.onGround2;
+	snapData = own.snapData;
+	lastFlipFrame = upsideDown != own.upsideDown ? frame : own.lastFlipFrame;
+}
+
+void Player::resetObject() {
+	// PlayerObject::resetObject (GD resets player 2 with it before a dual portal copies player 1 onto it)
+	rotation = 0;
+	stopRotation();
+	pendingSpin.reset();
+	slope = SlopeState{};
+	potentialSlopes.clear();
+	boosted = false;
+	accelerating = false;
+	onGround2 = true;
+	grounded = false;
+	snapData = decltype(snapData){};
 }
 
 void Player::startDual() {

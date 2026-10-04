@@ -197,6 +197,7 @@ struct Player : public Entity {
 	/// player's rotation and spin. The held button is copied (m_jumpBuffered, which pushButton sets and
 	/// releaseButton clears).
 	void copyAttributes(Player const& other);
+	void resetObject();
 	/// Player 2's start in the frame of the dual portal: GD steps it from the next step on, whose updateJump adds
 	/// gravity before it moves; the sim does that at the end of this frame (like postCollision)
 	void startDual();
@@ -272,6 +273,9 @@ struct Player : public Entity {
 	/// flipPartner at the start of the next frame: GD handles a fresh orb click there (pushButton), before either
 	/// player moves, where the sim clicks the orb a frame earlier
 	bool flipPartnerNext = false;
+	/// Player 1 took player 2's place at a solo portal this frame (DualPortal::collide), with player 2's state
+	/// from its collisions: GD steps it from there next step (Level::runFrame)
+	bool copiedFromP2 = false;
 
 	/// GD's y velocity (m_yVelocity: GD units, positive = up in the world) and setYVelocity (rounds to 1/1000)
 	double gdVelocity() const { return grav(velocity) / 54; }

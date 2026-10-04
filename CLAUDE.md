@@ -396,10 +396,12 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   new spin starts a step later (GD handles the click at its next step). Ship/ufo/wave portals (on
   or off) and leaving the ball set the rotation to 0; leaving the ship/ufo/wave for the cube spins it
   (`resetPlayerIcon`), for the ball doesn't (`toggleRollMode` stops it).
-- Dual: `toggleDualMode` copies player 1 to player 2 (`copyAttributes`: position, mode, size, speed,
-  y velocity, `m_jumpBuffered`; not the rotation or spin), flips player 2's gravity and gives it the
-  opposite y velocity; a solo portal taken by player 2 copies player 2 onto player 1 and releases all
-  of player 2's buttons. GD steps player 2 (update, collisions) right after player 1 (not once player 1
+- Dual: `toggleDualMode` resets player 2 (`resetObject`: rotation 0, no spin, slope state, boosted and
+  accelerating cleared) and copies player 1 onto it (`copyAttributes`: position, mode, gravity, size,
+  speed, y velocity, `m_jumpBuffered`; nothing else), flips player 2's gravity and gives it the
+  opposite y velocity; a solo portal taken by player 2 copies player 2 (as its collisions have it then,
+  after earlier portals in object order) onto player 1, which keeps its own rotation, slope state etc.
+  and adds gravity to the copied velocity on its next step, and releases all of player 2's buttons. GD steps player 2 (update, collisions) right after player 1 (not once player 1
   died in that step), from the step after dual starts, so its first `updateJump` adds gravity before
   it moves. It copies player 1 as the portal finds it: one standing on a block (not a slope) has
   fallen a step of gravity into it by then (the block puts player 1 back later). In a level that starts
