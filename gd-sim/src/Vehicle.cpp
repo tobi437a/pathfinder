@@ -333,7 +333,18 @@ Vehicle ufo() {
 
 	v.update = +[](Player& p) {
 		if (p.buffer) {
-			p.velocity = std::max(p.velocity, p.small ? 358.992 : 371.034);
+			double jump = p.small ? 358.992 : 371.034; // the jump (7, mini 0.85 * 8) after the step's gravity
+			if (p.velocity < jump && (p.slope.was || p.slope.on) && 0 < p.slope.velocity) {
+				// PlayerObject::updateJump: jumping from a slope adds half its launch speed (m_slopeVelocity, not
+				// relative to gravity), up to 1.4 times the jump, before that step's gravity
+				p.setGdVelocity(p.grav((double)(p.small ? 0.85f * 8.0f : 7.0f)));
+				float cap = (float)(p.gdVelocity() * 1.399999976158142);
+				p.setGdVelocity((double)(p.slope.velocity * 0.5f) + p.gdVelocity());
+				p.setGdVelocity(std::min(p.gdVelocity(), (double)cap));
+				p.velocity = roundVel(p.velocity + ufoAcceleration(p) * p.dt, p.upsideDown);
+			} else {
+				p.velocity = std::max(p.velocity, jump);
+			}
 			p.velocityOverride = true;
 			p.buffer = false;
 			p.grounded = false;
