@@ -364,8 +364,9 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
 - Dual: `toggleDualMode` copies player 1 to player 2 (`copyAttributes`: position, mode, size, speed,
   y velocity, `m_jumpBuffered`; not the rotation or spin), flips player 2's gravity and gives it the
   opposite y velocity; a solo portal taken by player 2 copies player 2 onto player 1 and releases all
-  of player 2's buttons. GD steps player 2 (update, collisions) right after player 1, from the step
-  after dual starts, so its first `updateJump` adds gravity before it moves. In a level that starts
+  of player 2's buttons. GD steps player 2 (update, collisions) right after player 1 (not once player 1
+  died in that step), from the step after dual starts, so its first `updateJump` adds gravity before
+  it moves. In a level that starts
   in dual (`kA8`) player 2 is stepped from the first step, off the ground. `handleButton` presses and
   releases player 2 only while dual is on, but `m_jumpBuffered` is the held flag (`pushButton` sets
   it, `releaseButton` or an orb clears it), so a button held into a dual portal is held by both.

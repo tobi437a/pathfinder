@@ -131,7 +131,8 @@ Player& Level::runFrame(bool pressed, float dt) {
 	p.partner = &q;
 	q.partner = &p;
 	int collisions = stepPlayer(p, pressed, dt);
-	if (wasDual && p.dual) {
+	if (wasDual && p.dual && !p.dead) {
+		// (not once player 1 died: GD stops the step there)
 		stepPlayer(q, pressed, dt);
 		if (q.dead)
 			p.dead = true;
