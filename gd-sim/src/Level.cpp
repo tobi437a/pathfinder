@@ -209,6 +209,14 @@ Player& Level::runFrame(bool pressed, float dt) {
 	return gameStates.back();
 }
 
+/// `SimDeath <frame> <player> at <x> <y> size <w> <h> rot <r>`: the object that killed the player (set PF_FLAGS=1)
+static void logDeath(Player const& p, Object const& o) {
+	static bool const on = std::getenv("PF_FLAGS") != nullptr;
+	if (on)
+		std::cout << "SimDeath " << p.frame - 1 << " " << (p.isP2 ? 2 : 1) << " at " << o.pos.x << " " << o.pos.y
+				  << " size " << o.size.x << " " << o.size.y << " rot " << -o.rotation << std::endl;
+}
+
 int Level::stepPlayer(Player& p, bool pressed, float dt) {
 	p.dt = dt;
 	p.preCollision(pressed);
@@ -252,6 +260,8 @@ int Level::stepPlayer(Player& p, bool pressed, float dt) {
 					clickOrbs.push_back(orb);
 				else
 					o->collide(p);
+				if (p.dead)
+					logDeath(p, *o.operator->());
 			}
 		}
 	}
@@ -274,6 +284,8 @@ int Level::stepPlayer(Player& p, bool pressed, float dt) {
 		if (p.dead) break;
 		if (orb->touching(p))
 			orb->collide(p);
+		if (p.dead)
+			logDeath(p, *orb);
 	}
 
 	if (p.scaleRefreshed)
@@ -286,6 +298,8 @@ int Level::stepPlayer(Player& p, bool pressed, float dt) {
 		if (b->touching(p)) {
 			++numCollisions;
 			b->collide(p);
+			if (p.dead)
+				logDeath(p, *b.operator->());
 		}
 	}
 
@@ -295,7 +309,8 @@ int Level::stepPlayer(Player& p, bool pressed, float dt) {
 		if (h->touching(p)) {
 			++numCollisions;
 			h->collide(p);
-			
+			if (p.dead)
+				logDeath(p, *h.operator->());
 		}
 	}
 

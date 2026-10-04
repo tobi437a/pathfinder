@@ -194,7 +194,12 @@ void Block::collideBlock(Player& p, bool bare) const {
 	if (p.gravTop(*this) - bottom <= landClip)
 		p.onBlock = true;
 
-	if (p.innerHitbox().intersects(*this)) {
+	// collidedWithObjectInternal: a player rising (y velocity > 0, not off a slope) with its feet within the
+	// landing distance of the block's top neither lands nor gets killed by its inner hitbox (GD leaves that
+	// test out once the player is in landing range)
+	bool risingOnto = !p.upsideDown && p.gravTop(*this) - bottom <= landClip && p.velocity > 0 && !padHitBefore && !p.slope.was;
+
+	if (p.innerHitbox().intersects(*this) && !risingOnto) {
 		// Hitting block head-on. Within 0.1 s of a gravity flip GD instead puts the player on the block's far
 		// side from its (new) floor and grounds it there (hitGround: velocity 0, on ground if slow enough), if the
 		// block is on its head side: its bottom at least the landing clip above the player's (before or after
