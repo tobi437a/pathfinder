@@ -94,6 +94,9 @@ python tools\gdtools.py objects build\re\x.lvl 11260 11360 -y 150 260   # object
 python tools\gdtools.py frame 196 204       # object id -> sprite frame name, read from the GD exe
 ```
 Level-string object coords are sim coords (`pos`); the printed sim/real `Y` is `pos.y - 15`.
+GD places objects 90 higher as floats (`float(y) + 90`), so the sim keeps each object's y at that
+precision (`Object::Object`): a block at 240.8 is at 330.79998779 in GD, and a player landing under
+it at GD's y, not 0.00002 off (which loses contact on the next step).
 GD's player y (float) is sim y + 90, so it rounds coarser; the sim moves y through `Player::moveY`, which
 moves like `PlayerObject::update`: `float(m_yVelocity * float(0.25f * 0.9f))` added to the float y. With
 that the sim matches GD's y bit for bit (`regress.py --tol 1e-6`).

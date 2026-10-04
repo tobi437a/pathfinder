@@ -176,7 +176,10 @@ Object::Object(Vec2D s, std::unordered_map<int, std::string>&& fields) {
 	size = s;
 
 	pos.x = stod_def(fields[2]);
-	pos.y = stod_def(fields[3]);
+	// GD places objects 90 higher (its ground is at y 90), as floats, which round coarser than the sim's: a block at
+	// 240.8 is at 330.8f = 330.79998779 in GD. Keep that value (minus 90, exact), so edges and the player's y
+	// (Player::moveY) are GD's.
+	pos.y = ((float)stod_def(fields[3]) + 90.f) - 90.f;
 	rotation = -stod_def(fields[6]);
 	prio = 0;
 
