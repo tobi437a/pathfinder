@@ -42,21 +42,34 @@ letters (r p i), and the verifier's `realMode`. GD's fly-mode floor/ceiling are
 
 ## Current work: 1.8 support (start here)
 
-The batch (`build\re\batch`) is 453 rated 1.8 levels (all of them with gameVersion 18). Their
-macros are from the pre-dual pathfinder; every run has a fresh `real.txt`, the 173 that reach a
-dual portal with GD's player 2 too (`P2` lines). Baseline: `regress.py` 150/453 match GD to the
-end (`regress-cur.json`); `regress.py --p2` (`regress-p2.json`): of the 173 dual runs 36 match for
-player 1, 4 for both, and in 81 player 2 diverges first.
-- Dual (`Objects/DualPortal.cpp`, `Player::updateGround`) is a first port of `toggleDualMode`,
-  `updateDualGround` and `playerWillSwitchMode`; check it against the `P2` lines
-  (`regress.py --p2 --base p2` on each fix).
-- After dual: rebuild Release `pathfinder-cli`, `batch.py --redo pathfind`, `batch.py --redo
-  verify` (GD minimised, ~25 min; a long background job can get killed under memory pressure -
-  then `verify --import-only` and verify the rest with `--ids`), `batch.py report`.
+The batch (`build
+eatch`) is 453 rated 1.8 levels (all of them with gameVersion 18).
+`runs-pre1.8\` is a snapshot of the runs recorded with the pre-dual pathfinder's macros (GD's
+`real.txt` for each; the 173 that reach a dual portal with GD's player 2 too, `P2` lines): the
+offline regression set, `regress.py --runs runs-pre1.8 [--p2] --base cur12|p2s`. On it 339/453
+runs match GD to the end for player 1 (`regress-cur12.json`), 325 for both players
+(`regress-p2s.json`).
+- Dual (`Objects/DualPortal.cpp`, `Player::updateGround`, `Player::flipPartner`, `startDual`,
+  `copyAttributes`, `Level::runFrame`) follows `toggleDualMode`, `updateDualGround`,
+  `playerWillSwitchMode`, `GJBaseGameLayer::flipGravity` and the per-step order of
+  `GJBaseGameLayer::update` (see "Verified GD behaviour").
+- Pathfinder (`batch.py pathfind`, 120 s): 427/453 complete in the sim, 26 stuck. Several stuck ones
+  end in a secret path that runs into a wall, with the real route branching off far back; the search
+  backs off exponentially from a dead end and penalises staying on it (`DeadPath`), which gets some
+  but not all of them. Search improvements are for after 1.8 support.
+- Two-player levels (`kA10`, 4 in the batch) need player-2 inputs: the pathfinder only presses
+  player 1, and the sim gives player 2 no button there.
+- Open leads (`regress.py --runs runs-pre1.8`, then `diverge.py`/`gdtools compare --p2`): 2376766
+  frame 1041 (4 copies of one level): an upside-down cube easing to 270 after a launch starts its
+  falling spin in the sim, not in GD (some `updateRotation`/`updateJump` condition); the rest are
+  one-offs.
 - Known unexplained: a pad then a slope in the same step (2284379 frame 778) - GD keeps the pad's
   spin, so its slope collision skips `hitGround` there; the sim doesn't.
 - `regress.py --rot` scores cube/ball rotation (for rotated objects); look for remaining rotation
   bugs with it too.
+- End-to-end: rebuild Release `pathfinder-cli`, `batch.py --redo pathfind`, `batch.py --redo
+  verify` (GD minimised, ~25 min; a long background job can get killed under memory pressure -
+  then `verify --import-only` and verify the rest with `--ids`), `batch.py report`.
 
 ## Build & install
 
@@ -306,6 +319,9 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   fastest T1 A120 B150 C90; mini makes A 90 (except slow/fastest). Only `resetObject` clears it.
   It only snaps if the previous snap object is a plain solid (`getType() == 0`): not from a
   breakable block (type 21), though onto one it does. The sim prints `Snap` lines like the verifier's.
+- The level ends where `PlayLayer::checkForEnd` finds player 1's x at the end portal's spawn point:
+  `createObjectsFromSetupFinished` puts the portal at max(screen right + 300, last object x + 340),
+  the spawn point is 300 before it, so last object x (any object) + 40 (`Level::length`).
 - Camera x (`m_gameState.m_cameraPosition`) = player x - (winWidth / 2 - 75) every step until the
   level end; winSize is 569x320 here. `PlayLayer::updateVisibility` (once per step, before the
   step's collisions, with the previous step's camera) sets block sprites: enter effects, and
