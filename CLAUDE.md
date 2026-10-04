@@ -449,6 +449,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   Portals and pads get theirs from `GameObject::setupSpriteSize`: a switch through a byte table at
   RVA 0x1a3fec indexed by id - 1 (read it from the exe). Vehicle 34x86, gravity 25x75, dual 41x91,
   mirror 44x92, size 31x90, speed 35x44 / 33x56 / 51x56 / 65x56, pads 25x4 / 25x5 / 25x6.
+  `customSetup` also offsets some hitboxes (`m_customBoxOffset`, turned by the object's rotation and flips in
+  `getBoxOffset`; GD flips with a negative scale): pits 243 422 447 1720 1726 1729 by -5 in x, 244 1721 by +5.
 
 - `GJBaseGameLayer::update(dt)` runs `max(1, round(dt * 240))` physics steps regardless of real
   time (`getModifiedDelta`), so `update(1/240)` in a loop = one step per call. `processCommands`
