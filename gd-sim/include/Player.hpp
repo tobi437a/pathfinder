@@ -188,6 +188,9 @@ struct Player : public Entity {
 	/// a player slowly rising counts as falling); in dual mode minus that either way. Picks the ship's and ufo's
 	/// gravity and ends m_maybeIsBoosted.
 	bool fallingBugged() const;
+	/// The ufo's fall (ufoAcceleration) from velocity 0, e.g. a walk-off step: GD takes it before a slope launch
+	/// or a pad changes the velocity later in the step
+	double ufoRestFall() const;
 	/// Gravity or vehicle changed within `seconds` (GD's m_lastFlipTime, m_gameModeChangedTime)
 	bool changedWithin(double seconds) const;
 	/// Become a copy of `other` (PlayerObject::copyAttributes, toggleDualMode), keeping what GD doesn't copy: this

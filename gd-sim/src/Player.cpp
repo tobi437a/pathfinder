@@ -71,6 +71,11 @@ bool Player::changedWithin(double seconds) const {
 	return false;
 }
 
+double Player::ufoRestFall() const {
+	// At velocity 0 playerIsFallingBugged is true (the lighter 0.4) only with normal gravity outside dual mode
+	return gdFall(*this, 0.958199f, !upsideDown && !dual ? 0.4f : 0.6f, small ? 0.85f : 1);
+}
+
 bool Player::fallingBugged() const {
 	// m_gravity per speed (updateTimeMod). Not upside down the test uses it as a float, and in dual mode (m_unkA99,
 	// set on both players by toggleDualMode) negated, so there it is the same as upside down.
@@ -550,7 +555,7 @@ void Player::postCollision() {
 	// level's first frame) still takes GD's walk-off step: GD walks off one step and jumps on the next
 	if (ufoJump && velocityOverride && !groundedBefore && prevPlayer().grounded
 		&& prevPlayer().velocity == 0 && prevPlayer().gravBottom(*this) > prevPlayer().gravFloor()) {
-		double fallAccel = gdFall(*this, 0.958199f, 0.4f, small ? 0.85f : 1); // ufoAcceleration at velocity 0
+		double fallAccel = ufoRestFall();
 		moveY(roundVel(prevPlayer().grav(fallAccel) * dt, prevPlayer().upsideDown));
 	}
 
@@ -568,8 +573,10 @@ void Player::postCollision() {
 			// The level's first frame has no previous acceleration. A ufo's previous acceleration was
 			// chosen for its velocity before landing; GD falls with the one for velocity 0 (this frame's).
 			double fallAccel = prevPlayer().acceleration;
-			if (fallAccel == 0 || vehicle.type == VehicleType::Ufo)
+			if (fallAccel == 0)
 				fallAccel = shipPress ? shipFall : acceleration;
+			else if (vehicle.type == VehicleType::Ufo)
+				fallAccel = ufoRestFall();
 			if (!walkedOff)
 				moveY(roundVel(prevPlayer().grav(fallAccel) * dt, prevPlayer().upsideDown));
 
