@@ -192,7 +192,8 @@ Object::Object(Vec2D s, std::unordered_map<int, std::string>&& fields) {
 }
 
 bool Object::touching(Player const& player) const {
-	int r = std::abs(rotation);
+	// (a multiple of 360 too: a flipped pad's rotation has 180 added, Pad::Pad)
+	double r = std::fmod(std::abs((double)rotation), 360.0);
 	// GD doesn't count a non-solid object (pad, orb, portal, hazard) the player only touches at its top or
 	// bottom edge; touching a left or right edge counts. (GD's rects do count edges, but a player standing on
 	// a block has moved a step of gravity into it when GD checks objects. On the mode floor it hasn't: GD
