@@ -549,7 +549,7 @@ void Player::postCollision() {
 	// gets snapped (but launches the player rather than grounding them), and a block that stopped the
 	// player's head after that can leave it below the floor (still grounded)
 	if (gravBottom(*this) <= gravFloor() && !velocityOverride && (velocity <= 0 || hitPad)) {
-		if (!headHit)
+		if (!headHit && !slope.on)
 			pos.y = grav(gravFloor()) + grav(size.y / 2);
 		if (!hitPad) {
 			grounded = true;

@@ -369,7 +369,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
 - `GJBaseGameLayer::checkCollisions` snaps a normal-gravity cube below the floor onto the floor
   (no velocity check) *before* `collisionCheckObjects`, so a pad touched while landing on the floor
   still starts from floor height, and a block hitting the head after that can push the player
-  below the floor (still grounded). A pad, orb or portal whose bottom edge is exactly at the head of a
+  below the floor (still grounded), as can a downhill slope that reaches the floor: the player follows
+  its surface line below y 0 while it still overlaps the slope. A pad, orb or portal whose bottom edge is exactly at the head of a
   player on the floor counts as touched (GD's rects include edges); one standing on a block has moved
   a step into the block by then, so edge contact there doesn't count (`Object::touching`). The sim snaps in `Player::preCollision` (`floorSnapped`) and
   grounds in `postCollision`.
