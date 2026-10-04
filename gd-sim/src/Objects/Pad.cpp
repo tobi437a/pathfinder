@@ -100,7 +100,9 @@ void Pad::collide(Player& p) const {
 	// player may miss the new floor by that much)
 	auto const& prev = p.prevPlayer();
 	if (p.upsideDown == prev.upsideDown && prev.grounded && prev.velocity == 0 && prev.gravBottom(prev) > prev.gravFloor() && !p.walkedOff) {
-		p.moveY(roundVel(prev.grav(prev.acceleration) * p.dt, prev.upsideDown));
+		// (unless a slope earlier in this step's collisions has put it back on its surface: launched from there)
+		if (!p.slope.on)
+			p.moveY(roundVel(prev.grav(prev.acceleration) * p.dt, prev.upsideDown));
 		p.walkedOff = true;
 	}
 
