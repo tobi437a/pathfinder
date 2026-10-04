@@ -412,7 +412,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   gravity in `playerIsFallingBugged` for a non-upside-down player: in dual, "falling" (the ship's
   and ufo's gravity factors, the end of `m_maybeIsBoosted`) is y velocity < -2g for both
   gravities, outside dual < 2g (upside down > 2g). `updateJump` clears a cube's `m_isOnGround` only once
-  it is falling, so in dual (and upside down) a cube that walked off a block can still jump for 9 steps. Ground heights
+  it is falling, so in dual (and upside down) a cube that walked off a block can still jump for 9 steps
+  (a ball: 15). Ground heights
   (`getGroundHeightForMode`): ship/ufo/wave/swing 300, ball 240, else 270 (= no ground outside dual);
   in dual max(own (ball as 270), other's), centred on the dual portal. In dual a player taking a
   vehicle portal of the mode the other player is in gets the other's opposite gravity

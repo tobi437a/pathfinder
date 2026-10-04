@@ -257,7 +257,7 @@ Vehicle ball() {
 				p.setVelocity(0, true);
 			}
 			p.buffer = false;
-		} else if (p.buffer && p.coyoteFrames < (p.upsideDown ? 16 : 1)) {
+		} else if (p.buffer && p.coyoteFrames < (p.upsideDown || p.dual ? 16 : 1)) {
 			jump = true;
 		}
 
