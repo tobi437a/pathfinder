@@ -162,7 +162,8 @@ frame + positions, max diff) and `verify\<level>\real.txt`, `sim.txt`, `level.lv
   obj <id> <x> <y> rot <r> type <t>` per `PlayLayer::destroyPlayer` (obj -1: no object - a slope or the
   mode bounds); per step `Flags <frame> og og2 rotating spin slope <on><was> boosted acc btn` (player 1's
   state, the format of `gd-sim-test`'s `Flags` lines with env `PF_FLAGS=1`, which also prints `SimDeath` (the object that killed); `PF_SLOPE=1` prints
-  `SlopeDbg` lines per slope collision).
+  `SlopeDbg` lines per slope collision, `PF_TRACE=1` a `Trace` line (player y, velocity) after every
+  object collision).
 
 ## Batch testing online levels
 
