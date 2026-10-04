@@ -70,9 +70,7 @@ Vehicle cube() {
 	};
 
 	v.update = +[](Player& p) {
-		// m_gravity per speed (updateTimeMod)
-		static float const gravity[] = {0.940199f, 0.958199f, 0.957199f, 0.961199f, 0.961199f};
-		p.acceleration = gdFall(p, gravity[p.speed], 1);
+		p.acceleration = stepAcceleration(p);
 
 		bool jump = false;
 
@@ -441,5 +439,20 @@ Vehicle Vehicle::from(VehicleType v) {
 			return ufo();
 		case VehicleType::Wave:
 			return wave();
+	}
+}
+
+double stepAcceleration(Player const& p) {
+	switch (p.vehicle.type) {
+		case VehicleType::Cube: {
+			// m_gravity per speed (updateTimeMod)
+			static float const gravity[] = {0.940199f, 0.958199f, 0.957199f, 0.961199f, 0.961199f};
+			return gdFall(p, gravity[p.speed], 1);
+		}
+		// A ball falls with GD's fixed 0.958199 (not m_gravity), times 0.6
+		case VehicleType::Ball: return gdFall(p, 0.958199f, 0.6f);
+		case VehicleType::Ship: return shipAcceleration(p);
+		case VehicleType::Ufo: return ufoAcceleration(p);
+		default: return 0;
 	}
 }

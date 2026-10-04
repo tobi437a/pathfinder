@@ -337,16 +337,33 @@ void Player::flipPartner() {
 		return;
 	// The other player's velocity is GD's plus a step of its gravity (the sim adds that at the end of a frame,
 	// GD at the start of the next): take it off, halve it in the world like PlayerObject::flipGravity (-0.5
-	// relative to gravity), and add the step again in the new gravity. A grounded one has none.
+	// relative to gravity), and add the step again in the new gravity, with the acceleration GD's next updateJump
+	// chooses for the flipped player (a ship's depends on its velocity). A grounded one has none.
 	double gd = o.grounded ? 0 : roundVel(o.velocity - o.acceleration * o.dt, o.upsideDown);
-	// At the fall cap (cube, ball) that step was cut off: GD's velocity is the one predicted a step earlier
-	bool capped = (o.vehicle.type == VehicleType::Cube || o.vehicle.type == VehicleType::Ball) && o.velocity <= -810;
-	if (!o.grounded && capped)
-		gd = std::max(-810.0, o.prevPlayer().velocity);
+	// At a velocity cap (cube, ball; ship, ufo unless accelerating) that step was cut off: GD's velocity is the
+	// one predicted a step earlier
+	double fallCap = -INFINITY, riseCap = INFINITY;
+	if (o.vehicle.type == VehicleType::Cube || o.vehicle.type == VehicleType::Ball)
+		fallCap = -810;
+	if (o.vehicle.type == VehicleType::Ball)
+		riseCap = 810;
+	if ((o.vehicle.type == VehicleType::Ship || o.vehicle.type == VehicleType::Ufo) && !o.accelerating) {
+		fallCap = o.small ? -406.566 : -345.6;
+		riseCap = o.small ? 508.248 : 432.0;
+	}
+	// (unless its gravity changed since: then it was at the cap too)
+	auto const& before = o.prevPlayer();
+	bool sameGravity = before.upsideDown == o.upsideDown;
+	if (!o.grounded && o.velocity <= fallCap)
+		gd = sameGravity ? std::max(fallCap, before.velocity) : fallCap;
+	else if (!o.grounded && o.velocity >= riseCap)
+		gd = sameGravity ? std::min(riseCap, before.velocity) : riseCap;
 	o.flipGravity(!upsideDown);
 	o.partnerFlipped = true;
-	o.velocity = roundVel(-gd / 2 + o.acceleration * o.dt, o.upsideDown);
+	o.velocity = -gd / 2;
 	o.grounded = false;
+	o.acceleration = stepAcceleration(o);
+	o.velocity = roundVel(o.velocity + o.acceleration * o.dt, o.upsideDown);
 }
 
 void Player::stopRotation() {

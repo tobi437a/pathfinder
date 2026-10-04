@@ -33,3 +33,7 @@ struct Vehicle {
 
 /// GD's per-step fall (PlayerObject::updateJump) as an acceleration in sim units, see Vehicle.cpp
 double gdFall(Player const& p, float gravity, float mult, float size = 1);
+
+/// The acceleration (sim units) the vehicle's update would give the player in its current state (velocity,
+/// gravity, button): GD's next updateJump's gravity. No side effects.
+double stepAcceleration(Player const& p);
