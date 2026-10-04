@@ -454,6 +454,9 @@ void Player::leaveSlope() {
 	} else if (!upsideDown ? sv < 0 : 0 < sv) {
 		// Off the bottom of a downhill slope: keeps falling at its speed
 		if (!boosted && !held && slope.ceiling == upsideDown) {
+			// A player that landed on a block this step stays there for it: no walk-off step (see postCollision)
+			if (grounded)
+				walkedOff = true;
 			setGdVelocity((upsideDown ? -1 : 1) * -slope.yVelocity);
 			velocityOverride = false;
 			grounded = false;
