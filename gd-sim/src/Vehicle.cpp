@@ -76,7 +76,7 @@ Vehicle cube() {
 
 		if (p.grounded) {
 			if (p.input) {
-				jump = true;
+				jump = !p.partnerFlipsNext;
 			} else {
 				p.setVelocity(0, true);
 			}
@@ -262,13 +262,13 @@ Vehicle ball() {
 		if (p.grounded) {
 			//p.rotVelocity = p.grav(600);
 			if (p.input && (p.prevPlayer().buffer || !p.prevPlayer().input || p.vehicleBuffer)) {
-				jump = true;
+				jump = !p.partnerFlipsNext;
 			} else {
 				p.setVelocity(0, true);
 			}
 			p.buffer = false;
 		} else if (p.buffer && p.coyoteFrames < (p.upsideDown || p.dual ? 16 : 1)) {
-			jump = true;
+			jump = !p.partnerFlipsNext;
 		}
 
 		if (jump) {

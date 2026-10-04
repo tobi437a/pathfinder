@@ -332,14 +332,18 @@ void Player::flipGravity(bool to) {
 	}
 }
 
-void Player::flipPartner() {
+bool Player::flipsPartner() const {
 	if (!dual || !partner || level->twoPlayer)
-		return;
+		return false;
 	// (the same mode: GD compares the ship, ufo, ball, robot, spider and swing flags, not the wave's)
 	auto kind = [](VehicleType t) { return t == VehicleType::Wave ? VehicleType::Cube : t; };
-	Player& o = *partner;
-	if (kind(o.vehicle.type) != kind(vehicle.type) || o.upsideDown != upsideDown)
+	return kind(partner->vehicle.type) == kind(vehicle.type) && partner->upsideDown == upsideDown;
+}
+
+void Player::flipPartner() {
+	if (!flipsPartner())
 		return;
+	Player& o = *partner;
 	// The other player's velocity is GD's plus a step of its gravity (the sim adds that at the end of a frame,
 	// GD at the start of the next): take it off, halve it in the world like PlayerObject::flipGravity (-0.5
 	// relative to gravity), and add the step again in the new gravity, with the acceleration GD's next updateJump

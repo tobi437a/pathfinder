@@ -281,6 +281,11 @@ struct Player : public Entity {
 	/// flipPartner at the start of the next frame: GD handles a fresh orb click there (pushButton), before either
 	/// player moves, where the sim clicks the orb a frame earlier
 	bool flipPartnerNext = false;
+	/// The other player's flipPartnerNext will flip this one: in GD that flip (clearing m_isOnGround) comes before
+	/// this player's updateJump in the step this frame's jump would be, so it can't jump (Level::runFrame)
+	bool partnerFlipsNext = false;
+	/// Whether flipPartner would flip the other player now
+	bool flipsPartner() const;
 	/// The other player's flip (flipPartner) flipped this one before its step this frame: GD has flipped it by
 	/// then, so its blocks act in the new gravity
 	bool partnerFlipped = false;

@@ -149,7 +149,9 @@ Player& Level::runFrame(bool pressed, float dt) {
 	int collisions = stepPlayer(p, pressed, dt);
 	if (wasDual && p.dual && !p.dead) {
 		// (not once player 1 died: GD stops the step there)
+		q.partnerFlipsNext = p.flipPartnerNext && p.flipsPartner();
 		stepPlayer(q, twoPlayer ? q.button : pressed, dt);
+		q.partnerFlipsNext = false;
 		if (q.dead)
 			p.dead = true;
 		else
