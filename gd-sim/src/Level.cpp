@@ -236,11 +236,17 @@ void Level::repelBalls(Player& p, Player& q) const {
 		return;
 	// The one whose partner is on the ground (m_isOnGround2) flips: player 2 if player 1 is down, else player 1
 	Player* flip = p.onGround2 || p.ballJumped ? &q : q.onGround2 || q.ballJumped ? &p : nullptr;
-	if (!flip || flip->ballJumped)
+	if (!flip || (flip->ballJumped && (flip == &q ? p.ballJumped : q.ballJumped)))
 		return;
 	// PlayerObject::flipGravity (no partner flip) and a y velocity of 2 towards its new floor, which GD's next
-	// step adds gravity to (the sim's velocity has that step already)
-	flip->flipGravity(!flip->upsideDown);
+	// step adds gravity to (the sim's velocity has that step already). A ball the sim has jumped this frame is
+	// still on the ground in GD: the repel flips it first (the same new gravity), so it never jumps and keeps
+	// holding the button.
+	if (flip->ballJumped) {
+		flip->ballJumped = false;
+		flip->input = flip->button;
+	} else
+		flip->flipGravity(!flip->upsideDown);
 	flip->velocity = roundVel(-2 * 54 + flip->acceleration * flip->dt, flip->upsideDown);
 	flip->grounded = false;
 }

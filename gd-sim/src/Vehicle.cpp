@@ -229,6 +229,7 @@ Vehicle ball() {
 				p.flipGravity(!p.upsideDown);
 				p.input = false;
 				p.buffer = false;
+				p.ballJumped = true;
 			} else {
 				// Otherwise it leaves the ceiling on the next step, which adds gravity before the move
 				p.velocity = roundVel(gdFall(p, 0.958199f, 0.6f) * p.dt, p.upsideDown);
