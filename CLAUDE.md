@@ -379,7 +379,14 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   vehicle portal of the mode the other player is in gets the other's opposite gravity
   (`playerWillSwitchMode`), and `checkCollisions` bounds every mode like a flying one: a cube past
   its ceiling dies unless gravity/mode changed within 0.2 s, which puts it back stopped (y velocity 0,
-  both ground flags cleared).
+  both ground flags cleared). A speed portal (either player's) sets a pending speed that
+  `GJBaseGameLayer::update` gives player 1 and, in dual, player 2 (`updateTimeMod`) at the start of the
+  next step. Gravity portals, blue pads and blue/green orbs flip through
+  `GJBaseGameLayer::flipGravity`: in dual, with both players in the same mode (it compares ship, ufo,
+  ball, robot, spider, swing, not the wave), the other player takes the opposite gravity
+  (`PlayerObject::flipGravity`: world y velocity x0.5); a fresh orb click does it at the start of
+  GD's next step. Not in two-player mode (`kA10`, settings 0x154), where each player also gets only
+  its own inputs (`handleButton`), so a player-1 macro never presses player 2.
 - A solid block's hitbox is its sprite's size (`GameObject::customSetup` only overrides it for
   some types), so ids sharing a sprite shape share a hitbox: `invis_`/`color` variants match the
   plain one (204 `invis_plank_01_small` = 196 `plank_01_small`, 15x8). Check with `gdtools frame`.
