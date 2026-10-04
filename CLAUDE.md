@@ -239,7 +239,9 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   broadphase rect at twice their size. A flying player holding on an uphill slope gets y velocity >= 2
   and isn't landed, so it rides the surface and keeps its speed off the top; leaving a slope launches
   at `min(0.8 / angle, 1.1) * rise * 1.4` (x0.75 fly/ball, ramped 0.4 -> 1 over the first 0.1 s) if
-  that's faster. Pads clear the slope flags; `flipGravity` flips which way is downhill.
+  that's faster; leaving one off its bottom falls at its speed. Both are set after the step's move, so
+  a player that landed on a block in that step takes no walk-off step. Pads clear the slope flags;
+  `flipGravity` flips which way is downhill.
 - `m_speedMultiplier` (`updateTimeMod`) is 5.980002 / 5.7700018882751465 / 5.870002 / 6.000002 /
   6.000002 for m_playerSpeed 0.7 / 0.9 / 1.1 / 1.3 / 1.6, so x per step = speed * mult * 60 / 240
   (the sim's `player_speeds`). `m_gravity` 0.940199 / 0.958199 / 0.957199 / 0.961199 / 0.961199.
