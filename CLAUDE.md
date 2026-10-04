@@ -455,6 +455,9 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   `customSetup` also offsets some hitboxes (`m_customBoxOffset`, turned by the object's rotation and flips in
   `getBoxOffset`; GD flips with a negative scale): pits 243 422 447 1720 1726 1729 by -5 in x, 244 1721 by +5.
 
+- `checkCollisions` collides the objects of the 3 x 3 sections (100 x 100, GD coordinates) around the player,
+  column by column; the column is `int(x * 0.01f)`, so an object at x 14700 is in column 146 and comes before one
+  at 14760. Within a column the sim keeps level order (sorting by row, as the loops suggest, makes things worse).
 - `GJBaseGameLayer::update(dt)` runs `max(1, round(dt * 240))` physics steps regardless of real
   time (`getModifiedDelta`), so `update(1/240)` in a loop = one step per call. `processCommands`
   and `updateCamera` run once per step inside that loop, so `real.txt` is per step at any fps.

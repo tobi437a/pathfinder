@@ -182,6 +182,7 @@ Object::Object(Vec2D s, std::unordered_map<int, std::string>&& fields) {
 	pos.y = ((float)stod_def(fields[3]) + 90.f) - 90.f;
 	rotation = -stod_def(fields[6]);
 	prio = 0;
+	ySection = std::max(0, (int)((double)0.01f * (double)(pos.y + 90)));
 
 	float scale = stod_def(fields[32], 1);
 	float scalex = stod_def(fields[128], 1);

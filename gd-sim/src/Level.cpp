@@ -94,8 +94,8 @@ Level::Level(std::string const& lvlString) {
 			// Unique ID
 			ob->id = objectCount++;
 
-			// Sections are divided by x position in increments of 100
-			size_t sectionPos = std::max(.0f, ob->pos.x / sectionSize);
+			// Sections are divided by x position in increments of 100 (GJBaseGameLayer::addToSection)
+			size_t sectionPos = std::max(0, (int)((double)0.01f * ob->pos.x));
 			if (sectionPos >= sections.size())
 				sections.resize(sectionPos + 1);
 			sections[sectionPos].push_back(ob);
@@ -263,18 +263,14 @@ int Level::stepPlayer(Player& p, bool pressed, float dt) {
 	p.dt = dt;
 	p.preCollision(pressed);
 
-	// Objects from previous, current, and next section are all collision tested
-	size_t sectionIdx = std::min(std::max(0, (int)(p.pos.x / sectionSize)), (int)sections.size() - 1);
-	auto prevSection = &sections[sectionIdx == 0 ? 0 : sectionIdx - 1];
-	auto currSection = &sections[sectionIdx];
-	auto nextSection = &sections[sectionIdx + 1 >= sections.size() - 1 ? sections.size() - 1 : sectionIdx + 1];
-
-	// If at start or end of level, previous/next section is invalid so don't use it
-	std::vector<ObjectContainer>* sections[3] = { prevSection, nullptr, nullptr };
-	if (&currSection != &prevSection)
-		sections[1] = currSection;
-	if (&nextSection != &currSection)
-		sections[2] = nextSection;
+	// GJBaseGameLayer::checkCollisions: the 3 x 3 sections around the player (clamped to the level), column by
+	// column (x * 0.01f: an object at x 14700 is in column 146); within a column the sim keeps level order
+	int column = (int)((float)p.pos.x * 0.01f);
+	int row = std::max(0, (int)((float)(p.pos.y + 90) * 0.01f));
+	int firstColumn = std::max(0, column - 1), lastColumn = std::min((int)this->sections.size() - 1, column + 1);
+	std::vector<std::vector<ObjectContainer>*> sections;
+	for (int c = firstColumn; c <= lastColumn; ++c)
+		sections.push_back(&this->sections[c]);
 
 	// Blocks are hazards processed separately
 	blocks.clear();
@@ -300,6 +296,8 @@ int Level::stepPlayer(Player& p, bool pressed, float dt) {
 		if (section == nullptr) continue;
 		for (auto& o : *section) {
 			if (p.dead) break;
+			if (o->ySection < row - 1 || o->ySection > row + 1)
+				continue;
 			if (o->prio == 1)
 				blocks.push_back(&o);
 			else if (o->prio == 2)

@@ -17,6 +17,10 @@ struct Object : public Entity {
      */
     int prio;
 
+    /// GD's collision section row: GJBaseGameLayer::addToSection buckets objects in 100 x 100 cells of its
+    /// coordinates (y + 90), and checkCollisions only looks at the rows next to the player's
+    int ySection = 0;
+
     Object() = default;
     Object(Vec2D size, std::unordered_map<int, std::string>&& fields);
 
