@@ -159,11 +159,18 @@ void Orb::collide(Player& p) const {
 		};
 		if (type == OrbType::Green) {
 			p.flipGravity(!p.upsideDown);
+			p.flipPartnerNext = freshClick;
+			if (!freshClick)
+				p.flipPartner();
 			spin();
 		} else {
 			spin();
-			if (type == OrbType::Blue)
+			if (type == OrbType::Blue) {
 				p.flipGravity(!p.upsideDown);
+				p.flipPartnerNext = freshClick;
+				if (!freshClick)
+					p.flipPartner();
+			}
 		}
 		if (freshClick) {
 			p.pendingSpin = Player::Spin {p.rotationSpeed, p.rotateSpeed, p.isRotating, p.ballRotating, p.ballRotating2};

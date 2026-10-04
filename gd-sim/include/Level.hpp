@@ -31,6 +31,11 @@ class Level {
 
 	float length = 0.0;
 
+	/// Two-player mode (level setting kA10, LevelSettingsObject 0x154): in dual mode each player gets only its own
+	/// inputs (GJBaseGameLayer::handleButton), which the sim's single button is player 1's, and a gravity flip
+	/// doesn't flip the other player (GJBaseGameLayer::flipGravity)
+	bool twoPlayer = false;
+
 	/// Per-frame scratch lists for runFrame, kept here so they don't reallocate every frame
 	std::vector<ObjectContainer const*> blocks;
 	std::vector<ObjectContainer const*> hazards;

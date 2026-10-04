@@ -294,6 +294,23 @@ void Player::flipGravity(bool to) {
 	}
 }
 
+void Player::flipPartner() {
+	if (!dual || !partner || level->twoPlayer)
+		return;
+	// (the same mode: GD compares the ship, ufo, ball, robot, spider and swing flags, not the wave's)
+	auto kind = [](VehicleType t) { return t == VehicleType::Wave ? VehicleType::Cube : t; };
+	Player& o = *partner;
+	if (kind(o.vehicle.type) != kind(vehicle.type) || o.upsideDown != upsideDown)
+		return;
+	// The other player's velocity is GD's plus a step of its gravity (the sim adds that at the end of a frame,
+	// GD at the start of the next): take it off, halve it in the world like PlayerObject::flipGravity (-0.5
+	// relative to gravity), and add the step again in the new gravity. A grounded one has none.
+	double gd = o.grounded ? 0 : roundVel(o.velocity - o.acceleration * o.dt, o.upsideDown);
+	o.flipGravity(!upsideDown);
+	o.velocity = roundVel(-gd / 2 + o.acceleration * o.dt, o.upsideDown);
+	o.grounded = false;
+}
+
 void Player::stopRotation() {
 	isRotating = ballRotating = ballRotating2 = false;
 	rotationSpeed = 0;

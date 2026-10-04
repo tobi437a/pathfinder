@@ -12,5 +12,6 @@ void GravityPortal::collide(Player& p) const {
 		p.velocity = -p.velocity / 2;
 		p.flipGravity(upsideDown);
 		p.gravityPortal = true;
+		p.flipPartner();
 	}
 }

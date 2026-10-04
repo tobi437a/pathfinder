@@ -56,6 +56,12 @@ Level::Level(std::string const& lvlString) {
 		// First entry is level settings object
 		if (first) {
 			initLevelSettings(objstr, player);
+			// (two-player mode from the level's own settings, not a start position's)
+			std::stringstream settings(objstr);
+			std::string k, v;
+			while (std::getline(settings, k, ',') && std::getline(settings, v, ','))
+				if (k == "kA10")
+					twoPlayer = atoi(v.c_str());
 			first = false;
 			continue;
 		}
@@ -130,10 +136,16 @@ Player& Level::runFrame(bool pressed, float dt) {
 	int speed1 = p.speed, speed2 = q.speed;
 	p.partner = &q;
 	q.partner = &p;
+	for (Player* pl : {&p, &q}) {
+		if (pl->flipPartnerNext) {
+			pl->flipPartnerNext = false;
+			pl->flipPartner();
+		}
+	}
 	int collisions = stepPlayer(p, pressed, dt);
 	if (wasDual && p.dual && !p.dead) {
 		// (not once player 1 died: GD stops the step there)
-		stepPlayer(q, pressed, dt);
+		stepPlayer(q, twoPlayer ? q.button : pressed, dt);
 		if (q.dead)
 			p.dead = true;
 		// Player 2 left dual mode through a solo portal: player 1 took its place (DualPortal::collide)

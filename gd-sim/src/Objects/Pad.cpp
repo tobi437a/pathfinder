@@ -113,6 +113,7 @@ void Pad::collide(Player& p) const {
 
 	if (type == PadType::Blue) {
 		p.flipGravity(flipsToUpsideDown);
+		p.flipPartner();
 
 		if (p.vehicle.type == VehicleType::Wave)
 			p.velocity = -p.velocity;
