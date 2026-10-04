@@ -411,7 +411,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   (`resetPlayerIcon`), for the ball doesn't (`toggleRollMode` stops it).
 - Dual: `toggleDualMode` resets player 2 (`resetObject`: rotation 0, no spin, slope state, boosted and
   accelerating cleared) and copies player 1 onto it (`copyAttributes`: position, mode, gravity, size,
-  speed, y velocity, `m_jumpBuffered`; nothing else), flips player 2's gravity and gives it the
+  speed, y velocity, `m_jumpBuffered`; nothing else; objects remember which player activated them, so each player
+  can use a pad/orb/portal once, `hasBeenActivatedByPlayer`), flips player 2's gravity and gives it the
   opposite y velocity; a solo portal taken by player 2 copies player 2 (as its collisions have it then,
   after earlier portals in object order) onto player 1, which keeps its own rotation, slope state etc.
   and adds gravity to the copied velocity on its next step, and releases all of player 2's buttons. GD steps player 2 (update, collisions) right after player 1 (not once player 1

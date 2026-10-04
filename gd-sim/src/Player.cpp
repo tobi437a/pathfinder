@@ -114,6 +114,8 @@ void Player::copyAttributes(Player const& other) {
 	accelerating = own.accelerating;
 	onGround2 = own.onGround2;
 	snapData = own.snapData;
+	// GD remembers which pads, orbs and portals each player activated (hasBeenActivatedByPlayer: a flag per player)
+	usedEffects = std::move(own.usedEffects);
 	lastFlipFrame = upsideDown != own.upsideDown ? frame : own.lastFlipFrame;
 }
 
