@@ -226,6 +226,9 @@ struct Player : public Entity {
 
 	/// The player was below the mode floor after moving and was put back onto it before collisions
 	bool floorSnapped = false;
+	/// The mode's floor and ceiling when this frame's collisions began: GD bounds the player before them, so a
+	/// portal that moves the ground takes effect a step later (postCollision)
+	float startFloor = 0, startCeiling = 0;
 	/// A ship or ufo above the mode ceiling after moving was put back under it before collisions
 	bool ceilingSnapped = false;
 
