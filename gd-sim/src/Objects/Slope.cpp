@@ -160,7 +160,7 @@ void Slope::collide(Player& p) const {
 	GDRect S = GDRect::of(*this), P = GDRect::of(p);
 	if (preCollide(p, S, P)) {
 		if (slopeDebug)
-			printf("SlopeDbg %d id %d at %.1f %.1f pre-skip\n", p.frame, id, pos.x, pos.y);
+			printf("SlopeDbg %d id %d at %.1f %.1f pre-skip S %.3f %.3f %.3f %.3f P %.3f %.3f %.3f %.3f int %d\n", p.frame, id, pos.x, pos.y, S.x, S.y, S.w, S.h, P.x, P.y, P.w, P.h, (int)S.intersects(P));
 		return;
 	}
 	if (slopeDebug)
