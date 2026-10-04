@@ -318,10 +318,13 @@ void Player::preCollision(bool pressed) {
 
 	// ...and a ship or ufo above the ceiling back under it, stopping it (the vehicle's clamp then adds the
 	// gravity of the next step), so portals touched this frame start from there
-	ceilingSnapped = (vehicle.type == VehicleType::Ship || vehicle.type == VehicleType::Ufo) && gravTop(*this) > gravCeiling();
+	// A ball too (whatever its velocity: one standing on a block that reaches over the ceiling is put under it, and
+	// the block puts it back on top; the ball's clamp handles one rising into the ceiling)
+	ceilingSnapped = (vehicle.type == VehicleType::Ship || vehicle.type == VehicleType::Ufo || vehicle.type == VehicleType::Ball)
+		&& gravTop(*this) > gravCeiling();
 	if (ceilingSnapped) {
 		pos.y = grav(gravCeiling()) - grav(size.y / 2);
-		if (velocity > 0)
+		if (velocity > 0 && vehicle.type != VehicleType::Ball)
 			velocity = 0;
 	}
 
@@ -684,7 +687,8 @@ void Player::postCollision() {
 			else if (vehicle.type == VehicleType::Ufo)
 				fallAccel = ufoRestFall();
 			// (a player its partner flipped has moved its step of gravity in the new gravity: flipPartner)
-			if (!walkedOff && !partnerFlipped)
+			// (nor one GD put under the mode's ceiling after that step)
+			if (!walkedOff && !partnerFlipped && !ceilingSnapped)
 				moveY(roundVel(prevPlayer().grav(fallAccel) * dt, prevPlayer().upsideDown));
 
 			// GD already had this frame's velocity (one step of gravity) when it touched a gravity
