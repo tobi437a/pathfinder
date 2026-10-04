@@ -91,6 +91,63 @@ bool Entity::intersects(Entity const& b) const {
     return intersectOneWay(*this, b) && intersectOneWay(b, *this);
 }
 
+namespace {
+
+/// OBB2D::calculateWithCenter: corners centre -+ X -+ Y with X = (cos, sin) * w / 2, Y = (-sin, cos) * h / 2,
+/// axes (corner 1 - corner 0, corner 3 - corner 0) divided by their squared length, and the projection of
+/// corner 0 on each (a float widened to double)
+struct GdObb {
+    float c[4][2];
+    float axis[2][2];
+    double origin[2];
+
+    explicit GdObb(Entity const& e) {
+        float cx = e.pos.x, cy = e.pos.y + 90.f;
+        float a = e.rotation * 0.017453292f;
+        float sn = sinf(a), cs = cosf(a);
+        float hw = e.size.x * 0.5f, hh = e.size.y * 0.5f;
+        float xx = cs * hw, xy = sn * hw, yx = -sn * hh, yy = cs * hh;
+        float sx[4] = {-1, 1, 1, -1}, sy[4] = {-1, -1, 1, 1};
+        for (int i = 0; i < 4; ++i) {
+            float px = sx[i] < 0 ? cx - xx : cx + xx, py = sx[i] < 0 ? cy - xy : cy + xy;
+            c[i][0] = sy[i] < 0 ? px - yx : px + yx;
+            c[i][1] = sy[i] < 0 ? py - yy : py + yy;
+        }
+        for (int k = 0; k < 2; ++k) {
+            int j = k == 0 ? 1 : 3;
+            float ax = c[j][0] - c[0][0], ay = c[j][1] - c[0][1];
+            float inv = 1.0f / (ax * ax + ay * ay);
+            axis[k][0] = ax * inv;
+            axis[k][1] = ay * inv;
+            float o = c[0][1] * axis[k][1] + c[0][0] * axis[k][0];
+            origin[k] = o;
+        }
+    }
+
+    /// OBB2D::overlaps1Way: the other box's corners projected on each axis reach [origin, origin + 1]
+    bool overlaps1Way(GdObb const& o) const {
+        for (int k = 0; k < 2; ++k) {
+            double lo = 0, hi = 0;
+            for (int i = 0; i < 4; ++i) {
+                float t = axis[k][0] * o.c[i][0] + axis[k][1] * o.c[i][1];
+                double d = t;
+                if (i == 0 || d < lo) lo = d;
+                if (i == 0 || hi < d) hi = d;
+            }
+            if (origin[k] + 1.0 < lo || hi < origin[k])
+                return false;
+        }
+        return true;
+    }
+};
+
+}
+
+bool Entity::orientedOverlaps(Entity const& b) const {
+    GdObb A(*this), B(b);
+    return A.overlaps1Way(B) && B.overlaps1Way(A);
+}
+
 
 /*using Vec2 = Vec2D;
 // Return normalized perpendicular axis from two points

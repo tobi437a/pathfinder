@@ -219,7 +219,7 @@ bool Object::touching(Player const& player) const {
 	Entity oriented = player;
 	if (player.vehicle.type == VehicleType::Cube || player.vehicle.type == VehicleType::Ball)
 		oriented.rotation = -oriented.rotation;
-	return intersects(oriented);
+	return orientedOverlaps(oriented);
 }
 
 void Object::collide(Player&) const {

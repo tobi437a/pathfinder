@@ -177,6 +177,9 @@ struct Entity {
     Vec2D size;
     float rotation;
     bool intersects(Entity const& other) const;
+    /// GD's OBB2D test (calculateWithCenter, overlaps1Way both ways) of the boxes rotated by `rotation` (degrees,
+    /// counter-clockwise), with GD's float arithmetic in its coordinates (y + 90)
+    bool orientedOverlaps(Entity const& other) const;
 
     inline float getLeft() const { return pos.x - size.x / 2; }
     inline float getRight() const { return pos.x + size.x / 2; }

@@ -374,7 +374,9 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   grounds in `postCollision`.
 - An object rotated by a non-multiple of 90 (pad, orb, portal, ...) is touched only if its bounding
   rect (of the rotated box) overlaps the player's unrotated rect, edges included, and then its
-  oriented box overlaps the player's (rotated) one (`collisionCheckObjects`, `OBB2D::overlaps1Way`).
+  oriented box overlaps the player's (rotated) one (`collisionCheckObjects`, `OBB2D::overlaps1Way`). That
+  test is float math in GD's coordinates (y + 90; at x ~15000 a float step is 0.001), so the sim ports it
+  exactly (`Entity::orientedOverlaps`).
 - So the cube's and ball's rotation matters (the sim keeps it in GD's clockwise degrees; ship, ufo and
   wave rotations and objects' are counter-clockwise). `GJBaseGameLayer::update` calls
   `PlayerObject::updateRotation(dt)` after the step's collisions (dt 0.25 at 240 tps): the spin
