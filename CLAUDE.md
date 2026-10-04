@@ -357,7 +357,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   minus when upside down, from a jump, a pad, a ring, starting to fall (velocity past -0.25) and
   leaving a downhill slope; a slope launch (`boostPlayer`) spins -+180 / 0.8667 (mini 0.6667).
   Landing (`hitGround`) stops it. Ball: rolls at +-120 / (0.2 * f) on the ground (mini x1/0.8; f per
-  speed 1.2406 1 0.8042 0.6658 0.5409) and spins -+340 / (0.8 * f) after a flip. A fresh orb click's
+  speed 1.2406 1 0.8042 0.6658 0.5409) and spins -+340 / (0.8 * f) after a flip. A slope collision
+  of a new angle restarts the roll at 1 / cos(angle) times that (above 2: 1 + 0.7 * the excess). A fresh orb click's
   new spin starts a step later (GD handles the click at its next step). Ship/ufo/wave portals (on
   or off) and leaving the ball set the rotation to 0; leaving the ship/ufo/wave for the cube spins it
   (`resetPlayerIcon`), for the ball doesn't (`toggleRollMode` stops it).

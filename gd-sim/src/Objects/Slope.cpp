@@ -289,6 +289,7 @@ void Slope::collide(Player& p) const {
 	st.downhill = down;
 	st.topClamped = topClamp;
 	st.bottomClamped = bottomClamp;
+	double oldRotation = st.rotation;
 	st.rotation = (double)((float)(sign * (down ? 1 : -1)) * angle * 57.29578f * 0.017453292f);
 
 	p.pos.y = target - 90.f;
@@ -340,4 +341,12 @@ void Slope::collide(Player& p) const {
 	// updateSlopeRotation: a cube turns towards the slope (and again in Player::updateRotation)
 	if (p.vehicle.type == VehicleType::Cube)
 		p.easeRotation(p.closestRotation((float)(st.rotation * 57.295780181884766)));
+	// A ball on a slope of a new angle rolls 1 / cos(angle) times as fast (above 2 only 0.7 of the excess)
+	if (ball && (double)(float)oldRotation != st.rotation) {
+		float f = 1.f / cosf((float)st.rotation);
+		if (2.f < f)
+			f = (f - 1.f) * 0.7f + 1.f;
+		p.stopRotation();
+		p.runBallRotation(f);
+	}
 }
