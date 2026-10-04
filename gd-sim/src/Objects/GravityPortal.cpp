@@ -11,6 +11,10 @@ void GravityPortal::collide(Player& p) const {
 		// Gravity portals halve the velocity
 		p.velocity = -p.velocity / 2;
 		p.flipGravity(upsideDown);
+		// (PlayerObject::flipGravity clears m_isOnGround: a slope that grounded the player earlier in this step's
+		// collisions is undone; standing on a block is last step's, which postCollision handles)
+		if (p.slope.on)
+			p.grounded = false;
 		p.gravityPortal = true;
 		p.flipPartner();
 	}
