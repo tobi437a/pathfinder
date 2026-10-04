@@ -116,12 +116,12 @@ const velocity_map<OrbType, VehicleType, bool> orb_velocities = {
 
 void Orb::collide(Player& p) const {
 	// Orbs are often buffered, but p.buffer will still be true if its not a real buffer. A ball entered with
-	// the button held can take an orb with that click, unless an orb already used it.
-	if (p.buffer || (p.prevPlayer().buffer && !p.button) || (p.vehicle.type == VehicleType::Ball && p.vehicleBuffer && !p.clickUsedByOrb)) {
+	// the button held can take an orb with that click, unless an orb or a jump already used it.
+	if (p.buffer || (p.prevPlayer().buffer && !p.button) || (p.vehicle.type == VehicleType::Ball && p.vehicleBuffer && !p.clickUsed)) {
 		p.buffer = false;
 		p.vehicleBuffer = false;
 		p.clickedOrb = true;
-		p.clickUsedByOrb = true;
+		p.clickUsed = true;
 		p.onGround2 = false;
 
 		EffectObject::collide(p);

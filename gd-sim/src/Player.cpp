@@ -234,7 +234,7 @@ void Player::preCollision(bool pressed) {
 		input = button;
 		buffer = button;
 		if (pressed)
-			clickUsedByOrb = false;
+			clickUsed = false;
 	}
 
 	for (auto& i : actions)

@@ -104,6 +104,7 @@ Vehicle cube() {
 			p.setVelocity(jumpHeights[p.speed], p.prevPlayer().input);
 			p.grounded = false;
 			p.boosted = true;
+			p.clickUsed = true;
 			// Jumping off a slope adds a quarter of its launch
 			p.slopeJump(0.25f);
 			p.stopRotation();
@@ -297,6 +298,7 @@ Vehicle ball() {
 			}
 			p.boosted = true;
 			p.ballJumped = true;
+			p.clickUsed = true;
 			p.vehicleBuffer = false;
 			p.buffer = false;
 			p.input = false;
