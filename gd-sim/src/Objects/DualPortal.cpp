@@ -31,6 +31,8 @@ void DualPortal::collide(Player& p) const {
 		q.copyAttributes(p);
 		copyWalkOff(p, q);
 		q.flipGravity(!p.upsideDown);
+		// (which runs updatePlayerScale: player 2's hitbox has the new size even if player 1's is still pending)
+		q.applyResize();
 		q.grounded = false;
 		q.onGround2 = false;
 		// In two-player mode player 2 lets go of player 1's button (m_jumpBuffered, m_stateRingJump cleared)
