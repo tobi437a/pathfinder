@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <Level.hpp>
 #include <random>
+#include <cmath>
 #include <gdr/gdr.hpp>
 #include "pathfinder.hpp"
 
@@ -47,9 +48,22 @@ bool isLevelEnd(Level2& lvl) {
 	return lvl.latestState().pos.x >= lvl.length;
 }
 
-int tryInputs(Level2& lvl, InputSet inputs) {
+/**
+ * A path that ended in a dead end (often a secret path that leads into a wall): the player's y on every frame of it.
+ * After backing off from one, the search treats candidates that never leave it as having got a quarter as far.
+ */
+struct DeadPath {
+	std::vector<float> y; // index: frame - 1
+	bool active() const { return !y.empty(); }
+	bool leaves(int frame, float py) const {
+		return frame - 1 >= (int)y.size() || std::abs(py - y[frame - 1]) > 30;
+	}
+};
+
+int tryInputs(Level2& lvl, InputSet inputs, DeadPath const& dead) {
 	auto frame = lvl.currentFrame();
 	auto press_before = lvl.press;
+	bool left = !dead.active();
 
 	while (!inputs.empty() && !lvl.gameStates.back().dead) {
 		if (inputs.contains(lvl.currentFrame())) {
@@ -58,6 +72,8 @@ int tryInputs(Level2& lvl, InputSet inputs) {
 		}
 
 		lvl.runFrame(lvl.press);
+		if (!left)
+			left = dead.leaves(lvl.currentFrame(), lvl.latestState().pos.y);
 	}
 	int final = lvl.currentFrame();
 	float lastX = lvl.latestState().pos.x;
@@ -69,6 +85,8 @@ int tryInputs(Level2& lvl, InputSet inputs) {
 	if (lastX < lvl.length && (lastY > 1300 || lastY < 0))
 		return 0;
 
+	if (!left)
+		return frame + (final - frame) / 4;
 	return final;
 }
 
@@ -80,7 +98,9 @@ std::vector<uint8_t> pathfind(std::string const& lvlString, std::atomic_bool& st
 
 	int trueBest = 0;
 	int fail = 1;
-	int numAway = 1000;
+	// Exponential back-off from a dead end: how far back from trueBest the last one went (0: none since trueBest)
+	int backoff = 0;
+	DeadPath dead;
 
 	Level2 lvlBest = lvl;
 
@@ -98,7 +118,7 @@ std::vector<uint8_t> pathfind(std::string const& lvlString, std::atomic_bool& st
 				inputs.insert(frame + dist(rng));
 			}
 
-			int nf = tryInputs(lvl, inputs);
+			int nf = tryInputs(lvl, inputs, dead);
 
 			if (nf > bestFrame) {
 				bestFrame = nf;
@@ -109,21 +129,25 @@ std::vector<uint8_t> pathfind(std::string const& lvlString, std::atomic_bool& st
 		}
 
 		if (bestFrame == frame) {
-			lvl.rollback(std::max(std::max(frame - fail, trueBest - numAway), 1));
-
-			fail += 5;
-
-			if (fail > numAway + 1000) {
-				numAway += 1000;
-				fail = 1;
-
-				if (numAway > 10000) {
-					numAway = 1000;
-					trueBest = 0;
-					lvl.rollback(1);
+			fail += fail > 100 ? 55 : 5;
+			if (fail <= 1000) {
+				// Back up a little (not before where the last back-off went, nor more than 1000 behind the best)
+				int floor = backoff ? std::max(trueBest - backoff, 1) : trueBest - 1000;
+				lvl.rollback(std::min(frame, std::max({frame - fail, floor, 1})));
+			} else {
+				// Backing up 1000 frames found no way on: a dead end. Go back twice as far as last time from the
+				// furthest point, and steer away from the path that led there.
+				dead.y.clear();
+				for (auto& st : lvlBest.gameStates)
+					dead.y.push_back(st.pos.y);
+				backoff = backoff ? backoff * 2 : 2000;
+				int to = trueBest - backoff;
+				if (to <= 1) {
+					to = 1;
+					backoff = 0;
 				}
-			} else if (fail > 100) {
-				fail += 50;
+				lvl.rollback(std::min(frame, to));
+				fail = 1;
 			}
 		} else {
 			for (int i = frame; i < bestFrame - (bestFrame - frame) / 1.5; ++i) {
@@ -137,7 +161,10 @@ std::vector<uint8_t> pathfind(std::string const& lvlString, std::atomic_bool& st
 		if (lvl.currentFrame() > trueBest) {
 			trueBest = lvl.currentFrame();
 			fail = 0;
-			numAway = 1000;
+			backoff = 0;
+			// Past the dead end: forget it
+			if (trueBest > (int)dead.y.size())
+				dead.y.clear();
 		}
 		if (lvl.currentFrame() > lvlBest.currentFrame()) {
 			lvlBest = lvl;
@@ -150,6 +177,10 @@ std::vector<uint8_t> pathfind(std::string const& lvlString, std::atomic_bool& st
 		if (stop)
 			break;
 	}
+
+	// A path that reached the end is the one to export, even if a dead end that lvlBest kept took more frames
+	if (isLevelEnd(lvl))
+		lvlBest = lvl;
 
 	// (Compared with the previous state in lvlBest itself: its states' prevPlayer() would read lvl's, which may
 	// have been rolled back onto another path since)
