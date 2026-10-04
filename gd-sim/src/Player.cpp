@@ -42,11 +42,55 @@ std::string Player::modeString() const {
 }
 
 Player const& Player::prevPlayer() const {
-	return level->getState(frame - 1);
+	return level->getState(frame - 1, isP2);
 }
 
 Player const* Player::nextPlayer() const {
-	return level->currentFrame() <= frame ? nullptr : &level->getState(frame + 1);
+	return level->currentFrame() <= frame ? nullptr : &level->getState(frame + 1, isP2);
+}
+
+/// GJBaseGameLayer::getGroundHeightForMode: 300 for the ship, ufo, wave (and swing), 240 for the ball, 270
+/// otherwise (which outside dual mode means no ground)
+static float groundHeight(VehicleType t) {
+	switch (t) {
+		case VehicleType::Ship: case VehicleType::Ufo: case VehicleType::Wave: return 300;
+		case VehicleType::Ball: return 240;
+		default: return 270;
+	}
+}
+
+bool Player::changedWithin(double seconds) const {
+	int steps = (int)std::ceil(seconds / dt - 1e-9);
+	Player const* a = this;
+	for (int i = 1; i < steps; ++i) {
+		auto const& b = level->getState(frame - i, isP2);
+		if (a->upsideDown != b.upsideDown || a->vehicle.type != b.vehicle.type)
+			return true;
+		a = &b;
+	}
+	return false;
+}
+
+void Player::updateGround(float portalY) {
+	float h = groundHeight(vehicle.type);
+	if (dual && partner) {
+		// The larger of the two modes' heights (a ball's own counts as 270), centred on the dual portal
+		h = std::max(h == 240 ? 270.f : h, groundHeight(partner->vehicle.type));
+		portalY = dualPortalY;
+	} else if (h == 270) {
+		floor = 0;
+		ceiling = vehicle.bounds;
+		return;
+	}
+	// animateInDualGroundNew: the bottom is the portal's y minus half the height, rounded down to 30 in GD's
+	// coordinates (90 higher), and at least GD's ground at 90
+	float bottom = std::floor((portalY + 90.f - h * 0.5f) / 30.f) * 30.f;
+	floor = std::max(0., (double)bottom - 90.);
+	ceiling = floor + h;
+	if (dual && partner) {
+		partner->floor = floor;
+		partner->ceiling = ceiling;
+	}
 }
 
 /**
@@ -149,7 +193,7 @@ void Player::preCollision(bool pressed) {
 	// An upside down cube below the ground dies, unless it flipped gravity within 0.1 s (m_lastFlipTime):
 	// then GD puts it back on and stops it, and hitGround sets the on-ground flag if it was slow enough
 	// (5, see the ball)
-	if (vehicle.type == VehicleType::Cube && upsideDown && getBottom() < floor) {
+	if (vehicle.type == VehicleType::Cube && upsideDown && getBottom() < floor && !dual) {
 		if (lastFlipFrame <= 0 || (frame - lastFlipFrame) * dt >= 0.1 - 1e-9) {
 			dead = true;
 			return;
@@ -159,6 +203,17 @@ void Player::preCollision(bool pressed) {
 			grounded = true;
 		if (velocity > 0)
 			velocity = 0;
+	}
+
+	// In dual mode GJBaseGameLayer::checkCollisions bounds every mode like a flying one: a cube past the
+	// ceiling (relative to its gravity) dies, unless gravity or the mode changed within 0.2 s, which puts it
+	// back under it
+	if (dual && vehicle.type == VehicleType::Cube && gravTop(*this) > gravCeiling()) {
+		if (!changedWithin(0.2)) {
+			dead = true;
+			return;
+		}
+		pos.y = grav(gravCeiling()) - grav(size.y / 2);
 	}
 
 	// ...and a ship or ufo above the ceiling back under it, stopping it (the vehicle's clamp then adds the

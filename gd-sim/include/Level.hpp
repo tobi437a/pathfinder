@@ -18,6 +18,8 @@ class Level {
  	 * is able to seamlessly rewind when searching for solutions.
  	 */
 	std::vector<Player> gameStates;
+	/// Player 2's states, one per gameStates entry (a copy of player 1 while not in dual mode)
+	std::vector<Player> gameStates2;
 
 	/// Frames before gameStates[0] (which is frame baseFrame + 1). Non-zero after `resume`.
 	int baseFrame = 0;
@@ -42,6 +44,8 @@ class Level {
 
  	/// The main update function. Every frame is associated with a press/release state.
  	Player& runFrame(bool pressed, float dt = 1/240.);
+ 	/// One player's part of a frame (move, collisions); returns how many objects it touched
+ 	int stepPlayer(Player& p, bool pressed, float dt);
 
  	/// Go back to a certain frame. Used in Pathfinder. Never drops gameStates[0].
  	void rollback(int frame);
@@ -54,6 +58,6 @@ class Level {
  	void resume(Player state);
 
  	int currentFrame() const;
- 	Player const& getState(int frame) const;
+ 	Player const& getState(int frame, bool p2 = false) const;
  	Player& latestState();
 };

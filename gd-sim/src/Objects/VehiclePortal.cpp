@@ -75,9 +75,14 @@ void VehiclePortal::collide(Player& player) const {
 	if (player.prevPlayer().grounded && player.velocity == 0 && player.gravBottom(player) <= player.gravFloor())
 		player.grounded = true;
 
-	// GJBaseGameLayer::animateInDualGroundNew: the bottom is the portal's y minus half the height, rounded
-	// down to 30 in GD's coordinates (90 higher), and at least GD's ground at 90
-	float bottom = std::floor(((float)pos.y + 90.f - (float)player.vehicle.bounds * 0.5f) / 30.f) * 30.f;
-	player.floor = std::max(0., (double)bottom - 90.);
-	player.ceiling = player.floor + player.vehicle.bounds;
+	// GJBaseGameLayer::playerWillSwitchMode: the mode's floor and ceiling (updateDualGround), and in dual mode a
+	// player entering the mode the other player is in takes the other gravity
+	player.modePortalY = (float)pos.y;
+	if (player.partner)
+		player.partner->modePortalY = (float)pos.y;
+	player.updateGround((float)pos.y);
+	if (player.dual && player.partner && player.partner->vehicle.type == type && player.upsideDown == player.partner->upsideDown) {
+		player.velocity = -player.velocity / 2;
+		player.flipGravity(!player.partner->upsideDown);
+	}
 }

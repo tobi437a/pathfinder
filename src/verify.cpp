@@ -457,6 +457,17 @@ class $modify(VerifyBGL, GJBaseGameLayer) {
 			run->step, rx, ry, vel, m_player1->getRotation(), realMode(m_player1));
 		run->simTrace += fmt::format("Frame {} X {:.8f} Y {:.8f} Vel {:.8f} Rot {:.8f} Mode {}\n",
 			run->step + 1, sx, sy, sim.velocity, sim.rotation, sim.modeString());
+		// Player 2 in dual mode: `P2 <frame> X .. Y .. Vel .. Rot .. Mode ..` (sim: Level::gameStates2)
+		if (m_gameState.m_isDualMode) {
+			double vel2 = m_player2->m_yVelocity * 60 * 0.9 * (m_player2->m_isUpsideDown ? -1 : 1);
+			run->realTrace += fmt::format("P2 {} X {:.8f} Y {:.8f} Vel {:.8f} Rot {:.8f} Mode {}\n", run->step,
+				m_player2->getPositionX(), m_player2->getPositionY() - 105, vel2, m_player2->getRotation(), realMode(m_player2));
+		}
+		if (sim.dual) {
+			auto& sim2 = run->sim->gameStates2.back();
+			run->simTrace += fmt::format("P2 {} X {:.8f} Y {:.8f} Vel {:.8f} Rot {:.8f} Mode {}\n", run->step + 1,
+				sim2.pos.x, sim2.pos.y - 15, sim2.velocity, sim2.rotation, sim2.modeString());
+		}
 		// `Acc <frame> <real m_isAccelerating> <sim accelerating>` whenever GD's flag changes
 		if (m_player1->m_isAccelerating != run->realAccelerating) {
 			run->realAccelerating = m_player1->m_isAccelerating;

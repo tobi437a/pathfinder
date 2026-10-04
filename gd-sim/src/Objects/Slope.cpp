@@ -99,14 +99,7 @@ bool isHeld(Player const& p) {
 
 /// Within 0.1 s of a gravity flip or a mode change (GD's m_lastFlipTime, m_gameModeChangedTime)
 bool recentlyChanged(Player const& p) {
-	Player const* a = &p;
-	for (int i = 1; i < 24; ++i) {
-		auto const& b = p.level->getState(p.frame - i);
-		if (a->upsideDown != b.upsideDown || a->vehicle.type != b.vehicle.type)
-			return true;
-		a = &b;
-	}
-	return false;
+	return p.changedWithin(0.1);
 }
 
 void addPotential(Player& p, Slope const* s) {

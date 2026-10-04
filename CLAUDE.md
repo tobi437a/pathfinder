@@ -20,7 +20,10 @@ support for newer GD features (robot, spider, swing, dash orbs, teleport portals
 - `src/verify.cpp` - verifier: plays a macro in real GD at full speed against the sim (see "Verifier").
 - `src/checker.cpp` - commented out. `src/subprocess.hpp` - vendored lib, don't edit.
 - `gd-sim/include/Level.hpp` - entry point: `Level(levelString)`, `runFrame(pressed)`,
-  `rollback(frame)`; every `Player` state is kept in `gameStates`. `Player.hpp` = full state.
+  `rollback(frame)`; every `Player` state is kept in `gameStates`, player 2's (dual mode) in
+  `gameStates2` (same length; a copy of player 1 outside dual). `Player.hpp` = full state.
+  `runFrame` = `stepPlayer(p1)`, then `stepPlayer(p2)` if dual was on before p1's step; `isP2`
+  picks the lane for `prevPlayer()`, `partner` points at the other player during a frame.
 - `gd-sim/src/Objects/Object.cpp` - object id -> type + hitbox table (`Object::create`).
 - `gd-sim/src/Vehicle.cpp` - per-gamemode physics. `Objects/Slope.cpp`, `Block.cpp` - collisions.
 - `tools/offsets.py` - GD member offsets via the compiler; `tools/maincheck.sh 16 17` - replay
@@ -36,6 +39,27 @@ New vehicles need `VehicleType` + `Vehicle.cpp`, portal ids in `Object.cpp`, `Pl
 letters (r p i), and the verifier's `realMode`. GD's fly-mode floor/ceiling are
 `GJBaseGameLayer::getMinPortalY/getMaxPortalY` (they depend on camera zoom). The bottom is set by
 `animateInDualGroundNew`: `floor((portalY - height/2) / 30) * 30`, at least 90, in GD y (sim y + 90).
+
+## Current work: 1.8 support (start here)
+
+The batch (`build\re\batch`) is 453 rated 1.8 levels (all of them with gameVersion 18). Their
+macros are from the pre-dual pathfinder; every run has a fresh `real.txt`, the 173 that reach a
+dual portal with GD's player 2 too (`P2` lines). Baseline: `regress.py` 150/453 match GD to the
+end (`regress-cur.json`); `regress.py --p2` (`regress-p2.json`): of the 173 dual runs 36 match for
+player 1, 4 for both, and in 81 player 2 diverges first.
+- Dual (`Objects/DualPortal.cpp`, `Player::updateGround`) is a first port of `toggleDualMode`,
+  `updateDualGround` and `playerWillSwitchMode`; check it against the `P2` lines. Open leads:
+  the sim's player 2 starts a step later than GD's after a dual portal (1670283 frame 238,
+  1668150 frame 2769: portal hitbox 34x86 is a guess, or the start step); in a level that starts in
+  dual (`kA8`, 5 levels, e.g. 1643034) GD's player 2 starts on the floor upside down without
+  jumping, the sim's jumps on frame 1. Then `regress.py --p2 --base p2` on each fix.
+- After dual: rebuild Release `pathfinder-cli`, `batch.py --redo pathfind`, `batch.py --redo
+  verify` (GD minimised, ~25 min; a long background job can get killed under memory pressure -
+  then `verify --import-only` and verify the rest with `--ids`), `batch.py report`.
+- Known unexplained: a pad then a slope in the same step (2284379 frame 778) - GD keeps the pad's
+  spin, so its slope collision skips `hitGround` there; the sim doesn't.
+- `regress.py --rot` scores cube/ball rotation (for rotated objects); look for remaining rotation
+  bugs with it too.
 
 ## Build & install
 
@@ -121,7 +145,8 @@ frame + positions, max diff) and `verify\<level>\real.txt`, `sim.txt`, `level.lv
   `Cam <frame> <x> <y> vis <x> <y> flip <value> <dir>` and, while the last snap block's sprite is
   off its hitbox, `SnapObj <frame> <id> real <x> <y> sprite <x> <y> enter <r> <l> <channel> ...`;
   `Flip <frame> <on> ...` per mirror portal; once `Screen <w> <h> ... enter/exit <channel maps>`;
-  `Acc <frame> <real> <sim>` whenever GD's `m_isAccelerating` changes.
+  `Acc <frame> <real> <sim>` whenever GD's `m_isAccelerating` changes; in dual mode
+  `P2 <frame> X Y Vel Rot Mode` for player 2 (sim.txt / gd-sim-test too).
 
 ## Batch testing online levels
 
@@ -158,6 +183,7 @@ Offline loop over the batch (no game; uses the Debug `gd-sim-test`, ~1.5 min for
 python tools\regress.py --save base          # first real/sim divergence per run -> regress-base.json
 python tools\regress.py --base base          # after a sim change: which runs diverge later / earlier
 python tools\regress.py --rot --save r0       # also a cube's/ball's rotation (mod 90) must match GD's
+python tools\regress.py --p2 --save p0        # also player 2 in dual mode (P2 lines)
 python tools\triage.py                       # sim mode + objects at each divergence -> triage.txt
 python tools\diverge.py <id> [--frame F]     # one run: real vs sim per frame, button, nearby objects
 ```
@@ -332,6 +358,15 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   new spin starts a step later (GD handles the click at its next step). Ship/ufo/wave portals (on
   or off) and leaving the ball set the rotation to 0; leaving the ship/ufo/wave for the cube spins it
   (`resetPlayerIcon`), for the ball doesn't (`toggleRollMode` stops it).
+- Dual (from the code, not yet checked against GD traces): `toggleDualMode` copies player 1 to player 2
+  (`copyAttributes`), flips player 2's gravity and gives it the opposite y velocity; a solo portal
+  taken by player 2 copies player 2 onto player 1. GD steps player 2 (update, collisions) right after
+  player 1, from the step after dual starts; both get the button. Ground heights
+  (`getGroundHeightForMode`): ship/ufo/wave/swing 300, ball 240, else 270 (= no ground outside dual);
+  in dual max(own (ball as 270), other's), centred on the dual portal. In dual a player taking a
+  vehicle portal of the mode the other player is in gets the other's opposite gravity
+  (`playerWillSwitchMode`), and `checkCollisions` bounds every mode like a flying one: a cube past
+  its ceiling dies unless gravity/mode changed within 0.2 s.
 - A solid block's hitbox is its sprite's size (`GameObject::customSetup` only overrides it for
   some types), so ids sharing a sprite shape share a hitbox: `invis_`/`color` variants match the
   plain one (204 `invis_plank_01_small` = 196 `plank_01_small`, 15x8). Check with `gdtools frame`.

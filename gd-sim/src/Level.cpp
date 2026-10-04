@@ -40,6 +40,7 @@ void Level::initLevelSettings(std::string const& lvlSettings, Player& player) {
 
 	player.floor = 0;
 	player.ceiling = player.vehicle.bounds;
+	player.dual = atoi(get_or("kA8", "0"));
 }
 
 Level::Level(std::string const& lvlString) {
@@ -93,7 +94,20 @@ Level::Level(std::string const& lvlString) {
 	}
 
 	player.level = this;
+	Player p2 = player;
+	p2.isP2 = true;
+	if (player.dual) {
+		// A level that starts in dual mode: player 2 as at a dual portal (DualPortal::collide), with the dual
+		// ground centred on GD's y 0 (no portal), which puts its floor on the ground
+		p2.flipGravity(!player.upsideDown);
+		player.dualPortalY = p2.dualPortalY = -90;
+		player.partner = &p2;
+		p2.partner = &player;
+		player.updateGround(0);
+		player.partner = p2.partner = nullptr;
+	}
 	gameStates.push_back(player);
+	gameStates2.push_back(p2);
 }
 
 Player& Level::runFrame(bool pressed, float dt) {
@@ -103,6 +117,48 @@ Player& Level::runFrame(bool pressed, float dt) {
 	if (p.dead)
 		return gameStates.back();
 
+	// GJBaseGameLayer::update steps player 1 (update, collisions), then player 2 if dual mode was on before
+	// player 1's step; both get the button. Each sees the other as `partner` (the dual ground, portals).
+	Player q = gameStates2.back();
+	bool wasDual = p.dual;
+	p.partner = &q;
+	q.partner = &p;
+	int collisions = stepPlayer(p, pressed, dt);
+	if (wasDual && p.dual) {
+		stepPlayer(q, pressed, dt);
+		if (q.dead)
+			p.dead = true;
+		// Player 2 left dual mode through a solo portal: player 1 took its place (DualPortal::collide)
+	}
+	if (!p.dual) {
+		// Player 2 idles; keep a copy of player 1 so its lane has states for every frame
+		q = p;
+		q.isP2 = true;
+	}
+	p.partner = q.partner = nullptr;
+
+	if (debug) {
+		std::cout << "Frame " << gameStates.size() << std::fixed << std::setprecision(8)
+				  << " X " << p.pos.x << " Y " << p.pos.y - 15 << " Vel " << p.velocity
+				  << " Accel " << p.acceleration << " Rot " << p.rotation << " Coll " << collisions
+				  << " Mode " << p.modeString()
+ 				  << std::endl;
+		if (p.dual)
+			std::cout << "P2 " << gameStates.size() << " X " << q.pos.x << " Y " << q.pos.y - 15 << " Vel " << q.velocity
+					  << " Rot " << q.rotation << " Mode " << q.modeString() << " floor " << p.floor << " ceiling " << p.ceiling
+					  << std::endl;
+
+		if (p.button != gameStates.back().button) {
+			std::cout << "Input X " << p.pos.x << " Y " << p.pos.y - 15 << std::endl;
+		}
+	}
+
+	gameStates.push_back(std::move(p));
+	gameStates2.push_back(std::move(q));
+	return gameStates.back();
+}
+
+int Level::stepPlayer(Player& p, bool pressed, float dt) {
 	p.dt = dt;
 	p.preCollision(pressed);
 
@@ -152,7 +208,7 @@ Player& Level::runFrame(bool pressed, float dt) {
 	if (clickOrbs.size() > 1) {
 		auto firstTouched = [&](Orb const* orb) {
 			int f = orb->Object::touching(p) ? p.frame : p.frame - 1;
-			while (f - 1 > baseFrame && orb->Object::touching(getState(f - 1)))
+			while (f - 1 > baseFrame && orb->Object::touching(getState(f - 1, p.isP2)))
 				--f;
 			return f;
 		};
@@ -197,45 +253,37 @@ Player& Level::runFrame(bool pressed, float dt) {
 	else
 		p.vehicle.clamp(p); // GD keeps the player within the mode's bounds before object collisions kill it
 
-	if (debug) {
-		std::cout << "Frame " << gameStates.size() << std::fixed << std::setprecision(8)
-				  << " X " << p.pos.x << " Y " << p.pos.y - 15 << " Vel " << p.velocity
-				  << " Accel " << p.acceleration << " Rot " << p.rotation << " Coll " << numCollisions
-				  << " Mode " << p.modeString()
- 				  << std::endl;
-
-		if (p.button != gameStates.back().button) {
-			std::cout << "Input X " << p.pos.x << " Y " << p.pos.y - 15 << std::endl;
-		}
-	}
-
-	gameStates.push_back(std::move(p));
-	return gameStates.back();
+	return numCollisions;
 }
 
 
 void Level::rollback(int frame) {
 	gameStates.resize(std::max(frame - baseFrame, 1));
+	gameStates2.resize(gameStates.size());
 }
 
 void Level::resume(Player state) {
 	state.level = this;
 	baseFrame = state.frame - 1;
 	gameStates.clear();
-	gameStates.push_back(std::move(state));
+	gameStates2.clear();
+	gameStates.push_back(state);
+	state.isP2 = true;
+	gameStates2.push_back(std::move(state));
 }
 
 int Level::currentFrame() const {
 	return gameStates.size() + baseFrame;
 }
 
-Player const& Level::getState(int frame) const {
+Player const& Level::getState(int frame, bool p2) const {
+	auto const& states = p2 ? gameStates2 : gameStates;
 	int index = frame - 1 - baseFrame;
 	if (index <= 0)
-		return gameStates[0];
-	if (index >= (int)gameStates.size())
-		return gameStates.back();
-	return gameStates[index];
+		return states[0];
+	if (index >= (int)states.size())
+		return states.back();
+	return states[index];
 }
 
 Player& Level::latestState() {

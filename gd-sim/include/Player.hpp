@@ -172,6 +172,20 @@ struct Player : public Entity {
 	/// vehicle portal and by falling faster than 4 (GD units); a cube with it eases its rotation like on the
 	/// ground (updateRotation), even rising after a gravity flip
 	bool onGround2 = false;
+
+	/// Dual mode (GJGameState::m_isDualMode), kept in both players' states. isP2 marks player 2's states
+	/// (Level::gameStates2); partner is the other player while a frame runs (null otherwise). dualPortalY is
+	/// the y of the dual portal the dual ground is centred on (m_lastActivatedPortal2).
+	bool dual = false, isP2 = false;
+	Player* partner = nullptr;
+	float dualPortalY = 0;
+	/// y of the last vehicle portal (m_lastActivatedPortal1), which the mode ground is centred on after dual mode
+	float modePortalY = 0;
+	/// Set the mode floor and ceiling (GJBaseGameLayer::updateDualGround / animateInDualGroundNew): in dual
+	/// mode both players share the dual ground, centred on dualPortalY; otherwise the mode's, centred on portalY
+	void updateGround(float portalY);
+	/// Gravity or vehicle changed within `seconds` (GD's m_lastFlipTime, m_gameModeChangedTime)
+	bool changedWithin(double seconds) const;
 	/// An orb's new rotation, which starts after this frame's updateRotation: GD clicks the ring a step
 	/// after the sim (see Orb::collide)
 	struct Spin { float speed, rotateSpeed; bool isRotating, ballRotating, ballRotating2; };
