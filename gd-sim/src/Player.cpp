@@ -584,9 +584,9 @@ void Player::postCollision() {
 		coyoteFrames = INT_MAX;
 	}
 
-	// An upside down cube that just left a block can still jump (see cube update), but GD moves it
-	// off the block first
-	bool coyoteJump = vehicle.type == VehicleType::Cube && !grounded && upsideDown && input && coyoteFrames < 10;
+	// An upside down cube (or any cube in dual mode) that just left a block can still jump (see cube update), but
+	// GD moves it off the block first
+	bool coyoteJump = vehicle.type == VehicleType::Cube && !grounded && (upsideDown || dual) && input && coyoteFrames < 10;
 	bool ufoJump = vehicle.type == VehicleType::Ufo && buffer;
 	bool groundedBefore = grounded;
 	bool boostedBefore = boosted;

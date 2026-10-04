@@ -74,7 +74,9 @@ Vehicle cube() {
 			p.buffer = false;
 		}
 
-		if (p.upsideDown && p.input && p.coyoteFrames < 10) {
+		// GD's on-ground flag outlives a walk-off until updateJump finds the cube falling (playerIsFallingBugged):
+		// faster than 2g, 9 steps, upside down or in dual mode (m_unkA99); otherwise at once
+		if ((p.upsideDown || p.dual) && p.input && p.coyoteFrames < 10) {
 			jump = true;
 			p.buffer = false;
 		}

@@ -50,9 +50,10 @@ def main():
     ap.add_argument("--inputs", type=int, default=120)
     ap.add_argument("--p2", action="store_true", help="player 2 (dual mode)")
     ap.add_argument("--flags", action="store_true", help="state flags of GD and the sim per frame")
+    ap.add_argument("--runs", default="runs", help="runs directory under build/re/batch (e.g. runs-pre1.8)")
     a = ap.parse_args()
 
-    run = DATA / "runs" / a.id
+    run = DATA / a.runs / a.id
     f0 = a.frame
     if f0 is None:
         scores = sorted(DATA.glob("regress-*.json"), key=lambda p: p.stat().st_mtime)
