@@ -364,6 +364,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   only at gravity-relative y velocity <= 5 (270 in sim units), so a cube landing on a block while rising
   off a slope can't jump from it; a ball jumps (flips) while the button is
   held and that flag is set, so a ball reaching the mode ceiling faster doesn't flip.
+- GD's timers (`m_totalTime - m_lastFlipTime < 0.1f`, `m_gameModeChangedTime`) count steps of exactly 1/240 s
+  (double, `getModifiedDelta`) against a float: "within 0.1 s" is up to 24 steps after, 0.2 s 48 (`stepsWithin`).
 - A player whose inner hitbox hits a block within 0.1 s (`m_lastFlipTime`) of a gravity flip, with the
   block on its head side, isn't killed (and doesn't break a breakable block): `collidedWithObjectInternal`
   puts it on the block's far side (upside down: on its top) and calls `hitGround`.

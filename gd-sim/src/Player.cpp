@@ -59,10 +59,15 @@ static float groundHeight(VehicleType t) {
 	}
 }
 
+bool stepsWithin(int steps, double seconds) {
+	// GD's step time is exactly 1/240 s as a double (getModifiedDelta), compared with a float constant:
+	// m_totalTime - m_lastFlipTime < 0.1f holds up to 24 steps after the flip (0.2f: 48)
+	return steps * (1 / 240.0) < (double)(float)seconds;
+}
+
 bool Player::changedWithin(double seconds) const {
-	int steps = (int)std::ceil(seconds / dt - 1e-9);
 	Player const* a = this;
-	for (int i = 1; i < steps; ++i) {
+	for (int i = 1; stepsWithin(i - 1, seconds); ++i) {
 		auto const& b = level->getState(frame - i, isP2);
 		if (a->upsideDown != b.upsideDown || a->vehicle.type != b.vehicle.type)
 			return true;
@@ -265,7 +270,7 @@ void Player::preCollision(bool pressed) {
 	// then GD puts it back on and stops it, and hitGround sets the on-ground flag if it was slow enough
 	// (5, see the ball)
 	if (vehicle.type == VehicleType::Cube && upsideDown && getBottom() < floor && !dual) {
-		if (lastFlipFrame <= 0 || (frame - lastFlipFrame) * dt >= 0.1 - 1e-9) {
+		if (lastFlipFrame <= 0 || !stepsWithin(frame - lastFlipFrame, 0.1)) {
 			dead = true;
 			return;
 		}

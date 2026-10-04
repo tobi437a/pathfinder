@@ -207,7 +207,7 @@ void Block::collideBlock(Player& p, bool bare) const {
 		double clip = (p.vehicle.type == VehicleType::Ufo || p.vehicle.type == VehicleType::Ship) ? 6 : 10;
 		double rise = p.grav(p.pos.y - p.prevPlayer().pos.y);
 		bool headSide = p.gravBottom(*this) >= std::min(bottom + clip, bottom + clip - rise);
-		if (headSide && p.lastFlipFrame > 0 && (p.frame - p.lastFlipFrame) * p.dt < 0.1 - 1e-9 && p.vehicle.type != VehicleType::Wave) {
+		if (headSide && p.lastFlipFrame > 0 && stepsWithin(p.frame - p.lastFlipFrame, 0.1) && p.vehicle.type != VehicleType::Wave) {
 			p.pos.y = p.grav(p.gravBottom(*this)) - p.grav(p.size.y / 2);
 			if (p.velocity <= 270)
 				p.grounded = true;

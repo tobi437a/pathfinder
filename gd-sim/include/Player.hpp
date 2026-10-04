@@ -29,6 +29,9 @@ inline float player_speedmults[5] = {
 
 double roundVel(double velocity, bool upsideDown);
 
+/// Whether something `steps` steps ago counts as within `seconds` for GD's timers (m_lastFlipTime etc.)
+bool stepsWithin(int steps, double seconds);
+
 struct Object;
 class Level;
 struct Slope;
@@ -191,7 +194,7 @@ struct Player : public Entity {
 	/// The ufo's fall (ufoAcceleration) from velocity 0, e.g. a walk-off step: GD takes it before a slope launch
 	/// or a pad changes the velocity later in the step
 	double ufoRestFall() const;
-	/// Gravity or vehicle changed within `seconds` (GD's m_lastFlipTime, m_gameModeChangedTime)
+	/// Gravity or vehicle changed within `seconds` (GD's m_lastFlipTime, m_gameModeChangedTime), see stepsWithin
 	bool changedWithin(double seconds) const;
 	/// Become a copy of `other` (PlayerObject::copyAttributes, toggleDualMode), keeping what GD doesn't copy: this
 	/// player's rotation and spin. The held button is copied (m_jumpBuffered, which pushButton sets and
