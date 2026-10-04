@@ -60,7 +60,7 @@ int tryInputs(Level2& lvl, InputSet inputs) {
 		lvl.runFrame(lvl.press);
 	}
 	int final = lvl.currentFrame();
-	float lastX = lvl.latestState().pos.y;
+	float lastX = lvl.latestState().pos.x;
 	float lastY = lvl.latestState().pos.y;
 
 	lvl.rollback(frame);
@@ -151,10 +151,13 @@ std::vector<uint8_t> pathfind(std::string const& lvlString, std::atomic_bool& st
 			break;
 	}
 
+	// (Compared with the previous state in lvlBest itself: its states' prevPlayer() would read lvl's, which may
+	// have been rolled back onto another path since)
 	Replay2 output;
-	for (auto& i : lvlBest.gameStates) {
-	    if (i.frame > 1 && i.button != i.prevPlayer().button)
-	        output.inputs.push_back(gdr::Input(i.frame, 1, false, i.button));
+	for (size_t k = 1; k < lvlBest.gameStates.size(); ++k) {
+		auto& i = lvlBest.gameStates[k];
+		if (i.frame > 1 && i.button != lvlBest.gameStates[k - 1].button)
+			output.inputs.push_back(gdr::Input(i.frame, 1, false, i.button));
 	}
 
 	return output.exportData().unwrapOr({});
