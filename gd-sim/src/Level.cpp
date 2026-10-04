@@ -226,15 +226,15 @@ Player& Level::runFrame(bool pressed, float dt) {
 void Level::repelBalls(Player& p, Player& q) const {
 	// (a ball that jumped this frame is still on the ground in its old gravity in GD, see ballJumped)
 	if (twoPlayer || p.vehicle.type != VehicleType::Ball || q.vehicle.type != VehicleType::Ball
-		|| (p.upsideDown != p.ballJumped) != (q.upsideDown != q.ballJumped) || p.ballJumped || q.ballJumped)
+		|| (p.upsideDown != p.ballJumped) != (q.upsideDown != q.ballJumped))
 		return;
 	// (the radius is half the ball's 30 at its scale)
 	double reach = (p.small ? 0.6 : 1) * 15 + (q.small ? 0.6 : 1) * 15 + 5;
 	if (!(std::abs(p.pos.y - q.pos.y) < reach))
 		return;
 	// The one whose partner is on the ground (m_isOnGround2) flips: player 2 if player 1 is down, else player 1
-	Player* flip = p.onGround2 ? &q : q.onGround2 ? &p : nullptr;
-	if (!flip)
+	Player* flip = p.onGround2 || p.ballJumped ? &q : q.onGround2 || q.ballJumped ? &p : nullptr;
+	if (!flip || flip->ballJumped)
 		return;
 	// PlayerObject::flipGravity (no partner flip) and a y velocity of 2 towards its new floor, which GD's next
 	// step adds gravity to (the sim's velocity has that step already)
