@@ -184,6 +184,10 @@ struct Player : public Entity {
 	/// Set the mode floor and ceiling (GJBaseGameLayer::updateDualGround / animateInDualGroundNew): in dual
 	/// mode both players share the dual ground, centred on dualPortalY; otherwise the mode's, centred on portalY
 	void updateGround(float portalY);
+	/// PlayerObject::playerIsFallingBugged: y velocity below twice m_gravity, or upside down above minus that (so
+	/// a player slowly rising counts as falling); in dual mode minus that either way. Picks the ship's and ufo's
+	/// gravity and ends m_maybeIsBoosted.
+	bool fallingBugged() const;
 	/// Gravity or vehicle changed within `seconds` (GD's m_lastFlipTime, m_gameModeChangedTime)
 	bool changedWithin(double seconds) const;
 	/// Become a copy of `other` (PlayerObject::copyAttributes, toggleDualMode), keeping what GD doesn't copy:

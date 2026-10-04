@@ -71,6 +71,17 @@ bool Player::changedWithin(double seconds) const {
 	return false;
 }
 
+bool Player::fallingBugged() const {
+	// m_gravity per speed (updateTimeMod). Not upside down the test uses it as a float, and in dual mode (m_unkA99,
+	// set on both players by toggleDualMode) negated, so there it is the same as upside down.
+	static double const gravity[5] = {0.940199, 0.9581990242004395, 0.957199, 0.961199, 0.961199};
+	double g = gravity[speed], v = gdVelocity();
+	if (upsideDown)
+		return g + g < v;
+	float gf = (float)(dual ? -g : g);
+	return v < (double)(gf + gf);
+}
+
 void Player::copyAttributes(Player const& other) {
 	float rot = rotation, rotSpeed = rotationSpeed, rotMult = rotateSpeed;
 	bool rotating = isRotating, ball = ballRotating, ball2 = ballRotating2;
@@ -587,12 +598,8 @@ void Player::postCollision() {
 
 	// m_maybeIsBoosted ends when GD's updateJump finds the player falling (playerIsFallingBugged: y
 	// velocity below twice m_gravity, with the wrong sign upside down), except on the step of a jump
-	if (boosted && boostedBefore) {
-		static double const gravity[5] = {0.940199, 0.9581990242004395, 0.957199, 0.961199, 0.961199};
-		double g = gravity[speed], v = gdVelocity();
-		if (!upsideDown ? v < (double)((float)g + (float)g) : g + g < v)
-			boosted = false;
-	}
+	if (boosted && boostedBefore && fallingBugged())
+		boosted = false;
 
 	// Ensure the player hasn't gone beyond the bounds of the vehicle
 	vehicle.clamp(*this);

@@ -362,7 +362,11 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   and releases all of player 2's buttons. GD steps player 2 (update, collisions) right after
   player 1, from the step after dual starts, so its first `updateJump` adds gravity before it moves.
   `handleButton` presses/releases player 2 only while dual is on: a button held into a dual portal
-  isn't held by player 2 until the next press (one in the portal's sim frame counts). Ground heights
+  isn't held by player 2 until the next press (one in the portal's sim frame counts).
+  `toggleDualMode` also sets `m_unkA99` (0xa99) on both players to the dual flag, which negates
+  gravity in `playerIsFallingBugged` for a non-upside-down player: in dual, "falling" (the ship's
+  and ufo's gravity factors, the end of `m_maybeIsBoosted`) is y velocity < -2g for both
+  gravities, outside dual < 2g (upside down > 2g). Ground heights
   (`getGroundHeightForMode`): ship/ufo/wave/swing 300, ball 240, else 270 (= no ground outside dual);
   in dual max(own (ball as 270), other's), centred on the dual portal. In dual a player taking a
   vehicle portal of the mode the other player is in gets the other's opposite gravity

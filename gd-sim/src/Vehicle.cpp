@@ -6,19 +6,6 @@
 #include <cfloat>
 #include <cmath>
 
-/*
-	For ship and ufo, there are two sets of acceleration values depending on the current
-	velocity. If the current velocity is higher than one of these thresholds
-	(indexed by speed) then a lighter acceleration would be used.
-*/
-constexpr double velocity_thresholds[] = {
-	101.541492,
-	103.485494592,
-	103.377492,
-	103.809492,
-	103.809492
-};
-
 /// PlayerObject::updateJump's fall: m_yVelocity -= float(dt * gravity * mult) / size each step (size 0.85 for a
 /// mini ship or ufo), with GD's dt 0.25f * 0.9f at 240 tps. As an acceleration in sim units (54x, per second).
 double gdFall(Player const& p, float gravity, float mult, float size) {
@@ -123,25 +110,25 @@ double shipAcceleration(Player const& p) {
 	// slows down), and one falling without being held gets the -1 (it slows its fall).
 	bool rising = p.velocity >= 0;
 	if (p.input && !(p.accelerating && rising)) {
-		if (p.velocity <= p.grav(velocity_thresholds[p.speed]))
+		if (p.fallingBugged())
 			return p.small ? 1643.5872 : 1397.0491;
 		return p.small ? 1314.86976 : 1117.64328;
 	}
 	if (p.input) {
-		if (p.velocity <= p.grav(velocity_thresholds[p.speed]))
+		if (p.fallingBugged())
 			return p.small ? -1314.86976 : -1117.64328;
 		return p.small ? -1051.8984 : -894.11464;
 	}
 	if (p.accelerating && !rising)
 		return p.small ? 1314.86976 : 1117.64328;
-	if (p.velocity >= p.grav(velocity_thresholds[p.speed]))
+	if (!p.fallingBugged())
 		return p.small ? -1577.85408 : -1341.1719;
 	return p.small ? -1051.8984 : -894.11464;
 }
 
 double ufoAcceleration(Player const& p) {
 	float size = p.small ? 0.85f : 1;
-	if (p.velocity > p.grav(velocity_thresholds[p.speed]))
+	if (!p.fallingBugged())
 		return gdFall(p, 0.958199f, 0.6f, size);
 	return gdFall(p, 0.958199f, 0.4f, size);
 }
