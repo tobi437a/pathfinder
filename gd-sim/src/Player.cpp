@@ -250,13 +250,15 @@ void Player::preCollision(bool pressed) {
 
 	// In dual mode GJBaseGameLayer::checkCollisions bounds every mode like a flying one: a cube past the
 	// ceiling (relative to its gravity) dies, unless gravity or the mode changed within 0.2 s, which puts it
-	// back under it
+	// back under it, stopped and off the ground
 	if (dual && vehicle.type == VehicleType::Cube && gravTop(*this) > gravCeiling()) {
 		if (!changedWithin(0.2)) {
 			dead = true;
 			return;
 		}
 		pos.y = grav(gravCeiling()) - grav(size.y / 2);
+		velocity = 0;
+		onGround2 = false;
 	}
 
 	// ...and a ship or ufo above the ceiling back under it, stopping it (the vehicle's clamp then adds the

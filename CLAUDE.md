@@ -371,7 +371,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   in dual max(own (ball as 270), other's), centred on the dual portal. In dual a player taking a
   vehicle portal of the mode the other player is in gets the other's opposite gravity
   (`playerWillSwitchMode`), and `checkCollisions` bounds every mode like a flying one: a cube past
-  its ceiling dies unless gravity/mode changed within 0.2 s.
+  its ceiling dies unless gravity/mode changed within 0.2 s, which puts it back stopped (y velocity 0,
+  both ground flags cleared).
 - A solid block's hitbox is its sprite's size (`GameObject::customSetup` only overrides it for
   some types), so ids sharing a sprite shape share a hitbox: `invis_`/`color` variants match the
   plain one (204 `invis_plank_01_small` = 196 `plank_01_small`, 15x8). Check with `gdtools frame`.

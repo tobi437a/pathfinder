@@ -278,13 +278,16 @@ def cmd_sym(a):
 # ---------------------------------------------------------------- real vs sim paths
 
 FRAME_RE = re.compile(r"^Frame (\d+) X (\S+) Y (\S+)(?: Vel (\S+))?(?: Accel \S+)?(?: Rot (\S+))?")
+P2_RE = re.compile(r"^P2 (\d+) X (\S+) Y (\S+)(?: Vel (\S+))?(?: Rot (\S+))?")
 
 
-def read_path(path: Path):
-    """{frame: (x, y, vel, rot)} from a real.txt (GD, written by src/debug.cpp) or a sim.txt."""
+def read_path(path: Path, p2=False):
+    """{frame: (x, y, vel, rot)} from a real.txt (GD, written by src/debug.cpp) or a sim.txt; player 2's
+    (P2 lines, dual mode) with p2."""
     out = {}
+    pattern = P2_RE if p2 else FRAME_RE
     for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
-        m = FRAME_RE.match(line)
+        m = pattern.match(line)
         if m:
             f, x, y, v, r = m.groups()
             out[int(f)] = (float(x), float(y), float(v or 0), float(r or 0))
@@ -292,7 +295,7 @@ def read_path(path: Path):
 
 
 def cmd_compare(a):
-    real, sim = read_path(Path(a.real)), read_path(Path(a.sim))
+    real, sim = read_path(Path(a.real), a.p2), read_path(Path(a.sim), a.p2)
     frames = sorted(f for f in real if f + a.shift in sim)
     if not frames:
         raise SystemExit("no overlapping frames - check --shift (real frame f is compared to sim frame f+shift)")
@@ -436,7 +439,8 @@ def main():
     p = sub.add_parser("sym"); p.add_argument("query", nargs="+"); p.set_defaults(f=cmd_sym)
     p = sub.add_parser("compare"); p.add_argument("real"); p.add_argument("sim")
     p.add_argument("--tol", type=float, default=0.01); p.add_argument("--shift", type=int, default=0)
-    p.add_argument("--context", type=int, default=5); p.set_defaults(f=cmd_compare)
+    p.add_argument("--context", type=int, default=5); p.add_argument("--p2", action="store_true", help="player 2")
+    p.set_defaults(f=cmd_compare)
     p = sub.add_parser("objects"); p.add_argument("lvl"); p.add_argument("x0", type=float)
     p.add_argument("x1", type=float); p.add_argument("-y", type=float, nargs=2); p.set_defaults(f=cmd_objects)
     p = sub.add_parser("const"); p.add_argument("addrs", nargs="+"); p.set_defaults(f=cmd_const)
