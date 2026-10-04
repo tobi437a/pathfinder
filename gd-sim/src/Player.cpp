@@ -438,6 +438,8 @@ void Player::leaveSlope() {
 		else
 			fire = (slope.ceiling || !slope.downhill) ? b < v : v < b;
 		if (fire) {
+			if (grounded)
+				walkedOff = true; // (as below)
 			setGdVelocity(b);
 			velocityOverride = false;
 			grounded = false;
