@@ -268,12 +268,19 @@ void Player::preCollision(bool pressed) {
 	if (floorSnapped)
 		pos.y = grav(gravFloor()) + grav(size.y / 2);
 
-	// An upside down cube below the ground dies, unless it flipped gravity within 0.1 s (m_lastFlipTime):
+	// An upside down cube below the ground is out of bounds, unless it flipped gravity within 0.1 s (m_lastFlipTime):
 	// then GD puts it back on and stops it, and hitGround sets the on-ground flag if it was slow enough
 	// (5, see the ball)
+	// GD marks the player out of bounds (m_isOutOfBounds) and only kills it on the second such step in a row.
+	outOfBounds = false;
+	auto outOfBoundsStep = [&] {
+		outOfBounds = true;
+		if (prevPlayer().outOfBounds)
+			dead = true;
+	};
 	if (vehicle.type == VehicleType::Cube && upsideDown && getBottom() < floor && !dual) {
 		if (lastFlipFrame <= 0 || !stepsWithin(frame - lastFlipFrame, 0.1)) {
-			dead = true;
+			outOfBoundsStep();
 			return;
 		}
 		pos.y = floor + size.y / 2;
@@ -284,11 +291,11 @@ void Player::preCollision(bool pressed) {
 	}
 
 	// In dual mode GJBaseGameLayer::checkCollisions bounds every mode like a flying one: a cube past the
-	// ceiling (relative to its gravity) dies, unless gravity or the mode changed within 0.2 s, which puts it
+	// ceiling (relative to its gravity) is out of bounds, unless gravity or the mode changed within 0.2 s, which puts it
 	// back under it, stopped and off the ground
 	if (dual && vehicle.type == VehicleType::Cube && gravTop(*this) > gravCeiling()) {
 		if (!changedWithin(0.2)) {
-			dead = true;
+			outOfBoundsStep();
 			return;
 		}
 		pos.y = grav(gravCeiling()) - grav(size.y / 2);

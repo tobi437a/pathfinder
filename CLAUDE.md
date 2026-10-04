@@ -369,7 +369,9 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
 - A player whose inner hitbox hits a block within 0.1 s (`m_lastFlipTime`) of a gravity flip, with the
   block on its head side, isn't killed (and doesn't break a breakable block): `collidedWithObjectInternal`
   puts it on the block's far side (upside down: on its top) and calls `hitGround`.
-- An upside-down cube below the ground (y 0) dies in `checkCollisions` before object collisions,
+- `checkCollisions` marks a player out of the mode's bounds (`m_isOutOfBounds`) and kills it only on the second
+  such step in a row (`destroyPlayer(p, nullptr)`); in between it isn't moved back.
+- An upside-down cube below the ground (y 0) is out of bounds in `checkCollisions` before object collisions,
   unless it flipped gravity within 0.1 s: then it is put back on it with velocity 0, and grounded for
   a step (no gravity) if it was that slow.
 - Ship/UFO/ball hitting the ceiling (without flipping): velocity becomes 0, and the next step adds gravity *chosen for
@@ -429,7 +431,7 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   in dual max(own (ball as 270), other's), centred on the dual portal. In dual a player taking a
   vehicle portal of the mode the other player is in gets the other's opposite gravity
   (`playerWillSwitchMode`), and `checkCollisions` bounds every mode like a flying one: a cube past
-  its ceiling dies unless gravity/mode changed within 0.2 s, which puts it back stopped (y velocity 0,
+  its ceiling is out of bounds unless gravity/mode changed within 0.2 s, which puts it back stopped (y velocity 0,
   both ground flags cleared). A speed portal (either player's) sets a pending speed that
   `GJBaseGameLayer::update` gives player 1 and, in dual, player 2 (`updateTimeMod`) at the start of the
   next step. Gravity portals, blue pads and blue/green orbs flip through
