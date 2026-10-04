@@ -262,6 +262,12 @@ void Block::collideBlock(Player& p, bool bare) const {
 					p.velocity = 0;
 					p.headHit = true;
 					p.applyResize();
+					// (hitGround, which starts a ball's roll, without the on-ground flags)
+					if (p.vehicle.type == VehicleType::Ball) {
+						bool onGround2 = p.onGround2;
+						p.hitGroundRotation();
+						p.onGround2 = onGround2;
+					}
 				}
 			}
 		}
