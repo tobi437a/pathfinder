@@ -360,8 +360,9 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
 - `PlayerObject::updateJump` rounds y velocity to 3 decimals (in 1/54 units) right after adding
   gravity, so a ball jump is rounded when gravity is applied on that step and not when the jump
   velocity is set without it (buffered jump, e.g. mini ball landing with the button held).
-- `PlayerObject::hitGround` sets the on-ground flag (0x9c1; `flipGravity` clears it) only at
-  gravity-relative y velocity <= 5 (270 in sim units); a ball jumps (flips) while the button is
+- `PlayerObject::hitGround` zeroes y velocity and sets the on-ground flag (0x9c1; `flipGravity` clears it)
+  only at gravity-relative y velocity <= 5 (270 in sim units), so a cube landing on a block while rising
+  off a slope can't jump from it; a ball jumps (flips) while the button is
   held and that flag is set, so a ball reaching the mode ceiling faster doesn't flip.
 - A player whose inner hitbox hits a block within 0.1 s (`m_lastFlipTime`) of a gravity flip, with the
   block on its head side, isn't killed (and doesn't break a breakable block): `collidedWithObjectInternal`

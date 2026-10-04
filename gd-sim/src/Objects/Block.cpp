@@ -219,8 +219,12 @@ void Block::collideBlock(Player& p, bool bare) const {
 		p.pos.y = p.grav(p.gravTop(*this)) + p.grav(p.size.y / 2);
 		p.applyResize();
 
-		// After an orb click, the next frame will cause the player to slightly dip into the block
-		if (!padHitBefore)
+		// After an orb click, the next frame will cause the player to slightly dip into the block. hitGround stops
+		// the player, but only grounds it (m_isOnGround) at y velocity <= 5 relative to gravity: a player rising
+		// faster off a slope isn't (it can't jump from there)
+		if (!padHitBefore && p.velocity > 5 * 54)
+			p.velocity = 0;
+		else if (!padHitBefore)
 			p.grounded = true;
 
 		if (!bare)
