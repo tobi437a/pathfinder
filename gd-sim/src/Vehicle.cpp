@@ -231,7 +231,11 @@ Vehicle ball() {
 				p.buffer = false;
 				p.ballJumped = true;
 			} else {
-				// Otherwise it leaves the ceiling on the next step, which adds gravity before the move
+				// Otherwise it leaves the ceiling on the next step, which adds gravity before the move. hitGround
+				// still starts its roll (without the on-ground flags)
+				bool onGround2 = p.onGround2;
+				p.hitGroundRotation();
+				p.onGround2 = onGround2;
 				p.velocity = roundVel(gdFall(p, 0.958199f, 0.6f) * p.dt, p.upsideDown);
 			}
 		}
