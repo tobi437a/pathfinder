@@ -85,7 +85,7 @@ bool Player::fallingBugged() const {
 void Player::copyAttributes(Player const& other) {
 	float rot = rotation, rotSpeed = rotationSpeed, rotMult = rotateSpeed;
 	bool rotating = isRotating, ball = ballRotating, ball2 = ballRotating2;
-	bool held = button, heldInput = input, p2 = isP2;
+	bool p2 = isP2;
 	Player* other2 = partner;
 	*this = other;
 	rotation = rot;
@@ -95,8 +95,6 @@ void Player::copyAttributes(Player const& other) {
 	ballRotating = ball;
 	ballRotating2 = ball2;
 	pendingSpin.reset();
-	button = held;
-	input = heldInput;
 	isP2 = p2;
 	partner = other2;
 }

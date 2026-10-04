@@ -357,12 +357,12 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   or off) and leaving the ball set the rotation to 0; leaving the ship/ufo/wave for the cube spins it
   (`resetPlayerIcon`), for the ball doesn't (`toggleRollMode` stops it).
 - Dual: `toggleDualMode` copies player 1 to player 2 (`copyAttributes`: position, mode, size, speed,
-  y velocity, `m_jumpBuffered`; not the rotation or spin, nor held buttons), flips player 2's gravity
-  and gives it the opposite y velocity; a solo portal taken by player 2 copies player 2 onto player 1
-  and releases all of player 2's buttons. GD steps player 2 (update, collisions) right after
-  player 1, from the step after dual starts, so its first `updateJump` adds gravity before it moves.
-  `handleButton` presses/releases player 2 only while dual is on: a button held into a dual portal
-  isn't held by player 2 until the next press (one in the portal's sim frame counts).
+  y velocity, `m_jumpBuffered`; not the rotation or spin), flips player 2's gravity and gives it the
+  opposite y velocity; a solo portal taken by player 2 copies player 2 onto player 1 and releases all
+  of player 2's buttons. GD steps player 2 (update, collisions) right after player 1, from the step
+  after dual starts, so its first `updateJump` adds gravity before it moves. `handleButton` presses and
+  releases player 2 only while dual is on, but `m_jumpBuffered` is the held flag (`pushButton` sets
+  it, `releaseButton` or an orb clears it), so a button held into a dual portal is held by both.
   `toggleDualMode` also sets `m_unkA99` (0xa99) on both players to the dual flag, which negates
   gravity in `playerIsFallingBugged` for a non-upside-down player: in dual, "falling" (the ship's
   and ufo's gravity factors, the end of `m_maybeIsBoosted`) is y velocity < -2g for both

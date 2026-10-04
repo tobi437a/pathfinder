@@ -11,12 +11,11 @@ void DualPortal::collide(Player& p) const {
 	if (on) {
 		// toggleDualMode: player 2 copies player 1 (copyAttributes) with the other gravity and the opposite y
 		// velocity (the same relative to its gravity), off the ground. It starts moving the next frame
-		// (Player::startDual), not holding the button.
+		// (Player::startDual).
 		p.dual = true;
 		p.dualPortalY = (float)pos.y;
 		Player& q = *p.partner;
 		q.copyAttributes(p);
-		q.button = q.input = false;
 		q.flipGravity(!p.upsideDown);
 		q.velocity = p.velocity;
 		q.grounded = false;
