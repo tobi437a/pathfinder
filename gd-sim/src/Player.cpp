@@ -71,6 +71,40 @@ bool Player::changedWithin(double seconds) const {
 	return false;
 }
 
+void Player::copyAttributes(Player const& other) {
+	float rot = rotation, rotSpeed = rotationSpeed, rotMult = rotateSpeed;
+	bool rotating = isRotating, ball = ballRotating, ball2 = ballRotating2;
+	bool held = button, heldInput = input, p2 = isP2;
+	Player* other2 = partner;
+	*this = other;
+	rotation = rot;
+	rotationSpeed = rotSpeed;
+	rotateSpeed = rotMult;
+	isRotating = rotating;
+	ballRotating = ball;
+	ballRotating2 = ball2;
+	pendingSpin.reset();
+	button = held;
+	input = heldInput;
+	isP2 = p2;
+	partner = other2;
+}
+
+void Player::startDual() {
+	velocityOverride = false;
+	coyoteFrames = INT_MAX;
+	vehicle.update(*this);
+	if (!velocityOverride)
+		velocity += acceleration * dt;
+	velocity = roundVel(velocity, upsideDown);
+	// (updateJump: a cube falling faster than 0.25 starts spinning)
+	if (vehicle.type == VehicleType::Cube && !isRotating && gdVelocity() * (upsideDown ? -1 : 1) < -0.25) {
+		stopRotation();
+		runNormalRotation();
+	}
+	vehicle.clamp(*this);
+}
+
 void Player::updateGround(float portalY) {
 	float h = groundHeight(vehicle.type);
 	if (dual && partner) {

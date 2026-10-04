@@ -186,6 +186,13 @@ struct Player : public Entity {
 	void updateGround(float portalY);
 	/// Gravity or vehicle changed within `seconds` (GD's m_lastFlipTime, m_gameModeChangedTime)
 	bool changedWithin(double seconds) const;
+	/// Become a copy of `other` (PlayerObject::copyAttributes, toggleDualMode), keeping what GD doesn't copy:
+	/// this player's rotation and spin, and its held button (GJBaseGameLayer::handleButton only presses player 2
+	/// while dual mode is on). m_jumpBuffered is copied.
+	void copyAttributes(Player const& other);
+	/// Player 2's start in the frame of the dual portal: GD steps it from the next step on, whose updateJump adds
+	/// gravity before it moves; the sim does that at the end of this frame (like postCollision)
+	void startDual();
 	/// An orb's new rotation, which starts after this frame's updateRotation: GD clicks the ring a step
 	/// after the sim (see Orb::collide)
 	struct Spin { float speed, rotateSpeed; bool isRotating, ballRotating, ballRotating2; };

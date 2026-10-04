@@ -48,10 +48,8 @@ dual portal with GD's player 2 too (`P2` lines). Baseline: `regress.py` 150/453 
 end (`regress-cur.json`); `regress.py --p2` (`regress-p2.json`): of the 173 dual runs 36 match for
 player 1, 4 for both, and in 81 player 2 diverges first.
 - Dual (`Objects/DualPortal.cpp`, `Player::updateGround`) is a first port of `toggleDualMode`,
-  `updateDualGround` and `playerWillSwitchMode`; check it against the `P2` lines. Open leads:
-  the sim's player 2 starts a step later than GD's after a dual portal (1670283 frame 238,
-  1668150 frame 2769: portal hitbox 34x86 is a guess, or the start step); in a level that starts in
-  dual (`kA8`, 5 levels, e.g. 1643034) GD's player 2 starts on the floor upside down without
+  `updateDualGround` and `playerWillSwitchMode`; check it against the `P2` lines. Open leads: in a
+  level that starts in dual (`kA8`, 5 levels, e.g. 1643034) GD's player 2 starts on the floor upside down without
   jumping, the sim's jumps on frame 1. Then `regress.py --p2 --base p2` on each fix.
 - After dual: rebuild Release `pathfinder-cli`, `batch.py --redo pathfind`, `batch.py --redo
   verify` (GD minimised, ~25 min; a long background job can get killed under memory pressure -
@@ -358,10 +356,13 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   new spin starts a step later (GD handles the click at its next step). Ship/ufo/wave portals (on
   or off) and leaving the ball set the rotation to 0; leaving the ship/ufo/wave for the cube spins it
   (`resetPlayerIcon`), for the ball doesn't (`toggleRollMode` stops it).
-- Dual (from the code, not yet checked against GD traces): `toggleDualMode` copies player 1 to player 2
-  (`copyAttributes`), flips player 2's gravity and gives it the opposite y velocity; a solo portal
-  taken by player 2 copies player 2 onto player 1. GD steps player 2 (update, collisions) right after
-  player 1, from the step after dual starts; both get the button. Ground heights
+- Dual: `toggleDualMode` copies player 1 to player 2 (`copyAttributes`: position, mode, size, speed,
+  y velocity, `m_jumpBuffered`; not the rotation or spin, nor held buttons), flips player 2's gravity
+  and gives it the opposite y velocity; a solo portal taken by player 2 copies player 2 onto player 1
+  and releases all of player 2's buttons. GD steps player 2 (update, collisions) right after
+  player 1, from the step after dual starts, so its first `updateJump` adds gravity before it moves.
+  `handleButton` presses/releases player 2 only while dual is on: a button held into a dual portal
+  isn't held by player 2 until the next press (one in the portal's sim frame counts). Ground heights
   (`getGroundHeightForMode`): ship/ufo/wave/swing 300, ball 240, else 270 (= no ground outside dual);
   in dual max(own (ball as 270), other's), centred on the dual portal. In dual a player taking a
   vehicle portal of the mode the other player is in gets the other's opposite gravity

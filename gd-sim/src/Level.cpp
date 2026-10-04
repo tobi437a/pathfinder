@@ -118,22 +118,32 @@ Player& Level::runFrame(bool pressed, float dt) {
 		return gameStates.back();
 
 	// GJBaseGameLayer::update steps player 1 (update, collisions), then player 2 if dual mode was on before
-	// player 1's step; both get the button. Each sees the other as `partner` (the dual ground, portals).
+	// player 1's step. Each sees the other as `partner` (the dual ground, portals). handleButton presses and
+	// releases player 2 only in dual mode, so it holds the button only after a press made while dual was on.
 	Player q = gameStates2.back();
 	bool wasDual = p.dual;
+	bool pressed2 = pressed && (q.button || !p.button);
 	p.partner = &q;
 	q.partner = &p;
 	int collisions = stepPlayer(p, pressed, dt);
 	if (wasDual && p.dual) {
-		stepPlayer(q, pressed, dt);
+		stepPlayer(q, pressed2, dt);
 		if (q.dead)
 			p.dead = true;
 		// Player 2 left dual mode through a solo portal: player 1 took its place (DualPortal::collide)
+	} else if (p.dual) {
+		q.startDual();
+		// GD handles a press a step after the sim (see Player::preCollision), so one made in the frame of the dual
+		// portal comes after it and presses player 2 too
+		if (pressed && !gameStates.back().button) {
+			q.button = q.input = q.buffer = true;
+			q.clickUsedByOrb = false;
+		}
 	}
 	if (!p.dual) {
-		// Player 2 idles; keep a copy of player 1 so its lane has states for every frame
-		q = p;
-		q.isP2 = true;
+		// Player 2 idles (its buttons released); keep a copy of player 1 so its lane has states for every frame
+		q.copyAttributes(p);
+		q.button = q.input = false;
 	}
 	p.partner = q.partner = nullptr;
 

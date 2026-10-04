@@ -10,13 +10,13 @@ void DualPortal::collide(Player& p) const {
 
 	if (on) {
 		// toggleDualMode: player 2 copies player 1 (copyAttributes) with the other gravity and the opposite y
-		// velocity (the same relative to its gravity), off the ground. It starts moving the next frame.
+		// velocity (the same relative to its gravity), off the ground. It starts moving the next frame
+		// (Player::startDual), not holding the button.
 		p.dual = true;
 		p.dualPortalY = (float)pos.y;
 		Player& q = *p.partner;
-		q = p;
-		q.isP2 = true;
-		q.partner = &p;
+		q.copyAttributes(p);
+		q.button = q.input = false;
 		q.flipGravity(!p.upsideDown);
 		q.velocity = p.velocity;
 		q.grounded = false;
@@ -29,12 +29,8 @@ void DualPortal::collide(Player& p) const {
 	// Solo portal: dual mode ends. If player 2 took it, player 1 takes its place (copyAttributes).
 	p.dual = false;
 	Player& p1 = p.isP2 ? *p.partner : p;
-	if (p.isP2) {
-		Player* back = p1.partner;
-		p1 = p;
-		p1.isP2 = false;
-		p1.partner = back;
-	}
+	if (p.isP2)
+		p1.copyAttributes(p);
 	p1.dual = false;
 	p1.updateGround(p1.modePortalY);
 }
