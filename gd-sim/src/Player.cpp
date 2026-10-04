@@ -339,6 +339,7 @@ void Player::flipPartner() {
 	// relative to gravity), and add the step again in the new gravity. A grounded one has none.
 	double gd = o.grounded ? 0 : roundVel(o.velocity - o.acceleration * o.dt, o.upsideDown);
 	o.flipGravity(!upsideDown);
+	o.partnerFlipped = true;
 	o.velocity = roundVel(-gd / 2 + o.acceleration * o.dt, o.upsideDown);
 	o.grounded = false;
 }
@@ -626,7 +627,8 @@ void Player::postCollision() {
 				fallAccel = shipPress ? shipFall : acceleration;
 			else if (vehicle.type == VehicleType::Ufo)
 				fallAccel = ufoRestFall();
-			if (!walkedOff)
+			// (a player its partner flipped has moved its step of gravity in the new gravity: flipPartner)
+			if (!walkedOff && !partnerFlipped)
 				moveY(roundVel(prevPlayer().grav(fallAccel) * dt, prevPlayer().upsideDown));
 
 			// GD already had this frame's velocity (one step of gravity) when it touched a gravity

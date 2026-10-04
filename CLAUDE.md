@@ -422,7 +422,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   `GJBaseGameLayer::flipGravity`: in dual, with both players in the same mode (it compares ship, ufo,
   ball, robot, spider, swing, not the wave), the other player takes the opposite gravity
   (`PlayerObject::flipGravity`: world y velocity x0.5); a fresh orb click does it at the start of
-  GD's next step. Not in two-player mode (`kA10`, settings 0x154), where each player also gets only
+  GD's next step. Player 2 flipped by player 1 in a step is flipped before it moves, so its gravity step
+  and its blocks are all in the new gravity (`partnerFlipped`). Not in two-player mode (`kA10`, settings 0x154), where each player also gets only
   its own inputs (`handleButton`), so a player-1 macro never presses player 2.
 - A solid block's hitbox is its sprite's size (`GameObject::customSetup` only overrides it for
   some types), so ids sharing a sprite shape share a hitbox: `invis_`/`color` variants match the

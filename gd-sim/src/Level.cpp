@@ -179,6 +179,7 @@ Player& Level::runFrame(bool pressed, float dt) {
 		q.copyAttributes(p);
 	}
 	p.partner = q.partner = nullptr;
+	p.partnerFlipped = q.partnerFlipped = false;
 
 	if (debug) {
 		std::cout << "Frame " << gameStates.size() << std::fixed << std::setprecision(8)
@@ -245,6 +246,14 @@ int Level::stepPlayer(Player& p, bool pressed, float dt) {
 
 	size_t numCollisions = 0;
 
+	// `Trace <frame> <player> id <unique id> at <x> <y> -> y <Y> vel <v>` after every object collision (set PF_TRACE=1)
+	static bool const tracing = std::getenv("PF_TRACE") != nullptr;
+	auto trace = [&](Object const& o) {
+		if (tracing)
+			std::cout << "Trace " << p.frame - 1 << " " << (p.isP2 ? 2 : 1) << " id " << o.id << " at " << o.pos.x << " "
+					  << o.pos.y << " -> y " << p.pos.y - 15 << " vel " << p.velocity << std::endl;
+	};
+
 	// A click is handled by PlayerObject::pushButton, after this step's collisions, which tries the rings in
 	// m_touchingRings (touched this step or the last) in the order they were first touched: a ring stays
 	// in it while the player keeps touching it (resetTouchedRings).
@@ -265,6 +274,7 @@ int Level::stepPlayer(Player& p, bool pressed, float dt) {
 					clickOrbs.push_back(orb);
 				else
 					o->collide(p);
+				trace(*o.operator->());
 				if (p.dead)
 					logDeath(p, *o.operator->());
 			}
@@ -289,6 +299,7 @@ int Level::stepPlayer(Player& p, bool pressed, float dt) {
 		if (p.dead) break;
 		if (orb->touching(p))
 			orb->collide(p);
+		trace(*orb);
 		if (p.dead)
 			logDeath(p, *orb);
 	}
@@ -303,6 +314,7 @@ int Level::stepPlayer(Player& p, bool pressed, float dt) {
 		if (b->touching(p)) {
 			++numCollisions;
 			b->collide(p);
+			trace(*b.operator->());
 			if (p.dead)
 				logDeath(p, *b.operator->());
 		}
@@ -314,6 +326,7 @@ int Level::stepPlayer(Player& p, bool pressed, float dt) {
 		if (h->touching(p)) {
 			++numCollisions;
 			h->collide(p);
+			trace(*h.operator->());
 			if (p.dead)
 				logDeath(p, *h.operator->());
 		}

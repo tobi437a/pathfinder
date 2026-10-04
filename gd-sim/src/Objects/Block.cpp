@@ -130,7 +130,7 @@ void Block::collideBlock(Player& p, bool bare) const {
 	// act in the new gravity. A blue pad pushes the player towards the new floor, which GD lands it on in
 	// the same step if it reaches it (see Pad::collide for a player flipped off a block).
 	auto const& prev = p.prevPlayer();
-	if (p.upsideDown != prev.upsideDown && !p.gravityPortal && !p.hitPad && !prev.button) {
+	if (p.upsideDown != prev.upsideDown && !p.gravityPortal && !p.hitPad && !prev.button && !p.partnerFlipped) {
 		double oldClip = landClip - std::max(0.0, -(double)p.grav(p.pos.y - prev.pos.y))
 			+ std::max(0.0, -(double)prev.grav(p.pos.y - prev.pos.y));
 		double oldBottom = prev.gravBottom(p);

@@ -273,6 +273,9 @@ struct Player : public Entity {
 	/// flipPartner at the start of the next frame: GD handles a fresh orb click there (pushButton), before either
 	/// player moves, where the sim clicks the orb a frame earlier
 	bool flipPartnerNext = false;
+	/// The other player's flip (flipPartner) flipped this one before its step this frame: GD has flipped it by
+	/// then, so its blocks act in the new gravity
+	bool partnerFlipped = false;
 	/// Player 1 took player 2's place at a solo portal this frame (DualPortal::collide), with player 2's state
 	/// from its collisions: GD steps it from there next step (Level::runFrame)
 	bool copiedFromP2 = false;
