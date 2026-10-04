@@ -46,16 +46,15 @@ The batch (`build
 eatch`) is 453 rated 1.8 levels (all of them with gameVersion 18).
 `runs-pre1.8\` is a snapshot of the runs recorded with the pre-dual pathfinder's macros (GD's
 `real.txt` for each; the 173 that reach a dual portal with GD's player 2 too, `P2` lines): the
-offline regression set, `regress.py --runs runs-pre1.8 [--p2] --base cur12|p2s`. On it 339/453
-runs match GD to the end for player 1 (`regress-cur12.json`), 325 for both players
-(`regress-p2s.json`).
+offline regression set, `regress.py --runs runs-pre1.8 [--p2] --base w58p`: 415/453 runs match GD to the end
+(players 1 and 2).
 - Dual (`Objects/DualPortal.cpp`, `Player::updateGround`, `Player::flipPartner`, `startDual`,
   `copyAttributes`, `Level::runFrame`) follows `toggleDualMode`, `updateDualGround`,
   `playerWillSwitchMode`, `GJBaseGameLayer::flipGravity` and the per-step order of
   `GJBaseGameLayer::update` (see "Verified GD behaviour").
 - Latest end-to-end (macros from the current pathfinder, `runs\`): 316/453 beaten in GD (pre-1.8
   pathfinder: 173), 111 complete in the sim but die in GD (`report.md`). Their fresh `real.txt` are
-  the second regression set: `regress.py [--p2] --base new0|newp0` (263 / 235 match to the end).
+  the second regression set: `regress.py --p2 --base w57p` (377/453 match to the end; `--rot --base rot15`: 248).
 - Pathfinder (`batch.py pathfind`, 120 s): 427/453 complete in the sim, 26 stuck. Several stuck ones
   end in a secret path that runs into a wall, with the real route branching off far back; the search
   backs off exponentially from a dead end and penalises staying on it (`DeadPath`), which gets some
@@ -63,7 +62,10 @@ runs match GD to the end for player 1 (`regress-cur12.json`), 325 for both playe
 - Two-player levels (`kA10`, 4 in the batch) need player-2 inputs: the pathfinder only presses
   player 1, and the sim gives player 2 no button there.
 - Known unexplained: a pad then a slope in the same step (2284379 frame 778) - GD keeps the pad's
-  spin, so its slope collision skips `hitGround` there; the sim doesn't.
+  spin, so its slope collision skips `hitGround` there; the sim doesn't. Also parked: 1664135 (GD's
+  m_wasOnSlope stays 0 a second step), 2040390 (GD spares player 1 at a sawblade it should touch), 2064569,
+  1672208, 1693598 (slope handover), 1797252 (45-degree pad, 0.01 margin), 1841302 (ceiling slope covering a
+  block), 1862685 (pad on a slope's flat side), 1734354 (dual ball slope landing).
 - `regress.py` labels each divergence p1, p2, rot, death-gd or death-sim. `--rot` scores cube/ball rotation (for rotated objects); look for remaining rotation
   bugs with it too.
 - End-to-end: rebuild Release `pathfinder-cli`, `batch.py --redo pathfind`, `batch.py --redo
