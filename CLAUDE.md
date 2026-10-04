@@ -53,6 +53,9 @@ runs match GD to the end for player 1 (`regress-cur12.json`), 325 for both playe
   `copyAttributes`, `Level::runFrame`) follows `toggleDualMode`, `updateDualGround`,
   `playerWillSwitchMode`, `GJBaseGameLayer::flipGravity` and the per-step order of
   `GJBaseGameLayer::update` (see "Verified GD behaviour").
+- Latest end-to-end (macros from the current pathfinder, `runs\`): 316/453 beaten in GD (pre-1.8
+  pathfinder: 173), 111 complete in the sim but die in GD (`report.md`). Their fresh `real.txt` are
+  the second regression set: `regress.py [--p2] --base new0|newp0` (263 / 235 match to the end).
 - Pathfinder (`batch.py pathfind`, 120 s): 427/453 complete in the sim, 26 stuck. Several stuck ones
   end in a secret path that runs into a wall, with the real route branching off far back; the search
   backs off exponentially from a dead end and penalises staying on it (`DeadPath`), which gets some
