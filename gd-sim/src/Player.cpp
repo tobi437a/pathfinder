@@ -109,6 +109,9 @@ void Player::copyAttributes(Player const& other) {
 	isP2 = own.isP2;
 	partner = own.partner;
 	slope = own.slope;
+	// (the copy's gravity goes through PlayerObject::flipGravity, which flips which way is downhill on a slope)
+	if (upsideDown != own.upsideDown && (slope.was || slope.on))
+		slope.downhill = !slope.downhill;
 	potentialSlopes = std::move(own.potentialSlopes);
 	boosted = own.boosted;
 	accelerating = own.accelerating;
