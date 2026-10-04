@@ -127,6 +127,7 @@ Player& Level::runFrame(bool pressed, float dt) {
 	// player 1's step; both get the button. Each sees the other as `partner` (the dual ground, portals).
 	Player q = gameStates2.back();
 	bool wasDual = p.dual;
+	int speed1 = p.speed, speed2 = q.speed;
 	p.partner = &q;
 	q.partner = &p;
 	int collisions = stepPlayer(p, pressed, dt);
@@ -137,6 +138,19 @@ Player& Level::runFrame(bool pressed, float dt) {
 		// Player 2 left dual mode through a solo portal: player 1 took its place (DualPortal::collide)
 	} else if (p.dual) {
 		q.startDual();
+	}
+	if (p.dual) {
+		// A speed portal sets GD's speed for the next step, which updateTimeMod gives both players at its start
+		int speed = wasDual && q.speed != speed2 ? q.speed : p.speed != speed1 ? p.speed : -1;
+		for (Player* pl : {&p, &q}) {
+			if (speed >= 0 && pl->speed != speed) {
+				pl->speed = speed;
+				if (pl->vehicle.type == VehicleType::Ball) {
+					pl->stopRotation();
+					pl->runBallRotation();
+				}
+			}
+		}
 	}
 	if (!p.dual) {
 		// Player 2 idles; keep a copy of player 1 so its lane has states for every frame
