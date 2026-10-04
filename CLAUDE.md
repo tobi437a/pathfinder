@@ -257,7 +257,9 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   broadphase rect at twice their size. A flying player holding on an uphill slope gets y velocity >= 2
   and isn't landed, so it rides the surface and keeps its speed off the top; leaving a slope launches
   at `min(0.8 / angle, 1.1) * rise * 1.4` (x0.75 fly/ball, ramped 0.4 -> 1 over the first 0.1 s) if
-  that's faster; leaving one off its bottom falls at its speed. Both are set after the step's move, so
+  that's faster; leaving one off its bottom falls at its speed. `postCollision` forgets the slope it collided with
+  (`m_collidingWithSlopeId`) a step after leaving it, which makes it a potential slope again (one that covers
+  the top of a neighbouring slope's side rect, so the player doesn't land on that). Both are set after the step's move, so
   a player that landed on a block in that step takes no walk-off step. Pads clear the slope flags;
   `flipGravity` flips which way is downhill.
 - `m_speedMultiplier` (`updateTimeMod`) is 5.980002 / 5.7700018882751465 / 5.870002 / 6.000002 /

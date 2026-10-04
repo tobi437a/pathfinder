@@ -676,6 +676,11 @@ void Player::postCollision() {
 
 	// Ensure the player hasn't gone beyond the bounds of the vehicle
 	vehicle.clamp(*this);
+
+	// PlayerObject::postCollision forgets the slope it collided with a step after leaving it, so from then on
+	// that slope is a potential slope again (Slope::preCollide)
+	if (!slope.on && !slope.was)
+		slope.collidingId = -1;
 }
 
 Player::Player() :
