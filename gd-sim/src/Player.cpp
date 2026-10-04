@@ -303,8 +303,8 @@ void Player::preCollision(bool pressed) {
 			velocity = 0;
 	}
 
-	// A flying player (or ball) put onto the mode's floor or ceiling is off any slope
-	if ((floorSnapped || ceilingSnapped) && vehicle.type != VehicleType::Cube)
+	// A flying player (or ball, or any player in dual mode) put onto the mode's floor or ceiling is off any slope
+	if ((floorSnapped || ceilingSnapped) && (vehicle.type != VehicleType::Cube || dual))
 		slope.was = false;
 
 	// GD's updateJump gives a player standing on a slope a step of gravity, which moves it into the slope
