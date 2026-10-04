@@ -108,6 +108,12 @@ Level::Level(std::string const& lvlString) {
 	}
 	gameStates.push_back(player);
 	gameStates2.push_back(p2);
+	if (player.dual) {
+		// ...which GD steps from the first step on: off the ground, with a step of gravity before its first move
+		Player& q = gameStates2.back();
+		q.grounded = false;
+		q.startDual();
+	}
 }
 
 Player& Level::runFrame(bool pressed, float dt) {

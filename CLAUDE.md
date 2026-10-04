@@ -48,9 +48,8 @@ dual portal with GD's player 2 too (`P2` lines). Baseline: `regress.py` 150/453 
 end (`regress-cur.json`); `regress.py --p2` (`regress-p2.json`): of the 173 dual runs 36 match for
 player 1, 4 for both, and in 81 player 2 diverges first.
 - Dual (`Objects/DualPortal.cpp`, `Player::updateGround`) is a first port of `toggleDualMode`,
-  `updateDualGround` and `playerWillSwitchMode`; check it against the `P2` lines. Open leads: in a
-  level that starts in dual (`kA8`, 5 levels, e.g. 1643034) GD's player 2 starts on the floor upside down without
-  jumping, the sim's jumps on frame 1. Then `regress.py --p2 --base p2` on each fix.
+  `updateDualGround` and `playerWillSwitchMode`; check it against the `P2` lines
+  (`regress.py --p2 --base p2` on each fix).
 - After dual: rebuild Release `pathfinder-cli`, `batch.py --redo pathfind`, `batch.py --redo
   verify` (GD minimised, ~25 min; a long background job can get killed under memory pressure -
   then `verify --import-only` and verify the rest with `--ids`), `batch.py report`.
@@ -360,7 +359,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   y velocity, `m_jumpBuffered`; not the rotation or spin), flips player 2's gravity and gives it the
   opposite y velocity; a solo portal taken by player 2 copies player 2 onto player 1 and releases all
   of player 2's buttons. GD steps player 2 (update, collisions) right after player 1, from the step
-  after dual starts, so its first `updateJump` adds gravity before it moves. `handleButton` presses and
+  after dual starts, so its first `updateJump` adds gravity before it moves. In a level that starts
+  in dual (`kA8`) player 2 is stepped from the first step, off the ground. `handleButton` presses and
   releases player 2 only while dual is on, but `m_jumpBuffered` is the held flag (`pushButton` sets
   it, `releaseButton` or an orb clears it), so a button held into a dual portal is held by both.
   `toggleDualMode` also sets `m_unkA99` (0xa99) on both players to the dual flag, which negates
