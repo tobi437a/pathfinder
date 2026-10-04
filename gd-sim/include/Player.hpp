@@ -228,6 +228,10 @@ struct Player : public Entity {
 	/// GD's walk-off step (a step of gravity for a player leaving a block) was already applied this frame
 	bool walkedOff = false;
 
+	/// A ball jumped (flipped) at the end of this frame: GD does that in its next step's updateJump, so its
+	/// end-of-step checks still see the old gravity (Level::repelBalls)
+	bool ballJumped = false;
+
 	/// GD caches the player's hitbox, so a size portal's new size only shows once the player is moved
 	/// (e.g. snapped onto a block) or at the end of the frame
 	bool resizePending = false;

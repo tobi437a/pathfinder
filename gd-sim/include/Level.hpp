@@ -52,6 +52,9 @@ class Level {
  	Player& runFrame(bool pressed, float dt = 1/240.);
  	/// One player's part of a frame (move, collisions); returns how many objects it touched
  	int stepPlayer(Player& p, bool pressed, float dt);
+ 	/// GJBaseGameLayer::checkRepellPlayer, after both players' steps in dual mode: two balls of the same gravity
+ 	/// closer in y than their radii plus 5 push apart, the one in the air flipping away from the grounded one
+ 	void repelBalls(Player& p, Player& q) const;
 
  	/// Go back to a certain frame. Used in Pathfinder. Never drops gameStates[0].
  	void rollback(int frame);

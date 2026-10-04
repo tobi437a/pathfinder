@@ -428,6 +428,10 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   GD's next step. Player 2 flipped by player 1 in a step is flipped before it moves, so its gravity step
   and its blocks are all in the new gravity (`partnerFlipped`). Not in two-player mode (`kA10`, settings 0x154), where each player also gets only
   its own inputs (`handleButton`), so a player-1 macro never presses player 2.
+- `GJBaseGameLayer::checkRepellPlayer`, at the end of every step in dual (not two-player): two balls of the
+  same gravity whose y distance is under 15 * scale each + 5 repel: if player 1 has `m_isOnGround2`, player 2
+  flips (`PlayerObject::flipGravity`) with y velocity 2 towards its new floor, else if player 2 has it player 1
+  does (`Level::repelBalls`).
 - A solid block's hitbox is its sprite's size (`GameObject::customSetup` only overrides it for
   some types), so ids sharing a sprite shape share a hitbox: `invis_`/`color` variants match the
   plain one (204 `invis_plank_01_small` = 196 `plank_01_small`, 15x8). Check with `gdtools frame`.

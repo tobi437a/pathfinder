@@ -224,6 +224,7 @@ void Player::preCollision(bool pressed) {
 	onBlock = false;
 	headHit = false;
 	walkedOff = false;
+	ballJumped = false;
 	scaleRefreshed = false;
 	portalVelocityScale = 1;
 	roundVelocity = true;
