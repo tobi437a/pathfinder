@@ -27,13 +27,24 @@ float normalizeRotation(Player const& p, float angle) {
         return playerRotation - diff;
 }
 
-/// Ship, UFO, Wave all have the same basic mechanism for rotation
+/// PlayerObject::updateShipRotation (ship, wave): turns towards the direction of travel
 void rotateFly(Player& p, float mult) {
 	auto diff = p.pos - p.prevPlayer().pos;
 
 	// Unknown why this happens
 	if (p.dt * 72 <= std::pow(diff.x, 2) + std::pow(diff.y, 2)) {
 		p.rotation = slerp(p.rotation * 0.017453292f, atan2(diff.y, diff.x), (p.dt * 60) * mult) * 57.29578f;
+	}
+}
+
+/// PlayerObject::updateShipRotation for the ufo: it leans back by 0.4 of its direction of travel, forward by at
+/// most 0.1 rad (GD's rotation is clockwise, the sim's counter-clockwise), turning at 0.07
+void rotateUfo(Player& p) {
+	auto diff = p.pos - p.prevPlayer().pos;
+	if (p.dt * 72 <= std::pow(diff.x, 2) + std::pow(diff.y, 2)) {
+		float lean = atan2f((float)diff.y, (float)diff.x) * 0.4f;
+		float gdTarget = !p.upsideDown ? std::max(-0.1f, lean) : std::min(0.1f, lean);
+		p.rotation = slerp(p.rotation * 0.017453292f, -gdTarget, (float)(p.dt * 60) * 0.07f) * 57.29578f;
 	}
 }
 
@@ -368,6 +379,8 @@ Vehicle ufo() {
 			if (p.button)
 				p.input = false;
 		}
+
+		rotateUfo(p);
 	};
 
 	v.bounds = 300;

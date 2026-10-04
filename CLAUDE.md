@@ -386,6 +386,9 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   oriented box overlaps the player's (rotated) one (`collisionCheckObjects`, `OBB2D::overlaps1Way`). That
   test is float math in GD's coordinates (y + 90; at x ~15000 a float step is 0.001), so the sim ports it
   exactly (`Entity::orientedOverlaps`).
+- `PlayerObject::updateShipRotation` turns the ship (factor 0.15), wave (0.25, mini 0.4) and ufo (0.07) towards
+  their direction of travel, slerping by factor * dt; the ufo's target is -0.4 times the travel angle (it
+  leans back), clamped to at most 0.1 rad forward (`rotateUfo`). Rotated objects are tested against it.
 - So the cube's and ball's rotation matters (the sim keeps it in GD's clockwise degrees; ship, ufo and
   wave rotations and objects' are counter-clockwise). `GJBaseGameLayer::update` calls
   `PlayerObject::updateRotation(dt)` after the step's collisions (dt 0.25 at 240 tps): the spin
