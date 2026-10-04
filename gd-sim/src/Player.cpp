@@ -268,8 +268,13 @@ void Player::preCollision(bool pressed) {
 	startFloor = floor;
 	startCeiling = ceiling;
 	floorSnapped = gravBottom(*this) < gravFloor();
-	if (floorSnapped)
+	if (floorSnapped) {
 		pos.y = grav(gravFloor()) + grav(size.y / 2);
+		// For a cube on the ground (not in dual mode, where the mode bounds work like a flying mode's) that's
+		// hitGround, which stops it: a gravity portal touched in this step flips a stopped player
+		if (vehicle.type == VehicleType::Cube && !upsideDown && !dual && !boosted && velocity <= 270)
+			velocity = 0;
+	}
 
 	// An upside down cube below the ground is out of bounds, unless it flipped gravity within 0.1 s (m_lastFlipTime):
 	// then GD puts it back on and stops it, and hitGround sets the on-ground flag if it was slow enough
