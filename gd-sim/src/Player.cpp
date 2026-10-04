@@ -338,6 +338,10 @@ void Player::flipPartner() {
 	// GD at the start of the next): take it off, halve it in the world like PlayerObject::flipGravity (-0.5
 	// relative to gravity), and add the step again in the new gravity. A grounded one has none.
 	double gd = o.grounded ? 0 : roundVel(o.velocity - o.acceleration * o.dt, o.upsideDown);
+	// At the fall cap (cube, ball) that step was cut off: GD's velocity is the one predicted a step earlier
+	bool capped = (o.vehicle.type == VehicleType::Cube || o.vehicle.type == VehicleType::Ball) && o.velocity <= -810;
+	if (!o.grounded && capped)
+		gd = std::max(-810.0, o.prevPlayer().velocity);
 	o.flipGravity(!upsideDown);
 	o.partnerFlipped = true;
 	o.velocity = roundVel(-gd / 2 + o.acceleration * o.dt, o.upsideDown);
