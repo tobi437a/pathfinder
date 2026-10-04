@@ -370,6 +370,9 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
 - A solid block's hitbox is its sprite's size (`GameObject::customSetup` only overrides it for
   some types), so ids sharing a sprite shape share a hitbox: `invis_`/`color` variants match the
   plain one (204 `invis_plank_01_small` = 196 `plank_01_small`, 15x8). Check with `gdtools frame`.
+  Portals and pads get theirs from `GameObject::setupSpriteSize`: a switch through a byte table at
+  RVA 0x1a3fec indexed by id - 1 (read it from the exe). Vehicle 34x86, gravity 25x75, dual 41x91,
+  mirror 44x92, size 31x90, speed 35x44 / 33x56 / 51x56 / 65x56, pads 25x4 / 25x5 / 25x6.
 
 - `GJBaseGameLayer::update(dt)` runs `max(1, round(dt * 240))` physics steps regardless of real
   time (`getModifiedDelta`), so `update(1/240)` in a loop = one step per call. `processCommands`
