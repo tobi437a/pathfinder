@@ -1,3 +1,5 @@
+#include <cstdlib>
+#include <cstdio>
 #include <Slope.hpp>
 #include <Player.hpp>
 #include <Level.hpp>
@@ -85,6 +87,9 @@ bool Slope::touching(Player const& p) const {
 
 namespace {
 
+/// `SlopeDbg <frame> ...` lines on stdout for every slope collision (set PF_SLOPE=1)
+bool const slopeDebug = std::getenv("PF_SLOPE") != nullptr;
+
 bool isFly(Player const& p) {
 	auto t = p.vehicle.type;
 	return t == VehicleType::Ship || t == VehicleType::Ufo || t == VehicleType::Wave;
@@ -153,8 +158,13 @@ bool Slope::preCollide(Player& p, GDRect const& S, GDRect const& P) const {
 
 void Slope::collide(Player& p) const {
 	GDRect S = GDRect::of(*this), P = GDRect::of(p);
-	if (preCollide(p, S, P))
+	if (preCollide(p, S, P)) {
+		if (slopeDebug)
+			printf("SlopeDbg %d id %d at %.1f %.1f pre-skip\n", p.frame, id, pos.x, pos.y);
 		return;
+	}
+	if (slopeDebug)
+		printf("SlopeDbg %d id %d at %.1f %.1f enter\n", p.frame, id, pos.x, pos.y);
 
 	auto& st = p.slope;
 	bool up = p.upsideDown;
@@ -251,6 +261,8 @@ void Slope::collide(Player& p) const {
 		noLand = !held && (fly || ball) && down && st.was;
 		clampDown = !held && fly && down;
 	}
+	if (slopeDebug)
+		printf("SlopeDbg %d id %d at %.1f %.1f hazard %d dir %d target %.4f py %.4f hit %d head %d tol %.3f was %d on %d\n", p.frame, id, pos.x, pos.y, hazard, direction, target, py, hit, head, tol, st.was, st.on);
 	if (!hit)
 		return;
 

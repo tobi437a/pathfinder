@@ -468,6 +468,15 @@ class $modify(VerifyBGL, GJBaseGameLayer) {
 			run->simTrace += fmt::format("P2 {} X {:.8f} Y {:.8f} Vel {:.8f} Rot {:.8f} Mode {}\n", run->step + 1,
 				sim2.pos.x, sim2.pos.y - 15, sim2.velocity, sim2.rotation, sim2.modeString());
 		}
+		// `Flags <frame> og .. og2 .. rotating .. spin .. slope <on><was> boosted .. acc .. btn ..`: player 1's
+		// state flags, in the format of gd-sim-test's Flags lines (PF_FLAGS=1)
+		{
+			auto p = m_player1;
+			run->realTrace += fmt::format("Flags {} og {} og2 {} rotating {} spin {:.8f} slope {}{} boosted {} acc {} btn {}\n",
+				run->step, (int)p->m_isOnGround, (int)p->m_isOnGround2, (int)p->m_isRotating, p->m_rotationSpeed,
+				(int)p->m_isOnSlope, (int)p->m_wasOnSlope, (int)p->m_maybeIsBoosted, (int)p->m_isAccelerating,
+				(int)p->m_jumpBuffered);
+		}
 		// `Acc <frame> <real m_isAccelerating> <sim accelerating>` whenever GD's flag changes
 		if (m_player1->m_isAccelerating != run->realAccelerating) {
 			run->realAccelerating = m_player1->m_isAccelerating;
@@ -553,6 +562,20 @@ class $modify(VerifyPlayLayer, PlayLayer) {
 		PlayLayer::resetLevel();
 		if (auto run = activeRun(this); run && !run->finished)
 			run->reset();
+	}
+
+	// `Death <frame> <player 1|2> obj <id> <x> <y> rot <rotation> type <object type>` (obj -1 without an object,
+	// e.g. a slope or the mode's bounds). GD calls it with its anticheat spike every step; those are skipped.
+	void destroyPlayer(PlayerObject* player, GameObject* object) {
+		if (auto run = activeRun(this); run && !run->finished && object != m_anticheatSpike) {
+			if (object)
+				run->realTrace += fmt::format("Death {} {} obj {} {:.4f} {:.4f} rot {:.4f} type {}\n", run->step,
+					player == m_player2 ? 2 : 1, object->m_objectID, object->getRealPosition().x,
+					object->getRealPosition().y - 90, object->getRotation(), (int)object->m_objectType);
+			else
+				run->realTrace += fmt::format("Death {} {} obj -1\n", run->step, player == m_player2 ? 2 : 1);
+		}
+		PlayLayer::destroyPlayer(player, object);
 	}
 
 	void levelComplete() {

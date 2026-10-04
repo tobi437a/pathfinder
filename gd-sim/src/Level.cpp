@@ -3,6 +3,7 @@
 #include <Level.hpp>
 #include <Orb.hpp>
 #include <algorithm>
+#include <cstdlib>
 
 // Otherwise gameStates copies every Player (instead of moving) whenever it grows
 static_assert(std::is_nothrow_move_constructible_v<Player>);
@@ -184,6 +185,19 @@ Player& Level::runFrame(bool pressed, float dt) {
 			std::cout << "P2 " << gameStates.size() << " X " << q.pos.x << " Y " << q.pos.y - 15 << " Vel " << q.velocity
 					  << " Rot " << q.rotation << " Mode " << q.modeString() << " floor " << p.floor << " ceiling " << p.ceiling
 					  << std::endl;
+
+		// `Flags <frame> ...`: internal state for debugging (set PF_FLAGS=1)
+		static bool const flags = std::getenv("PF_FLAGS") != nullptr;
+		if (flags) {
+			for (Player const* pl : {&p, &q}) {
+				if (pl == &q && !p.dual)
+					break;
+				std::cout << (pl == &p ? "Flags " : "Flags2 ") << gameStates.size() << " og " << pl->grounded
+						  << " og2 " << pl->onGround2 << " rotating " << pl->isRotating << " spin " << pl->rotationSpeed
+						  << " slope " << pl->slope.on << pl->slope.was << " boosted " << pl->boosted
+						  << " acc " << pl->accelerating << " btn " << pl->button << std::endl;
+			}
+		}
 
 		if (p.button != gameStates.back().button) {
 			std::cout << "Input X " << p.pos.x << " Y " << p.pos.y - 15 << std::endl;

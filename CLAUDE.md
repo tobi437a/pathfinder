@@ -162,7 +162,11 @@ frame + positions, max diff) and `verify\<level>\real.txt`, `sim.txt`, `level.lv
   off its hitbox, `SnapObj <frame> <id> real <x> <y> sprite <x> <y> enter <r> <l> <channel> ...`;
   `Flip <frame> <on> ...` per mirror portal; once `Screen <w> <h> ... enter/exit <channel maps>`;
   `Acc <frame> <real> <sim>` whenever GD's `m_isAccelerating` changes; in dual mode
-  `P2 <frame> X Y Vel Rot Mode` for player 2 (sim.txt / gd-sim-test too).
+  `P2 <frame> X Y Vel Rot Mode` for player 2 (sim.txt / gd-sim-test too); `Death <frame> <player>
+  obj <id> <x> <y> rot <r> type <t>` per `PlayLayer::destroyPlayer` (obj -1: no object - a slope or the
+  mode bounds); per step `Flags <frame> og og2 rotating spin slope <on><was> boosted acc btn` (player 1's
+  state, the format of `gd-sim-test`'s `Flags` lines with env `PF_FLAGS=1`; `PF_SLOPE=1` prints
+  `SlopeDbg` lines per slope collision).
 
 ## Batch testing online levels
 
@@ -202,8 +206,9 @@ python tools\regress.py --rot --save r0       # also a cube's/ball's rotation (m
 python tools\regress.py --p2 --save p0        # also player 2 in dual mode (P2 lines)
 python tools\triage.py                       # sim mode + objects at each divergence -> triage.txt
 python tools\diverge.py <id> [--frame F]     # one run: real vs sim per frame, button, nearby objects
+python tools\diverge.py <id> --p2 --flags   # player 2 instead; GD's and the sim's Flags lines per frame
 ```
-A sim fix should make runs better and none worse; real paths only cover what the old macros did,
+A run whose sim dies at another step than GD counts as diverged there. A sim fix should make runs better and none worse; real paths only cover what the old macros did,
 so finish with `batch.py pathfind`/`verify`. Traces (verifier and `gd-sim-test`) end with
 `Mode` = vehicle `c s b u w` (+ `r p i` robot/spider/swing in GD) + `u` upside down, `m` mini,
 `g` on ground.
@@ -272,6 +277,10 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   already held fires in GD's collisions, before the block, so that player doesn't land. Likewise a
   blue orb: a fresh click lands the player on its old side first (X-snap included); a held one flips it before the
   blocks, which it can then land on in the new gravity in the same step.
+- A player standing on a slope gets a step of gravity in `updateJump` and moves into the slope before
+  the collisions; the slope puts it back, except one that lets go (same target as last step, e.g. at
+  its top), and a hazard slope (`m_slopeIsHazard`) overlapping the player's slope kills it then, on the
+  step after landing (`destroyPlayer(p, nullptr)`). The sim takes that walk-off step in `preCollision`.
 - `PlayerObject::flipGravity` multiplies y velocity by -0.5.
 - A yellow pad launches a ufo at 864 like a cube; the ufo's velocity cap (432, mini 508.248) cuts it on
   the next step, after that step's gravity, so the first step up moves 432 / 240.

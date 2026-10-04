@@ -2,16 +2,20 @@
 """Everything about one batch run's first divergence from GD, for working through regress.py results.
 
   python tools/diverge.py <level id> [--regress NAME] [--frame F] [--before 8] [--after 4]
-                          [--dx 45] [--dy 60] [--inputs 120]
+                          [--dx 45] [--dy 60] [--inputs 120] [--p2] [--flags]
 
 Prints real (GD) and sim side by side around the first divergence (from regress-NAME.json, default the
 newest one, or --frame), with x/y/velocity/mode and the per-frame step (dx, dy) of each, the button
 presses as real steps (a gdr input at frame F is pressed before real step F - 1), and the level's objects
 around the player at the divergence (sim coords; `pos.y = Y + 15`). Uses runs/<id>/real.txt and the
 current sim's runs/<id>/simdbg.txt (written by regress.py).
+--p2 shows player 2 (P2 lines, dual mode) instead of player 1. --flags reruns the sim with PF_FLAGS=1
+and prints the `Flags` lines of GD (verifier) and the sim under each frame (player 2's with --p2).
 """
 import argparse
 import json
+import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -19,14 +23,16 @@ sys.dont_write_bytecode = True
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from gdtools import read_gdr2  # noqa: E402
 
-DATA = Path(__file__).resolve().parent.parent / "build" / "re" / "batch"
+REPO = Path(__file__).resolve().parent.parent
+DATA = REPO / "build" / "re" / "batch"
+SIM_TEST = REPO / "build" / "gd-sim" / "Debug" / "gd-sim-test.exe"
 
 
-def trace(path, shift):
+def trace(path, shift, tag="Frame"):
     out = {}
     for line in open(path):
         q = line.split()
-        if q and q[0] == "Frame":
+        if q and q[0] == tag:
             d = dict(zip(q[2::2], q[3::2]))
             out[int(q[1]) - shift] = (float(d["X"]), float(d["Y"]), float(d.get("Vel", 0)), d.get("Mode", "?"))
     return out
@@ -42,6 +48,8 @@ def main():
     ap.add_argument("--dx", type=float, default=45)
     ap.add_argument("--dy", type=float, default=60)
     ap.add_argument("--inputs", type=int, default=120)
+    ap.add_argument("--p2", action="store_true", help="player 2 (dual mode)")
+    ap.add_argument("--flags", action="store_true", help="state flags of GD and the sim per frame")
     a = ap.parse_args()
 
     run = DATA / "runs" / a.id
@@ -51,7 +59,20 @@ def main():
         path = DATA / f"regress-{a.regress}.json" if a.regress else scores[-1]
         f0 = json.loads(path.read_text(encoding="utf-8"))[a.id]["diverge"]
         print(f"divergence from {path.name}: real frame {f0}")
-    real, sim = trace(run / "real.txt", 0), trace(run / "simdbg.txt", 1)
+    tag = "P2" if a.p2 else "Frame"
+    real, sim = trace(run / "real.txt", 0, tag), trace(run / "simdbg.txt", 1, tag)
+    rflags, sflags = {}, {}
+    if a.flags:
+        ftag = "Flags2" if a.p2 else "Flags"
+        for line in open(run / "real.txt"):
+            if line.startswith(ftag + " "):
+                rflags[int(line.split()[1])] = line.split(None, 2)[2].strip()
+        env = dict(os.environ, PF_FLAGS="1")
+        out = subprocess.run([str(SIM_TEST), str(DATA / "levels" / f"{a.id}.lvl"), str(run / "simdbg.inp")],
+                             capture_output=True, text=True, env=env).stdout
+        for line in out.splitlines():
+            if line.startswith(ftag + " "):
+                sflags[int(line.split()[1]) - 1] = line.split(None, 2)[2].strip()
 
     print(f"{'frame':>6} | {'real X':>11} {'Y':>10} {'dy':>8} {'vel':>9} {'mode':>5} | "
           f"{'sim X':>11} {'Y':>10} {'dy':>8} {'vel':>9} {'mode':>5}")
@@ -65,6 +86,9 @@ def main():
             else:
                 cols.append(f"{'-':>48}")
         print(f"{f:>6}{'<' if f == f0 else ' '}| {cols[0]} | {cols[1]}")
+        if a.flags:
+            print(f"{'':>6}  real {rflags.get(f, '-')}")
+            print(f"{'':>6}  sim  {sflags.get(f, '-')}")
 
     _, inputs = read_gdr2(run / "macro.gdr2")
     steps = [(i["frame"] - 1, "down" if i["down"] else "up") for i in inputs

@@ -11,6 +11,7 @@ levels that got better (diverge later) or worse; --save writes build/re/batch/re
 --rot also counts a cube or ball whose rotation (mod 90: the hitbox is square) differs by more than
 --tol as diverged, for checking the player rotation that rotated objects are tested against.
 --p2 also compares player 2 in dual mode (P2 lines of the traces).
+A run whose sim dies at another step than GD (verify.json "died") counts as diverged at the earlier death.
 --runs DIR scores another copy of the runs (e.g. runs-pre1.8, a snapshot kept before re-pathfinding).
 The real paths only cover what the old sim told the pathfinder to do, so a level whose divergence
 moves later may still die further on; batch.py pathfind/verify is the real check.
@@ -61,8 +62,15 @@ def score(run: Path):
     enc = to_inp(inputs)
     inp.write_text(enc + enc[-1] * 40000)  # macros may end holding the button
     with open(run / "simdbg.txt", "w") as out:
-        subprocess.run([str(SIM_TEST), str(lvl), str(inp)], stdout=out, stderr=subprocess.DEVNULL)
+        err = subprocess.run([str(SIM_TEST), str(lvl), str(inp)], stdout=out, stderr=subprocess.PIPE, text=True).stderr
     real, sim = read_path(run / "real.txt"), read_path(run / "simdbg.txt")
+    # Deaths: GD's (verify.json "died": the last recorded step) and the sim's ("Macro failed", its last frame)
+    # must be the same step
+    sim_died = "Macro failed" in err
+    try:
+        real_died = json.loads((run / "verify.json").read_text(encoding="utf-8")).get("result") == "died"
+    except (OSError, ValueError):
+        real_died = False
     # GD keeps recording the frozen player after a death; stop where X stops changing
     last = max(real)
     while last - 1 in real and real[last - 1][0] == real[last][0]:
@@ -84,6 +92,12 @@ def score(run: Path):
             d = (rr - sr) % 90
             if min(d, 90 - d) > TOL:
                 return f, len(frames)
+    if frames:
+        real_death = max(real) if real_died else None
+        sim_death = max(sim) - 1 if sim_died else None
+        if real_death != sim_death:
+            deaths = [d for d in (real_death, sim_death) if d is not None]
+            return min(min(deaths), frames[-1]), len(frames)
     return -1, len(frames)
 
 

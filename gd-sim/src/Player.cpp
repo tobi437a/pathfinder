@@ -278,6 +278,16 @@ void Player::preCollision(bool pressed) {
 	// A flying player (or ball) put onto the mode's floor or ceiling is off any slope
 	if ((floorSnapped || ceilingSnapped) && vehicle.type != VehicleType::Cube)
 		slope.was = false;
+
+	// GD's updateJump gives a player standing on a slope a step of gravity, which moves it into the slope
+	// before the collisions: the slope puts it back (a slope that lets go, at its top, leaves it there, and a
+	// hazard slope under the player's slope kills it). The sim's standing player has no velocity; this is its
+	// walk-off step (postCollision), taken before the collisions.
+	if (slope.was && prevPlayer().grounded && velocity == 0 && !floorSnapped && !ceilingSnapped) {
+		double fallAccel = vehicle.type == VehicleType::Ufo ? ufoRestFall() : acceleration;
+		moveY(roundVel(grav(fallAccel) * dt, upsideDown));
+		walkedOff = true;
+	}
 }
 
 void Player::flipGravity(bool to) {
