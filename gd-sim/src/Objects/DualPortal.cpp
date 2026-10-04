@@ -16,8 +16,15 @@ void DualPortal::collide(Player& p) const {
 		p.dualPortalY = (float)pos.y;
 		Player& q = *p.partner;
 		q.copyAttributes(p);
+		// A player standing on a block (not a slope) has fallen a step of gravity into it when GD checks the portal (the block
+		// puts it back afterwards, see Pad::collide); player 2 copies that
+		auto const& prev = p.prevPlayer();
+		if (prev.grounded && prev.velocity == 0 && p.velocity == 0 && p.upsideDown == prev.upsideDown
+			&& prev.gravBottom(prev) > prev.gravFloor() && !p.walkedOff && !prev.slope.on) {
+			q.moveY(roundVel(prev.grav(prev.acceleration) * p.dt, prev.upsideDown));
+			q.velocity = roundVel(prev.acceleration * p.dt, prev.upsideDown);
+		}
 		q.flipGravity(!p.upsideDown);
-		q.velocity = p.velocity;
 		q.grounded = false;
 		q.onGround2 = false;
 		// Both players get the dual ground (updateDualGround)
