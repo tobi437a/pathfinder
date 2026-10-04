@@ -77,9 +77,12 @@ void VehiclePortal::collide(Player& player) const {
 
 	// GJBaseGameLayer::playerWillSwitchMode: the mode's floor and ceiling (updateDualGround), and in dual mode a
 	// player entering the mode the other player is in takes the other gravity
-	player.modePortalY = (float)pos.y;
+	// GD remembers the portal the ground is centred on once dual mode ends (m_gameState+0x400): in dual mode that's
+	// the dual portal (none in a level that starts in dual, dualPortalY -90), not this one
+	float groundPortalY = player.dual && player.dualPortalY != -90 ? player.dualPortalY : (float)pos.y;
+	player.modePortalY = groundPortalY;
 	if (player.partner)
-		player.partner->modePortalY = (float)pos.y;
+		player.partner->modePortalY = groundPortalY;
 	player.updateGround((float)pos.y);
 	if (player.dual && player.partner && player.partner->vehicle.type == type && player.upsideDown == player.partner->upsideDown) {
 		player.velocity = -player.velocity / 2;
