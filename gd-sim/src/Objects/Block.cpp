@@ -200,6 +200,10 @@ void Block::collideBlock(Player& p, bool bare) const {
 	// activates in this step's collisions. Pads and gravity portals don't: GD only lands when moving
 	// towards the block (yVelocity <= 0), or when it was on a slope last frame.
 	bool padHitBefore = (!p.gravityPortal && !p.hitPad && !p.prevPlayer().grounded && p.prevPlayer().velocity <= 0 && p.velocity > 0 && !(p.clickedOrb && p.prevPlayer().button));
+	// (likewise a fresh orb click off a block a slope earlier in the step moved the player into: GD's block puts it
+	// back, the click is its next step)
+	if (p.clickedOrb && p.button && !p.prevPlayer().button && p.prevPlayer().grounded && p.walkedOff && !p.hitPad && !p.gravityPortal)
+		padHitBefore = true;
 
 	// A grounded cube flipped by a gravity portal has GD's walk-off velocity times -0.5 (positive) by now,
 	// so it doesn't land this frame (see Player::postCollision). A ball or ufo lands right away.

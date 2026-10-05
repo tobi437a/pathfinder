@@ -158,6 +158,14 @@ bool Slope::preCollide(Player& p, GDRect const& S, GDRect const& P) const {
 }
 
 void Slope::collide(Player& p) const {
+	// GD has already moved a player standing on a block a step of gravity into it (the block puts it back after
+	// the slopes, see Pad::collide), which can take it under the slope's surface
+	auto const& prev = p.prevPlayer();
+	if (p.upsideDown == prev.upsideDown && prev.grounded && prev.velocity == 0 && p.velocity == 0 && !prev.slope.on
+		&& prev.gravBottom(prev) > prev.gravFloor() && !p.walkedOff) {
+		p.moveY(roundVel(prev.grav(prev.acceleration) * p.dt, prev.upsideDown));
+		p.walkedOff = true;
+	}
 	GDRect S = GDRect::of(*this), P = GDRect::of(p);
 	if (preCollide(p, S, P)) {
 		if (slopeDebug)

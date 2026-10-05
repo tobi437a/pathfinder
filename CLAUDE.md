@@ -63,7 +63,7 @@ offline regression set, `regress.py --runs runs-pre1.8 [--p2] --base w58p`: 415/
   player 1, and the sim gives player 2 no button there.
 - Parked: 1664135 (GD's
   m_wasOnSlope stays 0 a second step), 2040390 (GD spares player 1 at a sawblade it should touch),
-  1672208, 1797252 (45-degree pad, 0.01 margin), 1862685 (pad on a slope's flat side).
+  1672208, 1862685 (pad on a slope's flat side).
 - `regress.py` labels each divergence p1, p2, rot, death-gd or death-sim. `--rot` scores cube/ball rotation (for rotated objects); look for remaining rotation
   bugs with it too.
 - End-to-end: rebuild Release `pathfinder-cli`, `batch.py --redo pathfind`, `batch.py --redo
@@ -295,6 +295,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   its top), and a hazard slope (`m_slopeIsHazard`) overlapping the player's slope kills it then, on the
   step after landing (`destroyPlayer(p, nullptr)`). The sim takes that walk-off step in `preCollision`.
   A gravity portal touched before the slope's collision flips that step's velocity (x -0.5).
+  Likewise a player standing on a block meets the step's slopes a step of gravity lower (into the block), which
+  can put it under a slope's surface (`Slope::collide`); the block puts it back otherwise.
 - The inner hitbox (`getObjectRect(0.3, 0.3)`: 9x9, a mini player's too (GD reports 9 for mini; its rect is 18)) kills
   on a block, except when the player rises (y velocity > 0, not off a slope) with its feet within the landing
   distance of the block's top: then GD neither lands nor kills. A ship, ufo or ball within the landing or head-hit
