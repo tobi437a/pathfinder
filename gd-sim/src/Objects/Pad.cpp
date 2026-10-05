@@ -48,7 +48,7 @@ const velocity_map<PadType, VehicleType, bool> pad_velocities = {
 
 	// GD launches a ufo like a cube; the ufo's velocity cap (432) only applies on the next step
 	{{PadType::Yellow, VehicleType::Ufo, false},  {864,         864,         864,         864}},
-	{{PadType::Yellow, VehicleType::Ufo, true},   {458.784,     691.2,       691.2,       691.2}},
+	{{PadType::Yellow, VehicleType::Ufo, true},   {691.2,       691.2,       691.2,       691.2}},
 
 
 	// GD: propellPlayer(0.8) (x16, x0.8 mini, x0.6 ball) then flipGravity's x-0.5, whatever the speed
