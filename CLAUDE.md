@@ -330,7 +330,7 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   -1 (its fall slows by 4.644 per step), rising and held 0.8 (it slows down). So a cube that left a
   slope earlier and enters a ship falling faster than the cap isn't clamped to it.
 - Each `toggleFlyMode` / `toggleBirdMode` / `toggleDartMode` (ship, ufo, wave; on or off) halves y
-  velocity; ball and cube have none. Per portal: a ship and a ufo portal touched in one step by a
+  velocity and clears both on-ground flags (a cube<->ball switch keeps them); ball and cube have none. Per portal: a ship and a ufo portal touched in one step by a
   cube halve it three times (ship on, ship off, ufo on). A wave's `m_yVelocity` is +-round3(m_playerSpeed *
   m_speedMultiplier) (not doubled when mini), so leaving it starts from that (`VehiclePortal`).
 - On a level's first step a ship on the floor is snapped there but keeps one step of falling

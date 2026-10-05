@@ -72,10 +72,16 @@ void VehiclePortal::collide(Player& player) const {
 		player.velocity = velocity * player.velocity;
 	}
 
-	// GD's on-ground flag outlives the switch: a player resting on the old mode's floor stays grounded
-	// this frame (and can jump), even if the new mode's floor is lower
-	if (player.prevPlayer().grounded && player.velocity == 0 && player.gravBottom(player) <= player.gravFloor())
+	// GD's on-ground flag outlives a switch between cube and ball: a player resting on the old mode's floor stays
+	// grounded this frame (and can jump), even if the new mode's floor is lower. Switching a ship, ufo or wave on
+	// or off clears it (toggleFlyMode etc.).
+	auto flying = [](VehicleType t) { return t == VehicleType::Ship || t == VehicleType::Ufo || t == VehicleType::Wave; };
+	bool switchedFly = flying(player.prevPlayer().vehicle.type) != flying(type)
+		|| (flying(type) && player.prevPlayer().vehicle.type != type);
+	if (player.prevPlayer().grounded && player.velocity == 0 && player.gravBottom(player) <= player.gravFloor() && !switchedFly)
 		player.grounded = true;
+	if (switchedFly)
+		player.groundCleared = true;
 
 	// GJBaseGameLayer::playerWillSwitchMode: the mode's floor and ceiling (updateDualGround), and in dual mode a
 	// player entering the mode the other player is in takes the other gravity
@@ -86,9 +92,13 @@ void VehiclePortal::collide(Player& player) const {
 	if (player.partner)
 		player.partner->modePortalY = groundPortalY;
 	player.updateGround((float)pos.y);
-	if (player.dual && player.partner && player.partner->vehicle.type == type && player.upsideDown == player.partner->upsideDown) {
+	// (the other player's gravity as GD has it now: player 1 has stepped already, but its next step's updateJump, a
+	// ball's jump, which the sim did at the end of its frame, hasn't happened yet)
+	bool otherUp = player.partner && player.partner->frame == player.frame ? player.partner->collisionUpsideDown
+		: player.partner && player.partner->upsideDown;
+	if (player.dual && player.partner && player.partner->vehicle.type == type && player.upsideDown == otherUp) {
 		player.velocity = -player.velocity / 2;
-		player.flipGravity(!player.partner->upsideDown);
+		player.flipGravity(!otherUp);
 		player.modeFlip = true;
 	}
 }

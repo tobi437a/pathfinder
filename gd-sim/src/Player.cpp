@@ -430,8 +430,10 @@ void Player::flipPartner() {
 	};
 	float stepBefore = spinStep();
 	o.flipGravity(!upsideDown);
-	if (o.frame == frame)
+	if (o.frame == frame) {
 		o.rotation += spinStep() - stepBefore;
+		o.collisionUpsideDown = o.upsideDown;
+	}
 	o.partnerFlipped = true;
 	o.velocity = -gd / 2;
 	o.collisionVelocity = o.velocity;
@@ -724,6 +726,7 @@ void Player::postCollision() {
 	}
 
 	collisionVelocity = velocity;
+	collisionUpsideDown = upsideDown;
 	// A speed portal's speed, from GD's next step on (updateTimeMod)
 	if (pendingSpeed >= 0) {
 		speed = pendingSpeed;

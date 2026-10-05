@@ -242,6 +242,8 @@ struct Player : public Entity {
 	/// The velocity after this frame's collisions (GD's m_yVelocity until its next updateJump; the sim's velocity
 	/// already has that step's gravity)
 	double collisionVelocity = 0;
+	/// ...and the gravity then (before the next step's updateJump, e.g. a ball's jump)
+	bool collisionUpsideDown = false;
 
 	/// GD's walk-off step (a step of gravity for a player leaving a block) was already applied this frame
 	bool walkedOff = false;
