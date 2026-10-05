@@ -8,7 +8,10 @@ void GravityPortal::collide(Player& p) const {
 	EffectObject::collide(p);
 
 	if (upsideDown != p.upsideDown) {
-		// Gravity portals halve the velocity
+		// Gravity portals halve the velocity (that of GD's step of gravity for a player standing on a slope, unless
+		// the slope has stopped it again)
+		if (p.velocity == 0 && !p.slope.on)
+			p.velocity = p.slopeFallVelocity;
 		p.velocity = -p.velocity / 2;
 		p.flipGravity(upsideDown);
 		// (PlayerObject::flipGravity clears m_isOnGround: a slope that grounded the player earlier in this step's

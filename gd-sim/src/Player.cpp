@@ -236,6 +236,7 @@ void Player::preCollision(bool pressed) {
 	onBlock = false;
 	headHit = false;
 	walkedOff = false;
+	slopeFallVelocity = 0;
 	slopeLeftAir = false;
 	ballJumped = false;
 	scaleRefreshed = false;
@@ -346,6 +347,7 @@ void Player::preCollision(bool pressed) {
 		double fallAccel = vehicle.type == VehicleType::Ufo ? ufoRestFall() : acceleration;
 		moveY(roundVel(grav(fallAccel) * dt, upsideDown));
 		walkedOff = true;
+		slopeFallVelocity = roundVel(fallAccel * dt, upsideDown);
 	}
 }
 

@@ -246,6 +246,9 @@ struct Player : public Entity {
 	/// GD's walk-off step (a step of gravity for a player leaving a block) was already applied this frame
 	bool walkedOff = false;
 
+	/// GD's velocity after that step on a slope (the sim's standing player has none; the slope zeroes it again)
+	double slopeFallVelocity = 0;
+
 	/// Leaving a slope launched the player or let it fall off the bottom, which clears GD's m_isOnGround (no
 	/// coyote jump after it)
 	bool slopeLeftAir = false;
