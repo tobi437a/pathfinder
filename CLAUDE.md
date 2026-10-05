@@ -207,7 +207,8 @@ python tools\triage.py                       # sim mode + objects at each diverg
 python tools\diverge.py <id> [--frame F]     # one run: real vs sim per frame, button, nearby objects
 python tools\diverge.py <id> --p2 --flags   # player 2 instead; GD's and the sim's Flags lines per frame
 python tools\gdcoll.py <id>:<from>-<to> ...  # replay in GD with its collision log (Coll/SlopeColl lines per
-                                             # block / slope collision) -> buildeatch\coll\<id>.real.txt
+                                             # block / slope collision) -> build
+eatch\coll\<id>.real.txt
 ```
 A run whose sim dies at another step than GD counts as diverged there. A sim fix should make runs better and none worse; real paths only cover what the old macros did,
 so finish with `batch.py pathfind`/`verify`. Traces (verifier and `gd-sim-test`) end with
@@ -275,7 +276,9 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   `clip + distance fallen this step` below the block top (clip 10; 6 for ship/ufo/wave/swing; 5 in
   platformer). Ship/ufo/ball heads hit a block's underside with the same rule (rise instead of
   fall, velocity >= 0, so 0 after an earlier landing or head hit in the same step still counts, as does a ship's
-  velocity reaching exactly 0 in the air); a ufo head-hitting a breakable block breaks it instead. This also holds on the frame the player touches a
+  velocity reaching exactly 0 in the air); a ufo head-hitting a breakable block breaks it instead.
+  A block whose top is within the landing distance takes the landing branch only: if it doesn't land the player
+  (rising, or a nearby slope covers the top), it does nothing, not even a head hit. This also holds on the frame the player touches a
   gravity portal or a pad. The sim (`Block::collide`) still lands the player on the frame of an orb
   click (`padHitBefore`), GD's click being a step later; but an orb first touched with the button
   already held fires in GD's collisions, before the block, so that player doesn't land. Likewise a

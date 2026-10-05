@@ -248,7 +248,9 @@ void Block::collideBlock(Player& p, bool bare) const {
 
 		if (!bare)
 			snapX(p);
-	} else {
+	} else if (!(p.gravTop(*this) - bottom <= landClip)) {
+		// (a block whose top is within the landing distance is GD's landing branch: if it doesn't land the player
+		// (rising, or a slope covers the top), the block does nothing, not even a head hit)
 		// Ship and ufo can hit the ceiling of a block without dying
 		// Same tolerance as landing: 10 (6 for ship/ufo) plus how far the player rose this frame
 		if (p.vehicle.type == VehicleType::Ship || p.vehicle.type == VehicleType::Ufo || p.vehicle.type == VehicleType::Ball) {
