@@ -171,6 +171,8 @@ Player& Level::runFrame(bool pressed, float dt) {
 			p.startDual();
 		}
 	} else if (p.dual) {
+		// (with the speed GD's next step gives both players, updateTimeMod: a speed portal player 1 took this step)
+		q.speed = p.speed;
 		q.startDual();
 	}
 	if (p.dual) {
