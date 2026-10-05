@@ -140,6 +140,14 @@ Player& Level::runFrame(bool pressed, float dt) {
 	int speed1 = p.speed, speed2 = q.speed;
 	p.partner = &q;
 	q.partner = &p;
+	// Both clicked a blue or green orb: GD's next step pushes player 1's (which turns player 2 the other way
+	// round), then player 2's (from there), which turns player 1 against player 2's new gravity. So player 2 ends
+	// up in player 1's new gravity with its orb's velocity, and player 1 flipped back.
+	if (p.flipPartnerNext && q.flipPartnerNext) {
+		p.flipPartnerNext = false;
+		if (q.upsideDown != p.upsideDown && p.flipsPartnerKind())
+			q.flipGravity(p.upsideDown);
+	}
 	for (Player* pl : {&p, &q}) {
 		if (pl->flipPartnerNext) {
 			pl->flipPartnerNext = false;

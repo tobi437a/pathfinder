@@ -366,12 +366,16 @@ void Player::flipGravity(bool to) {
 	}
 }
 
-bool Player::flipsPartner() const {
+bool Player::flipsPartnerKind() const {
 	if (!dual || !partner || level->twoPlayer)
 		return false;
 	// (the same mode: GD compares the ship, ufo, ball, robot, spider and swing flags, not the wave's)
 	auto kind = [](VehicleType t) { return t == VehicleType::Wave ? VehicleType::Cube : t; };
-	return kind(partner->vehicle.type) == kind(vehicle.type) && partner->upsideDown == upsideDown;
+	return kind(partner->vehicle.type) == kind(vehicle.type);
+}
+
+bool Player::flipsPartner() const {
+	return flipsPartnerKind() && partner->upsideDown == upsideDown;
 }
 
 void Player::flipPartner() {

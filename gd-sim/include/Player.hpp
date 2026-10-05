@@ -309,6 +309,7 @@ struct Player : public Entity {
 	/// this player's updateJump in the step this frame's jump would be, so it can't jump (Level::runFrame)
 	bool partnerFlipsNext = false;
 	/// Whether flipPartner would flip the other player now
+	bool flipsPartnerKind() const;
 	bool flipsPartner() const;
 	/// The other player's flip (flipPartner) flipped this one before its step this frame: GD has flipped it by
 	/// then, so its blocks act in the new gravity
