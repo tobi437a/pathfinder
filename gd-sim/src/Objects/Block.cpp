@@ -227,6 +227,9 @@ void Block::collideBlock(Player& p, bool bare) const {
 				p.grounded = true;
 			p.velocity = 0;
 			p.headHit = true;
+			// (hitGround stops the spin whatever the velocity; GD then clears m_isOnGround2)
+			p.hitGroundRotation();
+			p.onGround2 = false;
 		} else
 			p.dead = true;
 	} else if (p.vehicle.type != VehicleType::Wave && p.gravTop(*this) - bottom <= landClip && (padHitBefore || p.velocity <= 0 || p.slope.was) && !flippedOffGround && !coverFeet) {

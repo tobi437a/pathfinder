@@ -374,7 +374,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   (double, `getModifiedDelta`) against a float: "within 0.1 s" is up to 24 steps after, 0.2 s 48 (`stepsWithin`).
 - A player whose inner hitbox hits a block within 0.1 s (`m_lastFlipTime`) of a gravity flip, with the
   block on its head side, isn't killed (and doesn't break a breakable block): `collidedWithObjectInternal`
-  puts it on the block's far side (upside down: on its top) and calls `hitGround`.
+  puts it on the block's far side (upside down: on its top) and calls `hitGround`. `hitGround` always stops a cube's spin (only the
+  on-ground flag needs y velocity <= 5); that branch then clears `m_isOnGround2`.
 - `checkCollisions` marks a player out of the mode's bounds (`m_isOutOfBounds`) and kills it only on the second
   such step in a row (`destroyPlayer(p, nullptr)`); in between it isn't moved back. The level's top is one such
   bound: GD y above `m_maxGameplayY` (2790; `updateMaxGameplayY`) + (1 - 0.6) * 15 for a mini player (10 wave).
