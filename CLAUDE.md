@@ -289,9 +289,10 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   its top), and a hazard slope (`m_slopeIsHazard`) overlapping the player's slope kills it then, on the
   step after landing (`destroyPlayer(p, nullptr)`). The sim takes that walk-off step in `preCollision`.
   A gravity portal touched before the slope's collision flips that step's velocity (x -0.5).
-- The inner hitbox (`getObjectRect(0.3, 0.3)`: 9x9, a mini player's too, since the sim's tests agree with
-  GD's deaths only that way) kills on a block, except when the player rises (y velocity > 0, not off a
-  slope) with its feet within the landing distance of the block's top: then GD neither lands nor kills.
+- The inner hitbox (`getObjectRect(0.3, 0.3)`: 9x9, a mini player's too (GD reports 9 for mini; its rect is 18)) kills
+  on a block, except when the player rises (y velocity > 0, not off a slope) with its feet within the landing
+  distance of the block's top: then GD neither lands nor kills. A ship, ufo or ball within the landing or head-hit
+  distance of a block is never tested: the block lands it, stops its head, or does nothing.
 - `PlayerObject::flipGravity` multiplies y velocity by -0.5. A flip by the other player in dual mode acts on
   that player's unrounded velocity after its collisions (`Player::collisionVelocity`), not a rounded one.
 - A ufo click (`updateJump`) sets y velocity to 7 (mini 0.85 * 8) only if the ufo is slower than that

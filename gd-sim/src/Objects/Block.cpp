@@ -215,7 +215,13 @@ void Block::collideBlock(Player& p, bool bare) const {
 	// test out once the player is in landing range)
 	bool risingOnto = !p.upsideDown && p.gravTop(*this) - bottom <= landClip && p.velocity > 0 && !padHitBefore && !p.slope.was;
 
-	if (p.innerHitbox().intersects(*this) && !risingOnto) {
+	// A ship, ufo or ball within the landing or head-hit distance of the block (GD's landing and head branches)
+	// lands, stops its head or nothing; GD never tests its inner hitbox there
+	bool headCapable = p.vehicle.type == VehicleType::Ship || p.vehicle.type == VehicleType::Ufo || p.vehicle.type == VehicleType::Ball;
+	double headClip = (p.vehicle.type == VehicleType::Ball ? 10 : 6) + slopeClip + std::max(0.0, (double)p.grav(p.pos.y - p.prevPlayer().pos.y));
+	bool inRange = headCapable && (p.gravTop(*this) - bottom <= landClip || p.gravTop(p) - p.gravBottom(*this) <= headClip);
+
+	if (p.innerHitbox().intersects(*this) && !risingOnto && !inRange) {
 		// Hitting block head-on. Within 0.1 s of a gravity flip GD instead puts the player on the block's far
 		// side from its (new) floor and grounds it there (hitGround: velocity 0, on ground if slow enough), if the
 		// block is on its head side: its bottom at least the landing clip above the player's (before or after
@@ -254,7 +260,6 @@ void Block::collideBlock(Player& p, bool bare) const {
 		// Ship and ufo can hit the ceiling of a block without dying
 		// Same tolerance as landing: 10 (6 for ship/ufo) plus how far the player rose this frame
 		if (p.vehicle.type == VehicleType::Ship || p.vehicle.type == VehicleType::Ufo || p.vehicle.type == VehicleType::Ball) {
-			double headClip = (p.vehicle.type == VehicleType::Ball ? 10 : 6) + slopeClip + std::max(0.0, (double)p.grav(p.pos.y - p.prevPlayer().pos.y));
 			// GD checks velocity >= 0: 0 counts when another block's head hit or a landing zeroed it this
 			// frame, or for a grounded ship, ufo or ball that a gravity portal flipped in place (GD resolved the block before the portal), but not for a player
 			// walking off (GD has already applied that step's gravity)

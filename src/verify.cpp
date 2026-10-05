@@ -583,12 +583,18 @@ class $modify(VerifyCollPlayerObject, PlayerObject) {
 		if (!logging())
 			return PlayerObject::collidedWithObjectInternal(dt, object, rect, skipCheck);
 		float before = getPositionY() - 105;
+		// the player's rect and inner (lethal) rect as this collision sees them
+		auto outer = getObjectRect();
+		auto inner = getObjectRect(0.3f, 0.3f);
+		cocos2d::CCRect orect = object ? object->getObjectRect() : cocos2d::CCRect();
 		bool r = PlayerObject::collidedWithObjectInternal(dt, object, rect, skipCheck);
 		auto run = activeRun(PlayLayer::get());
-		run->realTrace += fmt::format("Coll {} {} obj {} {:.4f} {:.4f} rect {:.4f} {:.4f} {:.4f} {:.4f} y {:.6f} -> {:.6f} vel {:.6f} ground {} {} ret {}\n",
+		run->realTrace += fmt::format("Coll {} {} obj {} {:.4f} {:.4f} rect {:.4f} {:.4f} {:.4f} {:.4f} y {:.6f} -> {:.6f} vel {:.6f} ground {} {} ret {} size {:.3f} {:.3f} inner {:.3f} {:.3f} at {:.3f} {:.3f} orect {:.3f} {:.3f} {:.3f} {:.3f}\n",
 			run->step, which(), object ? object->m_objectID : -1, object ? object->getRealPosition().x : 0.f,
 			object ? object->getRealPosition().y - 90 : 0.f, rect.origin.x, rect.origin.y - 90, rect.size.width,
-			rect.size.height, before, getPositionY() - 105, m_yVelocity, (int)m_isOnGround, (int)m_isOnGround2, (int)r);
+			rect.size.height, before, getPositionY() - 105, m_yVelocity, (int)m_isOnGround, (int)m_isOnGround2, (int)r,
+			outer.size.width, outer.size.height, inner.size.width, inner.size.height, inner.origin.x, inner.origin.y - 90,
+			orect.origin.x, orect.origin.y - 90, orect.size.width, orect.size.height);
 		return r;
 	}
 
