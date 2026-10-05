@@ -678,7 +678,9 @@ void Player::postCollision() {
 	if ((bottom < boundFloor || (bottom == boundFloor && (velocity == 0 || floorSnapped))) && !velocityOverride && (velocity <= 0 || hitPad)) {
 		if (!headHit && !slope.on)
 			pos.y = grav(boundFloor) + grav(size.y / 2);
-		if (!hitPad)
+		// (GD's floor snap comes before the step's portals: one that switched a ship, ufo or wave on or off since
+		// cleared the on-ground flag again)
+		if (!hitPad && !groundCleared)
 			grounded = true;
 	}
 
