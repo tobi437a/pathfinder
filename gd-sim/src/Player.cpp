@@ -340,6 +340,18 @@ void Player::preCollision(bool pressed) {
 	if ((floorSnapped || ceilingSnapped) && (vehicle.type != VehicleType::Cube || dual))
 		slope.was = false;
 
+	// A player resting on the mode floor (the dual ceiling, for player 2 upside down) whose floor the other player's
+	// portal moved away earlier in this step: GD's step of gravity took it past the old floor, and the new bounds
+	// don't put it back
+	auto const& before = prevPlayer();
+	if (dual && before.grounded && velocity == 0 && !before.slope.on && before.gravBottom(before) == before.gravFloor()
+		&& gravFloor() < before.gravFloor() && !floorSnapped) {
+		double fallAccel = acceleration;
+		moveY(roundVel(grav(fallAccel) * dt, upsideDown));
+		walkedOff = true;
+		velocity = roundVel(fallAccel * dt, upsideDown);
+	}
+
 	// GD's updateJump gives a player standing on a slope a step of gravity, which moves it into the slope
 	// before the collisions: the slope puts it back (a slope that lets go, at its top, leaves it there, and a
 	// hazard slope under the player's slope kills it). The sim's standing player has no velocity; this is its

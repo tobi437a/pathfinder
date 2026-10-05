@@ -63,7 +63,7 @@ offline regression set, `regress.py --runs runs-pre1.8 [--p2] --base w58p`: 415/
   player 1, and the sim gives player 2 no button there.
 - Parked: 1664135 (GD's
   m_wasOnSlope stays 0 a second step), 2040390 (GD spares player 1 at a sawblade it should touch),
-  1672208, 1693598 (slope handover), 1797252 (45-degree pad, 0.01 margin), 1862685 (pad on a slope's flat side).
+  1672208, 1797252 (45-degree pad, 0.01 margin), 1862685 (pad on a slope's flat side).
 - `regress.py` labels each divergence p1, p2, rot, death-gd or death-sim. `--rot` scores cube/ball rotation (for rotated objects); look for remaining rotation
   bugs with it too.
 - End-to-end: rebuild Release `pathfinder-cli`, `batch.py --redo pathfind`, `batch.py --redo
@@ -458,7 +458,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   it is falling, so in dual (and upside down) a cube that walked off a block can still jump for 9 steps
   (a ball: 15). Ground heights
   (`getGroundHeightForMode`): ship/ufo/wave/swing 300, ball 240, else 270 (= no ground outside dual);
-  in dual max(own (ball as 270), other's), centred on the dual portal. In dual a player taking a
+  in dual max(own (ball as 270), other's), centred on the dual portal. Player 1's portal moves the dual ground before player 2's step: player 2
+  resting on the old floor keeps its step of gravity past it (the new bounds don't put it back). In dual a player taking a
   vehicle portal of the mode the other player is in gets the other's opposite gravity
   (`playerWillSwitchMode`), and `checkCollisions` bounds every mode like a flying one: a cube past
   its ceiling is out of bounds unless gravity/mode changed within 0.2 s, which puts it back stopped (y velocity 0,
