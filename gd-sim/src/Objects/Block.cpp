@@ -255,6 +255,10 @@ void Block::collideBlock(Player& p, bool bare) const {
 			p.velocity = 0;
 		else if (!padHitBefore)
 			p.grounded = true;
+		// (hitGround's rotation part now, also when something later in the step takes the player off again, e.g. a
+		// slope launch)
+		if (!padHitBefore)
+			p.hitGroundRotation();
 
 		if (!bare)
 			snapX(p);
