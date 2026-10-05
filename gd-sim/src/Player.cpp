@@ -529,7 +529,8 @@ void Player::updateRotation() {
 	// PlayerObject::hitGround runs every step on the ground, before this (on the mode floor before the step's
 	// portals: a player that turned into a ball there only starts rolling next step, unless a block grounds it)
 	// (one GD put on the mode floor and a gravity portal then flipped had its hitGround before the flip: preCollision)
-	if (grounded && !(becameBall && !onBlock) && !(floorSnapped && gravityPortal && !onBlock))
+	// (nor one a head hit grounded: that ran hitGround's rotation part already)
+	if (grounded && !headHit && !(becameBall && !onBlock) && !(floorSnapped && gravityPortal && !onBlock))
 		hitGroundRotation();
 
 	// PlayerObject::updateRotation(dt): a cube eases to the slope it's on, or to the nearest 90 degrees on the
