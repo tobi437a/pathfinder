@@ -139,6 +139,7 @@ void Player::resetObject() {
 void Player::startDual() {
 	velocityOverride = false;
 	coyoteFrames = INT_MAX;
+	collisionVelocity = velocity;
 	vehicle.update(*this);
 	if (!velocityOverride)
 		velocity += acceleration * dt;
@@ -375,31 +376,15 @@ void Player::flipPartner() {
 		return;
 	Player& o = *partner;
 	// The other player's velocity is GD's plus a step of its gravity (the sim adds that at the end of a frame,
-	// GD at the start of the next): take it off, halve it in the world like PlayerObject::flipGravity (-0.5
-	// relative to gravity), and add the step again in the new gravity, with the acceleration GD's next updateJump
-	// chooses for the flipped player (a ship's depends on its velocity). A grounded one has none.
-	double gd = o.grounded ? 0 : roundVel(o.velocity - o.acceleration * o.dt, o.upsideDown);
-	// At a velocity cap (cube, ball; ship, ufo unless accelerating) that step was cut off: GD's velocity is the
-	// one predicted a step earlier
-	double fallCap = -INFINITY, riseCap = INFINITY;
-	if (o.vehicle.type == VehicleType::Cube || o.vehicle.type == VehicleType::Ball)
-		fallCap = -810;
-	if (o.vehicle.type == VehicleType::Ball)
-		riseCap = 810;
-	if ((o.vehicle.type == VehicleType::Ship || o.vehicle.type == VehicleType::Ufo) && !o.accelerating) {
-		fallCap = o.small ? -406.566 : -345.6;
-		riseCap = o.small ? 508.248 : 432.0;
-	}
-	// (unless its gravity changed since: then it was at the cap too)
-	auto const& before = o.prevPlayer();
-	bool sameGravity = before.upsideDown == o.upsideDown;
-	if (!o.grounded && o.velocity <= fallCap)
-		gd = sameGravity ? std::max(fallCap, before.velocity) : fallCap;
-	else if (!o.grounded && o.velocity >= riseCap)
-		gd = sameGravity ? std::min(riseCap, before.velocity) : riseCap;
+	// GD at the start of the next): take GD's (its velocity after its last collisions), halve it in the world like
+	// PlayerObject::flipGravity (-0.5 relative to gravity), and add the step again in the new gravity, with the
+	// acceleration GD's next updateJump chooses for the flipped player (a ship's depends on its velocity). A
+	// grounded one has none.
+	double gd = o.grounded ? 0 : o.collisionVelocity;
 	o.flipGravity(!upsideDown);
 	o.partnerFlipped = true;
 	o.velocity = -gd / 2;
+	o.collisionVelocity = o.velocity;
 	o.grounded = false;
 	o.acceleration = stepAcceleration(o);
 	o.velocity = roundVel(o.velocity + o.acceleration * o.dt, o.upsideDown);
@@ -682,6 +667,7 @@ void Player::postCollision() {
 			accelerating = false;
 	}
 
+	collisionVelocity = velocity;
 	vehicle.update(*this);
 
 	// A ufo jumping as it walks off a block (or a mini ufo, which starts above the floor, pressed on the

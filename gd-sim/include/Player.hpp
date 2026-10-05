@@ -239,6 +239,10 @@ struct Player : public Entity {
 	/// A ship or ufo above the mode ceiling after moving was put back under it before collisions
 	bool ceilingSnapped = false;
 
+	/// The velocity after this frame's collisions (GD's m_yVelocity until its next updateJump; the sim's velocity
+	/// already has that step's gravity)
+	double collisionVelocity = 0;
+
 	/// GD's walk-off step (a step of gravity for a player leaving a block) was already applied this frame
 	bool walkedOff = false;
 

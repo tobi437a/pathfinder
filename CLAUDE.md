@@ -288,7 +288,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
 - The inner hitbox (`getObjectRect(0.3, 0.3)`: 9x9, a mini player's too, since the sim's tests agree with
   GD's deaths only that way) kills on a block, except when the player rises (y velocity > 0, not off a
   slope) with its feet within the landing distance of the block's top: then GD neither lands nor kills.
-- `PlayerObject::flipGravity` multiplies y velocity by -0.5.
+- `PlayerObject::flipGravity` multiplies y velocity by -0.5. A flip by the other player in dual mode acts on
+  that player's unrounded velocity after its collisions (`Player::collisionVelocity`), not a rounded one.
 - A ufo click (`updateJump`) sets y velocity to 7 (mini 0.85 * 8) only if the ufo is slower than that
   (relative to gravity), then adds the step's gravity; a faster ufo ignores the click.
 - A yellow pad launches a ufo at 864 like a cube; the ufo's velocity cap (432, mini 508.248) cuts it on
