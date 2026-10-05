@@ -62,7 +62,7 @@ offline regression set, `regress.py --runs runs-pre1.8 [--p2] --base w58p`: 415/
 - Two-player levels (`kA10`, 4 in the batch) need player-2 inputs: the pathfinder only presses
   player 1, and the sim gives player 2 no button there.
 - Parked: 1664135 (GD's
-  m_wasOnSlope stays 0 a second step), 2040390 (GD spares player 1 at a sawblade it should touch), 2064569,
+  m_wasOnSlope stays 0 a second step), 2040390 (GD spares player 1 at a sawblade it should touch),
   1672208, 1693598 (slope handover), 1797252 (45-degree pad, 0.01 margin), 1862685 (pad on a slope's flat side).
 - `regress.py` labels each divergence p1, p2, rot, death-gd or death-sim. `--rot` scores cube/ball rotation (for rotated objects); look for remaining rotation
   bugs with it too.
@@ -471,7 +471,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   ball, robot, spider, swing, not the wave), the other player takes the opposite gravity
   (`PlayerObject::flipGravity`: world y velocity x0.5); a fresh orb click does it at the start of
   GD's next step. When both players click a blue/green orb in one step, player 1's goes first, so player 2 ends
-  in player 1's new gravity and player 1 is flipped back. Both players turn (`updateRotation`) after both stepped, so player 1 flipped by player 2 turns with
+  in player 1's new gravity and player 1 is flipped back. Player 1's blue/green orb click flips player 2 before player 2's own click
+  takes another orb, which keeps that orb's full velocity in the new gravity. Both players turn (`updateRotation`) after both stepped, so player 1 flipped by player 2 turns with
   the spin the flip gives it. Player 2 flipped by player 1 in a step is flipped before it moves, so its gravity step
   and its blocks are all in the new gravity (`partnerFlipped`). Not in two-player mode (`kA10`, settings 0x154), where each player also gets only
   its own inputs (`handleButton`), so a player-1 macro never presses player 2.

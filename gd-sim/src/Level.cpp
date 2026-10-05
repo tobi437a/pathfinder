@@ -148,6 +148,13 @@ Player& Level::runFrame(bool pressed, float dt) {
 		if (q.upsideDown != p.upsideDown && p.flipsPartnerKind())
 			q.flipGravity(p.upsideDown);
 	}
+	// Player 1's blue or green orb click flips player 2 before player 2's own click takes its orb: one that took
+	// another orb with that click keeps that orb's velocity, in the new gravity
+	if (p.flipPartnerNext && q.clickedOrb && q.button && !q.prevPlayer().button) {
+		p.flipPartnerNext = false;
+		if (p.flipsPartner())
+			q.flipGravity(!p.upsideDown);
+	}
 	for (Player* pl : {&p, &q}) {
 		if (pl->flipPartnerNext) {
 			pl->flipPartnerNext = false;
