@@ -32,6 +32,10 @@ void DualPortal::collide(Player& p) const {
 		// (Player::startDual).
 		p.dual = true;
 		p.dualPortalY = (float)pos.y;
+		// (the ground GD recentres once dual mode ends is this portal's, m_gameState+0x400)
+		p.modePortalY = p.dualPortalY;
+		if (p.partner)
+			p.partner->modePortalY = p.dualPortalY;
 		Player& q = *p.partner;
 		q.resetObject();
 		q.copyAttributes(p);

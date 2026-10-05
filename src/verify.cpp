@@ -491,9 +491,10 @@ class $modify(VerifyBGL, GJBaseGameLayer) {
 			auto at = [](GameObject* o) {
 				return o ? fmt::format("{:.1f} {:.1f}", o->getRealPosition().x, o->getRealPosition().y - 90) : std::string("-1 -1");
 			};
-			run->realTrace += fmt::format("GD {} {} cws {} ground {} ring {} pot {} slope {}\n", run->step,
-				p == m_player1 ? 1 : 2, (int)p->m_isCollidingWithSlope, ground ? ground->m_objectID : -1,
-				(int)p->m_stateRingJump, at(p->m_currentPotentialSlope), at(p->m_currentSlope));
+			run->realTrace += fmt::format("GD {} {} cws {} ground {} ring {} pot {} slope {} bounds {:.3f} {:.3f}\n",
+				run->step, p == m_player1 ? 1 : 2, (int)p->m_isCollidingWithSlope, ground ? ground->m_objectID : -1,
+				(int)p->m_stateRingJump, at(p->m_currentPotentialSlope), at(p->m_currentSlope),
+				getMinPortalY() - 90, getMaxPortalY() - 90);
 		}
 		// `Acc <frame> <real m_isAccelerating> <sim accelerating>` whenever GD's flag changes
 		if (m_player1->m_isAccelerating != run->realAccelerating) {

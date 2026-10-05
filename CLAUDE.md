@@ -164,7 +164,7 @@ frame + positions, max diff) and `verify\<level>\real.txt`, `sim.txt`, `level.lv
   state, the format of `gd-sim-test`'s `Flags` lines with env `PF_FLAGS=1`, which also prints `SimDeath` (the object that killed); `PF_SLOPE=1` prints
   `SlopeDbg` lines per slope collision, `PF_TRACE=1` a `Trace` line (player y, velocity) after every
   object collision); per step and player `GD <frame> <player> cws .. ground <id> ring <m_stateRingJump> pot <x y>
-  slope <x y>` (GD's potential and current slope; gd-sim-test prints `Pot` lines with PF_FLAGS=1).
+  slope <x y> bounds <getMinPortalY getMaxPortalY>` (GD's potential and current slope; gd-sim-test prints `Pot` lines with PF_FLAGS=1).
 
 ## Batch testing online levels
 
@@ -463,7 +463,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   it is falling, so in dual (and upside down) a cube that walked off a block can still jump for 9 steps
   (a ball: 15). Ground heights
   (`getGroundHeightForMode`): ship/ufo/wave/swing 300, ball 240, else 270 (= no ground outside dual);
-  in dual max(own (ball as 270), other's), centred on the dual portal. Player 1's portal moves the dual ground before player 2's step: player 2
+  in dual max(own (ball as 270), other's), centred on the dual portal. When dual mode ends the ground is recentred on the dual portal
+  for the remaining player's mode. Player 1's portal moves the dual ground before player 2's step: player 2
   resting on the old floor keeps its step of gravity past it (the new bounds don't put it back). In dual a player taking a
   vehicle portal of the mode the other player is in gets the other's opposite gravity
   (`playerWillSwitchMode`), and `checkCollisions` bounds every mode like a flying one: a cube past
