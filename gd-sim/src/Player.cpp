@@ -236,6 +236,7 @@ void Player::preCollision(bool pressed) {
 	onBlock = false;
 	headHit = false;
 	walkedOff = false;
+	orbFromGround = false;
 	becameBall = false;
 	slopeFallVelocity = 0;
 	groundCleared = false;
@@ -478,7 +479,7 @@ void Player::easeRotation(float target) {
 	float rate = player_speedmults[speed] * 0.175f;
 	if (vehicle.type == VehicleType::Ship)
 		rate *= 0.5f;
-	else if (vehicle.type == VehicleType::Cube && onGround2 && !slope.on && !slope.was)
+	else if (vehicle.type == VehicleType::Cube && (onGround2 || orbFromGround) && !slope.on && !slope.was)
 		rate *= 3;
 	if (rate * t <= t)
 		t = rate * t;
@@ -538,7 +539,7 @@ void Player::updateRotation() {
 	if (vehicle.type == VehicleType::Cube) {
 		if (slope.on) {
 			slopeRotation();
-		} else if (onGround2 && !slope.was && (grounded || (upsideDown ? gdVelocity() <= 0.25 : gdVelocity() >= -0.25))) {
+		} else if ((onGround2 || orbFromGround) && !slope.was && (grounded || orbFromGround || (upsideDown ? gdVelocity() <= 0.25 : gdVelocity() >= -0.25))) {
 			// (A landed player isn't rising: the landing stopped it, though the sim only zeroes the velocity
 			// in the vehicle's update, after this)
 			stopRotation();

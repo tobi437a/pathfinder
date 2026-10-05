@@ -249,6 +249,9 @@ struct Player : public Entity {
 	/// A speed portal touched this frame: GD's speed from its next step on (-1: none)
 	int pendingSpeed = -1;
 
+	/// A fresh click took an orb off the ground this frame (GD's step still has the player on the ground)
+	bool orbFromGround = false;
+
 	/// A vehicle portal turned the player into a ball this frame
 	bool becameBall = false;
 
