@@ -158,6 +158,10 @@ Player& Level::runFrame(bool pressed, float dt) {
 	if (wasDual && p.dual && !p.dead) {
 		// (not once player 1 died: GD stops the step there)
 		q.partnerFlipsNext = p.flipPartnerNext && p.flipsPartner();
+		// A speed portal player 1 took this step gives player 2 the new speed from GD's next step on too
+		// (updateTimeMod): its collisions this step still see the old one
+		if (p.speed != speed1)
+			q.pendingSpeed = p.speed;
 		stepPlayer(q, twoPlayer ? q.button : pressed, dt);
 		q.partnerFlipsNext = false;
 		if (q.dead)
