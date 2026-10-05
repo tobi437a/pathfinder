@@ -10,6 +10,7 @@ be checked on every level in a minute: --base compares with a saved score file a
 levels that got better (diverge later) or worse; --save writes build/re/batch/regress-NAME.json.
 --rot also counts a cube or ball whose rotation (mod 90: the hitbox is square) differs by more than
 --tol as diverged, for checking the player rotation that rotated objects are tested against.
+--rotfly also counts a ship's, ufo's or wave's rotation (the sim's is counter-clockwise, GD's clockwise).
 --p2 also compares player 2 in dual mode (P2 lines of the traces).
 A run whose sim dies at another step than GD (verify.json "died") counts as diverged at the earlier death.
 Each divergence has a kind: p1 / p2 (position), rot, death-gd (GD dies first), death-sim (the sim does).
@@ -34,6 +35,7 @@ DATA = REPO / "build" / "re" / "batch"
 SIM_TEST = REPO / "build" / "gd-sim" / "Debug" / "gd-sim-test.exe"
 TOL = 0.01
 ROT = False
+ROTFLY = False
 P2 = False
 
 
@@ -78,7 +80,7 @@ def score(run: Path):
     while last - 1 in real and real[last - 1][0] == real[last][0]:
         last -= 1
     frames = [f for f in sorted(real) if f <= last and f + 1 in sim]
-    real_modes = modes(run / "real.txt") if ROT else {}
+    real_modes = modes(run / "real.txt") if ROT or ROTFLY else {}
     real2, sim2 = (p2_path(run / "real.txt"), p2_path(run / "simdbg.txt")) if P2 else ({}, {})
     for f in frames:
         (rx, ry, _, rr), (sx, sy, _, sr) = real[f], sim[f + 1]
@@ -94,6 +96,10 @@ def score(run: Path):
             d = (rr - sr) % 90
             if min(d, 90 - d) > TOL:
                 return f, len(frames), "rot"
+        if ROTFLY and real_modes.get(f, "")[:1] in ("s", "u", "w"):
+            d = (rr + sr) % 360
+            if min(d, 360 - d) > TOL:
+                return f, len(frames), "rotfly"
     if frames:
         real_death = max(real) if real_died else None
         sim_death = max(sim) - 1 if sim_died else None
@@ -107,7 +113,7 @@ def score(run: Path):
 
 
 def main():
-    global TOL, ROT, P2
+    global TOL, ROT, ROTFLY, P2
     ap = argparse.ArgumentParser()
     ap.add_argument("--save")
     ap.add_argument("--base")
@@ -116,10 +122,11 @@ def main():
     ap.add_argument("--show", type=int, default=30)
     ap.add_argument("--tol", type=float, default=TOL, help="position difference that counts as diverged")
     ap.add_argument("--rot", action="store_true", help="a cube's or ball's rotation (mod 90) counts too")
+    ap.add_argument("--rotfly", action="store_true", help="a ship's, ufo's or wave's rotation counts too")
     ap.add_argument("--p2", action="store_true", help="player 2 (dual mode) counts too")
     ap.add_argument("--runs", help="runs directory under build/re/batch (default runs)")
     a = ap.parse_args()
-    TOL, ROT, P2 = a.tol, a.rot, a.p2
+    TOL, ROT, ROTFLY, P2 = a.tol, a.rot, a.rotfly, a.p2
     runs_dir = DATA / a.runs if a.runs else DATA / "runs"
     runs = [r for r in sorted(runs_dir.iterdir())
             if (r / "real.txt").exists() and (DATA / "levels" / f"{r.name}.lvl").exists()]
