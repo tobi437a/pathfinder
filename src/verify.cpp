@@ -13,7 +13,8 @@
  * Runs come from the "verify macro" button or from a job file: if `verify.json` exists in the
  * mod save dir at startup, it is renamed to `verify.json.taken` and its jobs are run one by one:
  *   {"jobs": [{"level": "77239587" | "main:3" | "<local level name>", "macro": "<path>.gdr2",
- *              "levelFile": "<raw downloadGJLevel22 response>" (optional, then "level" is just a label)}],
+ *              "levelFile": "<raw downloadGJLevel22 response>" (optional, then "level" is just a label),
+ *              "coll": [from, to] (optional: log GD's block and slope collisions in those real frames)}],
  *    "exit": true}
  * Each run appends a line to `verify-results.jsonl` and writes real.txt / sim.txt / level.lvl to
  * `verify/<level>/` (`gdtools compare real.txt sim.txt --shift 1` reads them).
@@ -52,6 +53,8 @@ struct Job {
 	std::filesystem::path macro;
 	/// Raw downloadGJLevel22 response, for levels that aren't in the save
 	std::filesystem::path levelFile;
+	/// Real frames whose block and slope collisions are logged (`Coll` / `SlopeColl` lines)
+	int collFrom = -1, collTo = -1;
 };
 
 struct Run {
@@ -107,6 +110,7 @@ struct Run {
 std::deque<Job> s_jobs;
 bool s_exitWhenDone = false;
 bool s_jobMode = false;
+int s_collFrom = -1, s_collTo = -1;
 std::unique_ptr<Run> s_run;
 bool s_runBound = false;
 
@@ -294,6 +298,8 @@ class JobRunner : public CCObject {
 
 		auto job = s_jobs.front();
 		s_jobs.pop_front();
+		s_collFrom = job.collFrom;
+		s_collTo = job.collTo;
 		auto level = job.levelFile.empty() ? resolveLevel(job.level) : levelFromResponse(job.levelFile);
 		if (auto res = startRun(job.level, level, job.macro); res.isErr()) {
 			log::error("verify: {}: {}", job.level, res.unwrapErr());
@@ -342,6 +348,8 @@ void loadJobFile() {
 				j["level"].isString() ? j["level"].asString().unwrapOr("") : std::to_string(j["level"].asInt().unwrapOr(0)),
 				j["macro"].asString().unwrapOr(""),
 				j["levelFile"].asString().unwrapOr(""),
+				(int)j["coll"][0].asInt().unwrapOr(-1),
+				(int)j["coll"][1].asInt().unwrapOr(-1),
 			});
 		}
 	}
@@ -553,6 +561,46 @@ class $modify(VerifyPlayerObject, PlayerObject) {
 		run->realTrace += fmt::format("Snap {} obj {} {} prev {} {} offset {:.4f} x {:.4f} -> {:.4f}\n",
 			run->step, object->getPositionX(), object->getPositionY() - 90,
 			prev ? prev->getPositionX() : 0.f, prev ? prev->getPositionY() - 90 : 0.f, offset, before, getPositionX());
+	}
+};
+
+// Collision log for the job's "coll" frames (GD's step, not yet counted: the current real frame):
+// `Coll <frame> <player> obj <id> <x> <y> rect <x> <y> <w> <h> y <before> -> <after> vel <after> ground <og> <og2>`
+// per collidedWithObjectInternal (blocks; a slope's side passes a rect and its slope), and
+// `SlopeColl <frame> <player> obj <id> <x> <y> y <before> -> <after> vel <after> on <m_isOnSlope>` per
+// collidedWithSlopeInternal. Sim coordinates (y - 90; player y - 105 like the Frame lines).
+class $modify(VerifyCollPlayerObject, PlayerObject) {
+	bool logging() {
+		auto run = activeRun(PlayLayer::get());
+		return run && !run->finished && s_collFrom >= 0 && s_collFrom <= run->step && run->step <= s_collTo;
+	}
+	int which() {
+		auto pl = PlayLayer::get();
+		return pl && this == pl->m_player2 ? 2 : 1;
+	}
+
+	bool collidedWithObjectInternal(float dt, GameObject* object, cocos2d::CCRect rect, bool skipCheck) {
+		if (!logging())
+			return PlayerObject::collidedWithObjectInternal(dt, object, rect, skipCheck);
+		float before = getPositionY() - 105;
+		bool r = PlayerObject::collidedWithObjectInternal(dt, object, rect, skipCheck);
+		auto run = activeRun(PlayLayer::get());
+		run->realTrace += fmt::format("Coll {} {} obj {} {:.4f} {:.4f} rect {:.4f} {:.4f} {:.4f} {:.4f} y {:.6f} -> {:.6f} vel {:.6f} ground {} {} ret {}\n",
+			run->step, which(), object ? object->m_objectID : -1, object ? object->getRealPosition().x : 0.f,
+			object ? object->getRealPosition().y - 90 : 0.f, rect.origin.x, rect.origin.y - 90, rect.size.width,
+			rect.size.height, before, getPositionY() - 105, m_yVelocity, (int)m_isOnGround, (int)m_isOnGround2, (int)r);
+		return r;
+	}
+
+	void collidedWithSlopeInternal(float dt, GameObject* object, bool forced) {
+		if (!logging())
+			return PlayerObject::collidedWithSlopeInternal(dt, object, forced);
+		float before = getPositionY() - 105;
+		PlayerObject::collidedWithSlopeInternal(dt, object, forced);
+		auto run = activeRun(PlayLayer::get());
+		run->realTrace += fmt::format("SlopeColl {} {} obj {} {:.4f} {:.4f} y {:.6f} -> {:.6f} vel {:.6f} on {}\n",
+			run->step, which(), object->m_objectID, object->getRealPosition().x, object->getRealPosition().y - 90,
+			before, getPositionY() - 105, m_yVelocity, (int)m_isOnSlope);
 	}
 };
 

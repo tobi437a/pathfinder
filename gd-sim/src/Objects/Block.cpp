@@ -174,8 +174,10 @@ void Block::collideBlock(Player& p, bool bare) const {
 	if (p.slope.on || p.slope.was || !p.potentialSlopes.empty()) {
 		bool any = p.slope.on || p.slope.was || bare;
 		GDRect block = GDRect::of(*this), player = GDRect::of(p);
+		// (the centre is the block's sprite position, getPosition, which a mirror portal moves mid-flip)
+		float centre = pos.x + p.spriteShift(pos.x);
 		for (Slope const* s : p.potentialSlopes) {
-			if (!any && s != p.slope.current && !(s->getLeft() < pos.x && pos.x < s->getRight()))
+			if (!any && s != p.slope.current && !(s->getLeft() < centre && centre < s->getRight()))
 				continue;
 			GDRect sr = s->turned ? GDRect::of(*s, 1.1f, 1.2f) : GDRect::of(*s, 1.2f, 1.1f);
 			if (!sr.intersects(block) || !sr.intersects(player))

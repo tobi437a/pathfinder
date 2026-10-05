@@ -63,8 +63,7 @@ offline regression set, `regress.py --runs runs-pre1.8 [--p2] --base w58p`: 415/
   player 1, and the sim gives player 2 no button there.
 - Parked: 1664135 (GD's
   m_wasOnSlope stays 0 a second step), 2040390 (GD spares player 1 at a sawblade it should touch), 2064569,
-  1672208, 1693598 (slope handover), 1797252 (45-degree pad, 0.01 margin), 1841302 (ceiling slope covering a
-  block), 1862685 (pad on a slope's flat side), 1734354 (dual ball slope landing).
+  1672208, 1693598 (slope handover), 1797252 (45-degree pad, 0.01 margin), 1862685 (pad on a slope's flat side), 1734354 (dual ball slope landing).
 - `regress.py` labels each divergence p1, p2, rot, death-gd or death-sim. `--rot` scores cube/ball rotation (for rotated objects); look for remaining rotation
   bugs with it too.
 - End-to-end: rebuild Release `pathfinder-cli`, `batch.py --redo pathfind`, `batch.py --redo
@@ -207,6 +206,8 @@ python tools\regress.py --rotfly --save f0    # also a ship's / ufo's / wave's r
 python tools\triage.py                       # sim mode + objects at each divergence -> triage.txt
 python tools\diverge.py <id> [--frame F]     # one run: real vs sim per frame, button, nearby objects
 python tools\diverge.py <id> --p2 --flags   # player 2 instead; GD's and the sim's Flags lines per frame
+python tools\gdcoll.py <id>:<from>-<to> ...  # replay in GD with its collision log (Coll/SlopeColl lines per
+                                             # block / slope collision) -> buildeatch\coll\<id>.real.txt
 ```
 A run whose sim dies at another step than GD counts as diverged there. A sim fix should make runs better and none worse; real paths only cover what the old macros did,
 so finish with `batch.py pathfind`/`verify`. Traces (verifier and `gd-sim-test`) end with
@@ -353,6 +354,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   tweens to 1/0 over 0.4 s, ease in-out rate 1.2, value at the end of touch step + k =
   ease((k + 1) / 96); from 0/1 it starts at 1e-5/0.99999. After a completed flip to 1,
   `screenFlipObject` uses 1 - flip (PlayLayer 0x3204 = -1) until a flip back to 0 completes.
+  Code that reads a block's `getPosition()` sees that sprite x: the X-snap and the slope cover's centre test
+  in `collidedWithObjectInternal` (a slope only covers a block whose sprite centre is over it).
 - Enter effect triggers set a per-channel type for objects entering from the right (`enter`) or
   leaving at the left (`exit`): 22 -> -2 (fade only, the default), 23 -> -6, 24 -> -5, 25 -> -7,
   26 -> -8, 27 -> -3, 28 -> -4, 55 -> -11, 56 -> -10, 57 -> -9, 58 -> -12, 59 -> -13. They only move
