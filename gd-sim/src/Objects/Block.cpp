@@ -219,7 +219,11 @@ void Block::collideBlock(Player& p, bool bare) const {
 	// lands, stops its head or nothing; GD never tests its inner hitbox there
 	bool headCapable = p.vehicle.type == VehicleType::Ship || p.vehicle.type == VehicleType::Ufo || p.vehicle.type == VehicleType::Ball;
 	double headClip = (p.vehicle.type == VehicleType::Ball ? 10 : 6) + slopeClip + std::max(0.0, (double)p.grav(p.pos.y - p.prevPlayer().pos.y));
-	bool inRange = headCapable && (p.gravTop(*this) - bottom <= landClip || p.gravTop(p) - p.gravBottom(*this) <= headClip);
+	bool landRange = p.gravTop(*this) - bottom <= landClip;
+	bool headRange = headCapable && p.gravTop(p) - p.gravBottom(*this) <= headClip;
+	bool inRange = headCapable && (landRange || headRange);
+	// GD checks the landing side first, but for an upside-down ship, ufo or ball the head side (its world-down side)
+	bool headFirst = p.upsideDown && headCapable && headRange;
 
 	if (p.innerHitbox().intersects(*this) && !risingOnto && !inRange) {
 		// Hitting block head-on. Within 0.1 s of a gravity flip GD instead puts the player on the block's far
@@ -240,7 +244,7 @@ void Block::collideBlock(Player& p, bool bare) const {
 			p.onGround2 = false;
 		} else
 			p.dead = true;
-	} else if (p.vehicle.type != VehicleType::Wave && p.gravTop(*this) - bottom <= landClip && (padHitBefore || p.velocity <= 0 || p.slope.was) && !flippedOffGround && !coverFeet) {
+	} else if (p.vehicle.type != VehicleType::Wave && landRange && !headFirst && (padHitBefore || p.velocity <= 0 || p.slope.was) && !flippedOffGround && !coverFeet) {
 		p.pos.y = p.grav(p.gravTop(*this)) + p.grav(p.size.y / 2);
 		p.applyResize();
 
@@ -254,7 +258,7 @@ void Block::collideBlock(Player& p, bool bare) const {
 
 		if (!bare)
 			snapX(p);
-	} else if (!(p.gravTop(*this) - bottom <= landClip)) {
+	} else if (!landRange || headFirst) {
 		// (a block whose top is within the landing distance is GD's landing branch: if it doesn't land the player
 		// (rising, or a slope covers the top), the block does nothing, not even a head hit)
 		// Ship and ufo can hit the ceiling of a block without dying

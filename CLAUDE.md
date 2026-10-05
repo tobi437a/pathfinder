@@ -279,6 +279,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   velocity reaching exactly 0 in the air); a ufo head-hitting a breakable block breaks it instead.
   A head hit calls `hitGround` (the on-ground flags; a ball can jump from there) unless the block is wholly on the
   head side, at least the landing clip (10, fly 6, + slope extra, - rise) above the feet: then `hitGroundNoJump`.
+  An upside-down ship/ufo/ball checks the head side (world down) first: a block within head-hit distance of its head
+  only stops the head (when rising) or does nothing, even if its feet are in landing range.
   A block whose top is within the landing distance takes the landing branch only: if it doesn't land the player
   (rising, or a nearby slope covers the top), it does nothing, not even a head hit. This also holds on the frame the player touches a
   gravity portal or a pad. The sim (`Block::collide`) still lands the player on the frame of an orb
