@@ -399,6 +399,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
 - `PlayerObject::updateShipRotation` turns the ship (factor 0.15), wave (0.25, mini 0.4) and ufo (0.07) towards
   their direction of travel, slerping by factor * dt; the ufo's target is -0.4 times the travel angle (it
   leans back), clamped to at most 0.1 rad forward (`rotateUfo`). Rotated objects are tested against it.
+  Not on a slope: there every mode but the ball slerps towards the slope's angle (`updateSlopeRotation` in the
+  slope collision and again in `updateRotation`; ship rate x0.5).
 - So the cube's and ball's rotation matters (the sim keeps it in GD's clockwise degrees; ship, ufo and
   wave rotations and objects' are counter-clockwise). `GJBaseGameLayer::update` calls
   `PlayerObject::updateRotation(dt)` after the step's collisions (dt 0.25 at 240 tps): the spin

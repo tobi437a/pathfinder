@@ -484,9 +484,26 @@ void Player::hitGroundRotation() {
 	}
 }
 
+void Player::slopeRotation() {
+	// updateSlopeRotation: any mode but the ball turns towards the slope's angle (the ship's, ufo's and wave's
+	// rotation is counter-clockwise in the sim, GD's clockwise)
+	float target = closestRotation((float)(slope.rotation * 57.295780181884766));
+	if (vehicle.type == VehicleType::Cube) {
+		easeRotation(target);
+	} else if (vehicle.type != VehicleType::Ball) {
+		rotation = -rotation;
+		easeRotation(target);
+		rotation = -rotation;
+	}
+}
+
 void Player::updateRotation() {
 	if (vehicle.type != VehicleType::Cube && vehicle.type != VehicleType::Ball) {
 		pendingSpin.reset();
+		// PlayerObject::updateRotation: on a slope a ship, ufo or wave turns towards it (and doesn't lean,
+		// see rotateFly)
+		if (slope.on)
+			slopeRotation();
 		return;
 	}
 
@@ -498,7 +515,7 @@ void Player::updateRotation() {
 	// ground (m_isOnGround2, unless falling); otherwise the spin goes on
 	if (vehicle.type == VehicleType::Cube) {
 		if (slope.on) {
-			easeRotation(closestRotation((float)(slope.rotation * 57.295780181884766)));
+			slopeRotation();
 		} else if (onGround2 && !slope.was && (grounded || (upsideDown ? gdVelocity() <= 0.25 : gdVelocity() >= -0.25))) {
 			// (A landed player isn't rising: the landing stopped it, though the sim only zeroes the velocity
 			// in the vehicle's update, after this)

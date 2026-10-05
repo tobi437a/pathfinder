@@ -326,6 +326,8 @@ struct Player : public Entity {
 	void runBallRotation2();
 	float closestRotation(float target) const;
 	void easeRotation(float target);
+	/// PlayerObject::updateSlopeRotation
+	void slopeRotation();
 	void updateRotation();
 	/// PlayerObject::hitGround's part in the rotation (and m_isOnGround2)
 	void hitGroundRotation();

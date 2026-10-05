@@ -29,6 +29,9 @@ float normalizeRotation(Player const& p, float angle) {
 
 /// PlayerObject::updateShipRotation (ship, wave): turns towards the direction of travel
 void rotateFly(Player& p, float mult) {
+	// (not on a slope: Player::updateRotation turns it towards the slope)
+	if (p.slope.on)
+		return;
 	auto diff = p.pos - p.prevPlayer().pos;
 
 	// Unknown why this happens
@@ -40,6 +43,8 @@ void rotateFly(Player& p, float mult) {
 /// PlayerObject::updateShipRotation for the ufo: it leans back by 0.4 of its direction of travel, forward by at
 /// most 0.1 rad (GD's rotation is clockwise, the sim's counter-clockwise), turning at 0.07
 void rotateUfo(Player& p) {
+	if (p.slope.on)
+		return;
 	auto diff = p.pos - p.prevPlayer().pos;
 	if (p.dt * 72 <= std::pow(diff.x, 2) + std::pow(diff.y, 2)) {
 		float lean = atan2f((float)diff.y, (float)diff.x) * 0.4f;

@@ -351,9 +351,8 @@ void Slope::collide(Player& p) const {
 	if (fly || ball)
 		st.velocity = (float)sign * v * 0.75f;
 
-	// updateSlopeRotation: a cube turns towards the slope (and again in Player::updateRotation)
-	if (p.vehicle.type == VehicleType::Cube)
-		p.easeRotation(p.closestRotation((float)(st.rotation * 57.295780181884766)));
+	// updateSlopeRotation: anything but a ball turns towards the slope (and again in Player::updateRotation)
+	p.slopeRotation();
 	// A ball on a slope of a new angle rolls 1 / cos(angle) times as fast (above 2 only 0.7 of the excess)
 	if (ball && (double)(float)oldRotation != st.rotation) {
 		float f = 1.f / cosf((float)st.rotation);
