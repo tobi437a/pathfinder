@@ -421,6 +421,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   new spin starts a step later (GD handles the click at its next step). Ship/ufo/wave portals (on
   or off) and leaving the ball set the rotation to 0; leaving the ship/ufo/wave for the cube spins it
   (`resetPlayerIcon`), for the ball doesn't (`toggleRollMode` stops it).
+  A player grounded on the mode floor that turns into a ball starts rolling a step later (the floor's `hitGround`
+  runs before the portal); on a block it rolls at once (blocks come after portals).
 - Dual: `toggleDualMode` resets player 2 (`resetObject`: rotation 0, no spin, slope state, boosted and
   accelerating cleared) and copies player 1 onto it (`copyAttributes`: position, mode, gravity, size,
   speed, y velocity, `m_jumpBuffered`; nothing else; objects remember which player activated them, so each player

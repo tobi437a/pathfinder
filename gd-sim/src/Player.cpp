@@ -236,6 +236,7 @@ void Player::preCollision(bool pressed) {
 	onBlock = false;
 	headHit = false;
 	walkedOff = false;
+	becameBall = false;
 	slopeFallVelocity = 0;
 	slopeLeftAir = false;
 	ballJumped = false;
@@ -494,8 +495,9 @@ void Player::updateRotation() {
 		return;
 	}
 
-	// PlayerObject::hitGround runs every step on the ground, before this
-	if (grounded)
+	// PlayerObject::hitGround runs every step on the ground, before this (on the mode floor before the step's
+	// portals: a player that turned into a ball there only starts rolling next step, unless a block grounds it)
+	if (grounded && !(becameBall && !onBlock))
 		hitGroundRotation();
 
 	// PlayerObject::updateRotation(dt): a cube eases to the slope it's on, or to the nearest 90 degrees on the

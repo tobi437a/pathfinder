@@ -246,6 +246,9 @@ struct Player : public Entity {
 	/// GD's walk-off step (a step of gravity for a player leaving a block) was already applied this frame
 	bool walkedOff = false;
 
+	/// A vehicle portal turned the player into a ball this frame
+	bool becameBall = false;
+
 	/// GD's velocity after that step on a slope (the sim's standing player has none; the slope zeroes it again)
 	double slopeFallVelocity = 0;
 

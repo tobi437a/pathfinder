@@ -51,6 +51,8 @@ void VehiclePortal::collide(Player& player) const {
 		if (flies(from) || flies(type))
 			player.scaleRefreshed = true;
 		player.vehicle = Vehicle::from(type);
+		if (type == VehicleType::Ball)
+			player.becameBall = true;
 		// toggleFlyMode, toggleBirdMode, toggleDartMode (on or off) and toggleRollMode (off) set the rotation
 		// to 0; all of them stop it
 		player.stopRotation();
