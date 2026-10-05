@@ -177,6 +177,9 @@ Player& Level::runFrame(bool pressed, float dt) {
 	} else if (p.dual) {
 		// (with the speed GD's next step gives both players, updateTimeMod: a speed portal player 1 took this step)
 		q.speed = p.speed;
+		// GD turns player 2 in this step already (updateRotation runs for both players once dual mode is on): a
+		// ball's spin from the dual portal's flipGravity
+		q.updateRotation();
 		q.startDual();
 	}
 	if (p.dual) {

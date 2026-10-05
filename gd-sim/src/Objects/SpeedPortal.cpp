@@ -22,6 +22,14 @@ SpeedPortal::SpeedPortal(Vec2D size, std::unordered_map<int, std::string>&& fiel
 }
 
 
+bool SpeedPortal::touching(Player const& p) const {
+	// GD handles a speed portal as a trigger (playerTouchedTrigger), which in dual mode fires once in all: not again
+	// for the other player (unlike pads, orbs and the other portals, once per player)
+	if (p.partner && p.dual && p.partner->usedEffects.contains(id))
+		return false;
+	return EffectObject::touching(p);
+}
+
 void SpeedPortal::collide(Player& p) const {
 	EffectObject::collide(p);
 
