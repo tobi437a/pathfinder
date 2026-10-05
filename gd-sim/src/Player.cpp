@@ -679,6 +679,11 @@ void Player::postCollision() {
 	}
 
 	collisionVelocity = velocity;
+	// A speed portal's speed, from GD's next step on (updateTimeMod)
+	if (pendingSpeed >= 0) {
+		speed = pendingSpeed;
+		pendingSpeed = -1;
+	}
 	vehicle.update(*this);
 
 	// A ufo jumping as it walks off a block (or a mini ufo, which starts above the floor, pressed on the

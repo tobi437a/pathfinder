@@ -246,6 +246,9 @@ struct Player : public Entity {
 	/// GD's walk-off step (a step of gravity for a player leaving a block) was already applied this frame
 	bool walkedOff = false;
 
+	/// A speed portal touched this frame: GD's speed from its next step on (-1: none)
+	int pendingSpeed = -1;
+
 	/// A vehicle portal turned the player into a ball this frame
 	bool becameBall = false;
 
