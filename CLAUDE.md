@@ -372,7 +372,10 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   block on its head side, isn't killed (and doesn't break a breakable block): `collidedWithObjectInternal`
   puts it on the block's far side (upside down: on its top) and calls `hitGround`.
 - `checkCollisions` marks a player out of the mode's bounds (`m_isOutOfBounds`) and kills it only on the second
-  such step in a row (`destroyPlayer(p, nullptr)`); in between it isn't moved back.
+  such step in a row (`destroyPlayer(p, nullptr)`); in between it isn't moved back. The level's top is one such
+  bound: GD y above `m_maxGameplayY` (2790; `updateMaxGameplayY`) + (1 - 0.6) * 15 for a mini player (10 wave).
+- Leaving a slope by a launch (`boostPlayer`) or off a downhill slope's bottom clears `m_isOnGround`, so no
+  walk-off jump (upside down / dual) follows.
 - An upside-down cube below the ground (y 0) is out of bounds in `checkCollisions` before object collisions,
   unless it flipped gravity within 0.1 s: then it is put back on it with velocity 0, and grounded for
   a step (no gravity) if it was that slow.

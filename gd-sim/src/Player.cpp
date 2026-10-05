@@ -292,6 +292,10 @@ void Player::preCollision(bool pressed) {
 		if (prevPlayer().outOfBounds)
 			dead = true;
 	};
+	// Above the level's top (m_maxGameplayY: 2790 in GD's y, raised by the mini player's smaller half height)
+	float shrink = small ? (1 - 0.6f) * (vehicle.type == VehicleType::Wave ? 20.0f : 30.0f) * 0.5f : 0;
+	if ((float)(pos.y + 90) > 2790.0f + shrink)
+		outOfBoundsStep();
 	if (vehicle.type == VehicleType::Cube && upsideDown && getBottom() < floor && !dual) {
 		if (lastFlipFrame <= 0 || !stepsWithin(frame - lastFlipFrame, 0.1)) {
 			outOfBoundsStep();
@@ -627,7 +631,7 @@ void Player::postCollision() {
 		leaveSlope();
 
 	// Fell through ceiling, or hit floor
-	if (pos.y > 1476.3 || (upsideDown && getBottom() < floor && vehicle.type != VehicleType::Cube)) {
+	if ((upsideDown && getBottom() < floor && vehicle.type != VehicleType::Cube)) {
 		dead = true;
 		return;
 	}
