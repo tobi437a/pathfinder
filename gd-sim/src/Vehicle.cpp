@@ -359,6 +359,10 @@ Vehicle ufo() {
 		// PlayerObject::updateJump: a click sets the jump velocity (7, mini 0.85 * 8) only if the ufo is slower;
 		// a faster one just keeps falling
 		double jumpSpeed = (p.small ? (double)(0.85f * 8.0f) : 7.0) * 54;
+		// (either way the click is used up, m_stateRingJump: a ball entered later with it still held can't take an
+		// orb with it)
+		if (p.buffer)
+			p.clickUsed = true;
 		if (p.buffer && !(p.velocity < jumpSpeed)) {
 			p.buffer = false;
 			p.grounded = false;
