@@ -618,10 +618,8 @@ void Player::postCollision() {
 	if (gravBottom(*this) <= boundFloor && !velocityOverride && (velocity <= 0 || hitPad)) {
 		if (!headHit && !slope.on)
 			pos.y = grav(boundFloor) + grav(size.y / 2);
-		if (!hitPad) {
+		if (!hitPad)
 			grounded = true;
-			snapData.playerFrame = 0;
-		}
 	}
 
 	// After GD's floor snap, which runs before object collisions

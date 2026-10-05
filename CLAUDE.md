@@ -337,8 +337,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   target their sprite positions (`getPosition`), which differ while a mirror portal flips the level.
   slow T1 A90 B120 C60; normal T1 A120 B150 C90; fast T2 A150 B195 C120; faster T2 A180 B225 C135;
   fastest T1 A120 B150 C90; mini makes A 90 (except slow/fastest). Only `resetObject` clears it.
-  It only snaps if the previous snap object is a plain solid (`getType() == 0`): not from a
-  breakable block (type 21), though onto one it does. The sim prints `Snap` lines like the verifier's.
+  It only snaps if the previous snap object is another one (unique id) and a plain solid (`getType() == 0`): not
+  from a breakable block (type 21), though onto one it does. Any landing counts, also one straight off a slope. The sim prints `Snap` lines like the verifier's.
 - The level ends where `PlayLayer::checkForEnd` finds player 1's x at the end portal's spawn point:
   `createObjectsFromSetupFinished` puts the portal at max(screen right + 300, last object x + 340),
   the spawn point is 300 before it, so last object x (any object) + 40 (`Level::length`).

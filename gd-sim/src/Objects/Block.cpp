@@ -94,8 +94,9 @@ void trySnap(Block const& b, Player& p) {
 void Block::snapX(Player& p) const {
 	if (p.vehicle.type != VehicleType::Cube)
 		return;
-	if (!p.prevPlayer().grounded) {
-		if (p.snapData.playerFrame > 0 && p.snapData.playerFrame + 1 < p.frame && p.snapData.fromSolid) {
+	// GD tries every landing (a cube coming off a slope too), from the last block it landed on if that's another one
+	{
+		if (p.snapData.playerFrame > 0 && p.snapData.objectId != id && p.snapData.fromSolid) {
 			float before = p.pos.x;
 			trySnap(*this, p);
 			// Like the verifier's Snap lines in real.txt (sim frame = real frame + 1)
@@ -108,6 +109,7 @@ void Block::snapX(Player& p) const {
 
 	p.snapData.playerFrame = p.level->currentFrame();
 	p.snapData.object = *this;
+	p.snapData.objectId = id;
 	p.snapData.fromSolid = !dynamic_cast<BreakableBlock const*>(this);
 	p.snapData.spriteDx = p.spriteShift(pos.x);
 }

@@ -86,6 +86,8 @@ struct Player : public Entity {
 	/// X-snapping. See Block.cpp for more information
 	struct {
 		Entity object;
+		/// That block's Object::id (GD compares the unique ids: landing on the same block again doesn't snap)
+		int objectId = -1;
 		/// GD only snaps from a plain solid (GameObject type 0), not from a breakable block
 		bool fromSolid = true;
 		int playerFrame = 0;
