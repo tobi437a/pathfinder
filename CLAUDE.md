@@ -471,7 +471,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   ball, robot, spider, swing, not the wave), the other player takes the opposite gravity
   (`PlayerObject::flipGravity`: world y velocity x0.5); a fresh orb click does it at the start of
   GD's next step. When both players click a blue/green orb in one step, player 1's goes first, so player 2 ends
-  in player 1's new gravity and player 1 is flipped back. Player 2 flipped by player 1 in a step is flipped before it moves, so its gravity step
+  in player 1's new gravity and player 1 is flipped back. Both players turn (`updateRotation`) after both stepped, so player 1 flipped by player 2 turns with
+  the spin the flip gives it. Player 2 flipped by player 1 in a step is flipped before it moves, so its gravity step
   and its blocks are all in the new gravity (`partnerFlipped`). Not in two-player mode (`kA10`, settings 0x154), where each player also gets only
   its own inputs (`handleButton`), so a player-1 macro never presses player 2.
 - `GJBaseGameLayer::checkRepellPlayer`, at the end of every step in dual (not two-player): two balls of the

@@ -388,7 +388,16 @@ void Player::flipPartner() {
 	// acceleration GD's next updateJump chooses for the flipped player (a ship's depends on its velocity). A
 	// grounded one has none.
 	double gd = o.grounded ? 0 : o.collisionVelocity;
+	// GD turns both players after both stepped (updateRotation): player 1, flipped by player 2 after its own turn,
+	// turns with the spin the flip gives it (a ball's), not the one before
+	auto spinStep = [&] {
+		float mult = o.ballRotating && o.vehicle.type == VehicleType::Ball ? o.rotateSpeed : 1;
+		return ((float)(o.dt * 60) / 60.0f) * o.rotationSpeed * mult;
+	};
+	float stepBefore = spinStep();
 	o.flipGravity(!upsideDown);
+	if (o.frame == frame)
+		o.rotation += spinStep() - stepBefore;
 	o.partnerFlipped = true;
 	o.velocity = -gd / 2;
 	o.collisionVelocity = o.velocity;
