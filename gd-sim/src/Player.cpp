@@ -625,7 +625,10 @@ void Player::postCollision() {
 	// gets snapped (but launches the player rather than grounding them), and a block that stopped the
 	// player's head after that can leave it below the floor (still grounded)
 	float boundFloor = upsideDown ? -startCeiling : startFloor;
-	if (gravBottom(*this) <= boundFloor && !velocityOverride && (velocity <= 0 || hitPad)) {
+	// (GD snaps a player strictly below the floor (preCollision): one that moved exactly onto it isn't grounded until
+	// its next step; the sim's resting player doesn't move, GD's falls a step below and is put back)
+	float bottom = gravBottom(*this);
+	if ((bottom < boundFloor || (bottom == boundFloor && (velocity == 0 || floorSnapped))) && !velocityOverride && (velocity <= 0 || hitPad)) {
 		if (!headHit && !slope.on)
 			pos.y = grav(boundFloor) + grav(size.y / 2);
 		if (!hitPad)
