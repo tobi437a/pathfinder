@@ -124,6 +124,9 @@ void Orb::collide(Player& p) const {
 		p.buffer = false;
 		p.vehicleBuffer = false;
 		p.clickedOrb = true;
+		// (ringJump clears m_jumpBuffered only for a ball)
+		if (p.vehicle.type == VehicleType::Ball)
+			p.jumpBuffered = false;
 		p.clickUsed = true;
 		p.onGround2 = false;
 

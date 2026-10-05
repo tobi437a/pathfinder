@@ -251,6 +251,9 @@ struct Player : public Entity {
 	/// A speed portal touched this frame: GD's speed from its next step on (-1: none)
 	int pendingSpeed = -1;
 
+	/// GD's m_jumpBuffered: set by a press, cleared by the release, a ball's jump or an orb (until the next press)
+	bool jumpBuffered = false;
+
 	/// A fresh click took an orb off the ground this frame (GD's step still has the player on the ground)
 	bool orbFromGround = false;
 

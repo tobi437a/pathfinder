@@ -455,7 +455,7 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   slope) has fallen a step of gravity into it by then (the block puts it back later). In a level that starts
   in dual (`kA8`) player 2 is stepped from the first step, off the ground. `handleButton` presses and
   releases player 2 only while dual is on, but `m_jumpBuffered` is the held flag (`pushButton` sets
-  it, `releaseButton` or an orb clears it), so a button held into a dual portal is held by both.
+  it; `releaseButton`, a ball's jump, or an orb taken as a ball clears it, until the next press; `Player::jumpBuffered`), so a button held into a dual portal is held by both.
   `toggleDualMode` also sets `m_unkA99` (0xa99) on both players to the dual flag, which negates
   gravity in `playerIsFallingBugged` for a non-upside-down player: in dual, "falling" (the ship's
   and ufo's gravity factors, the end of `m_maybeIsBoosted`) is y velocity < -2g for both

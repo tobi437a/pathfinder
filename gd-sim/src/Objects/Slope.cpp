@@ -100,7 +100,7 @@ bool isFly(Player const& p) {
 /// press a step earlier than the sim, see Player::postCollision); a ball's jump uses the click up
 bool isHeld(Player const& p) {
 	auto const& prev = p.prevPlayer();
-	return p.vehicle.type == VehicleType::Ball ? prev.input : prev.button;
+	return p.vehicle.type == VehicleType::Ball ? prev.input : prev.button && prev.jumpBuffered;
 }
 
 /// Within 0.1 s of a gravity flip or a mode change (GD's m_lastFlipTime, m_gameModeChangedTime)

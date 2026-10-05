@@ -235,6 +235,7 @@ Vehicle ball() {
 				p.input = false;
 				p.buffer = false;
 				p.ballJumped = true;
+			p.jumpBuffered = false;
 			} else {
 				// Otherwise it leaves the ceiling on the next step, which adds gravity before the move. hitGround
 				// still starts its roll (without the on-ground flags)
@@ -306,6 +307,7 @@ Vehicle ball() {
 			}
 			p.boosted = true;
 			p.ballJumped = true;
+			p.jumpBuffered = false;
 			p.clickUsed = true;
 			p.vehicleBuffer = false;
 			p.buffer = false;

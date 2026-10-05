@@ -262,6 +262,7 @@ void Player::preCollision(bool pressed) {
 
 	if (button != pressed) {
 		button = pressed;
+		jumpBuffered = pressed;
 		input = button;
 		buffer = button;
 		if (pressed)
