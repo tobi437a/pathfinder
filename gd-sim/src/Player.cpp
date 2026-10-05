@@ -120,6 +120,21 @@ void Player::copyAttributes(Player const& other) {
 	// GD remembers which pads, orbs and portals each player activated (hasBeenActivatedByPlayer: a flag per player)
 	usedEffects = std::move(own.usedEffects);
 	lastFlipFrame = upsideDown != own.upsideDown ? frame : own.lastFlipFrame;
+	// ...through the mode toggles (toggleFlyMode etc.), with their rotation effects (see VehiclePortal::collide),
+	// and updateTimeMod, which restarts a ball's roll
+	VehicleType from = own.vehicle.type, to = vehicle.type;
+	auto flies = [](VehicleType t) { return t == VehicleType::Ship || t == VehicleType::Ufo || t == VehicleType::Wave; };
+	if (from != to) {
+		stopRotation();
+		if (flies(from) || flies(to) || from == VehicleType::Ball)
+			rotation = 0;
+		if (flies(from) && to == VehicleType::Cube)
+			runNormalRotation();
+	}
+	if (to == VehicleType::Ball) {
+		stopRotation();
+		runBallRotation();
+	}
 }
 
 void Player::resetObject() {

@@ -63,7 +63,7 @@ offline regression set, `regress.py --runs runs-pre1.8 [--p2] --base w58p`: 415/
   player 1, and the sim gives player 2 no button there.
 - Parked: 1664135 (GD's
   m_wasOnSlope stays 0 a second step), 2040390 (GD spares player 1 at a sawblade it should touch),
-  1672208, 1862685 (pad on a slope's flat side).
+  1862685 (pad on a slope's flat side).
 - `regress.py` labels each divergence p1, p2, rot, death-gd or death-sim. `--rot` scores cube/ball rotation (for rotated objects); look for remaining rotation
   bugs with it too.
 - End-to-end: rebuild Release `pathfinder-cli`, `batch.py --redo pathfind`, `batch.py --redo
@@ -446,7 +446,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   accelerating cleared) and copies player 1 onto it (`copyAttributes`: position, mode, gravity, size,
   speed, y velocity, `m_jumpBuffered`; nothing else; objects remember which player activated them, so each player
   can use a pad/orb/portal once, `hasBeenActivatedByPlayer`), flips player 2's gravity and gives it the
-  opposite y velocity; a solo portal taken by player 2 copies player 2 (as its collisions have it then,
+  opposite y velocity; a solo portal taken by player 2 copies player 2 (through the mode toggles, with their rotation effects, and `updateTimeMod`,
+  which restarts a ball's roll; as its collisions have it then,
   after earlier portals in object order) onto player 1, which keeps its own rotation, slope state etc.
   and adds gravity to the copied velocity on its next step, and releases all of player 2's buttons. GD steps player 2 (update, collisions) right after player 1 (not once player 1
   died in that step), from the step after dual starts, so its first `updateJump` adds gravity before
