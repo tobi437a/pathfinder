@@ -204,6 +204,7 @@ python tools\regress.py --save base          # first real/sim divergence per run
 python tools\regress.py --base base          # after a sim change: which runs diverge later / earlier
 python tools\regress.py --rot --save r0       # also a cube's/ball's rotation (mod 90) must match GD's
 python tools\regress.py --p2 --save p0        # also player 2 in dual mode (P2 lines)
+python tools\regress.py --rotfly --save f0    # also a ship's / ufo's / wave's rotation
 python tools\triage.py                       # sim mode + objects at each divergence -> triage.txt
 python tools\diverge.py <id> [--frame F]     # one run: real vs sim per frame, button, nearby objects
 python tools\diverge.py <id> --p2 --flags   # player 2 instead; GD's and the sim's Flags lines per frame
