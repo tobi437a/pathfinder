@@ -29,6 +29,9 @@ struct Slope : public Block {
     bool uphill = false;
     /// m_slopeIsHazard
     bool hazard = false;
+    /// Turned by 90 degrees (its size swapped): GD's getObjectRect(sx, sy) scales the unturned size, so the
+    /// scales swap too
+    bool turned = false;
 
     Slope(Vec2D size, std::unordered_map<int, std::string>&& fields);
     /// GD's broadphase for slopes: the hitbox at twice its size

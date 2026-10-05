@@ -29,6 +29,7 @@ Slope::Slope(Vec2D size, std::unordered_map<int, std::string>&& fields) : Block(
 	bool half = std::abs(rot) == 180;
 	bool cw = rot == 90 || rot == -270;
 	bool ccw = rot == -90 || rot == 270;
+	turned = (int)std::abs(rot) % 180 != 0;
 
 	auto set = [&](int dir) {
 		direction = dir;

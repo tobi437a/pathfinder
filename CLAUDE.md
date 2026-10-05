@@ -257,7 +257,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   `collidedWithSlopeInternal`), `Player::leaveSlope` (`postCollision`), `Player::slopeJump`
   (`updateJump`) and `Block::collideBlock` (`collidedWithObjectInternal`'s slope parts); comments
   there explain them. GD collides slopes in object order with pads/orbs/portals, before blocks, with a
-  broadphase rect at twice their size. A flying player holding on an uphill slope gets y velocity >= 2
+  broadphase rect at twice their size. `getObjectRect(sx, sy)` scales the unrotated size and then swaps it
+  for a 90-degree turn, so a turned slope's (1.2, 1.1) cover rect is 1.1 wide, 1.2 tall. A flying player holding on an uphill slope gets y velocity >= 2
   and isn't landed, so it rides the surface and keeps its speed off the top; leaving a slope launches
   at `min(0.8 / angle, 1.1) * rise * 1.4` (x0.75 fly/ball, ramped 0.4 -> 1 over the first 0.1 s) if
   that's faster; leaving one off its bottom falls at its speed. `postCollision` forgets the slope it collided with

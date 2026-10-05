@@ -175,7 +175,7 @@ void Block::collideBlock(Player& p, bool bare) const {
 		for (Slope const* s : p.potentialSlopes) {
 			if (!any && s != p.slope.current && !(s->getLeft() < pos.x && pos.x < s->getRight()))
 				continue;
-			GDRect sr = GDRect::of(*s, 1.2f, 1.1f);
+			GDRect sr = s->turned ? GDRect::of(*s, 1.1f, 1.2f) : GDRect::of(*s, 1.2f, 1.1f);
 			if (!sr.intersects(block) || !sr.intersects(player))
 				continue;
 			double sy = s->surfaceY(s->uphill != s->ceiling() ? block.minX() : block.maxX());
