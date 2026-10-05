@@ -80,6 +80,8 @@ def score(run: Path):
     while last - 1 in real and real[last - 1][0] == real[last][0]:
         last -= 1
     frames = [f for f in sorted(real) if f <= last and f + 1 in sim]
+    # (GD stops the spin of a player it kills: no rotation on its death step)
+    rot_last = last - 1 if real_died else last
     real_modes = modes(run / "real.txt") if ROT or ROTFLY else {}
     real2, sim2 = (p2_path(run / "real.txt"), p2_path(run / "simdbg.txt")) if P2 else ({}, {})
     for f in frames:
@@ -92,11 +94,11 @@ def score(run: Path):
             (rx2, ry2), (sx2, sy2) = real2[f], sim2[f + 1]
             if abs(rx2 - sx2) > TOL or abs(ry2 - sy2) > TOL:
                 return f, len(frames), "p2"
-        if ROT and real_modes.get(f, "")[:1] in ("c", "b"):
+        if ROT and f <= rot_last and real_modes.get(f, "")[:1] in ("c", "b"):
             d = (rr - sr) % 90
             if min(d, 90 - d) > TOL:
                 return f, len(frames), "rot"
-        if ROTFLY and real_modes.get(f, "")[:1] in ("s", "u", "w"):
+        if ROTFLY and f <= rot_last and real_modes.get(f, "")[:1] in ("s", "u", "w"):
             d = (rr + sr) % 360
             if min(d, 360 - d) > TOL:
                 return f, len(frames), "rotfly"
