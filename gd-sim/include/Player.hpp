@@ -240,6 +240,10 @@ struct Player : public Entity {
 	/// GD's walk-off step (a step of gravity for a player leaving a block) was already applied this frame
 	bool walkedOff = false;
 
+	/// Leaving a slope launched the player or let it fall off the bottom, which clears GD's m_isOnGround (no
+	/// coyote jump after it)
+	bool slopeLeftAir = false;
+
 	/// A ball jumped (flipped) at the end of this frame: GD does that in its next step's updateJump, so its
 	/// end-of-step checks still see the old gravity (Level::repelBalls)
 	bool ballJumped = false;
