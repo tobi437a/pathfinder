@@ -469,7 +469,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   its ceiling is out of bounds unless gravity/mode changed within 0.2 s, which puts it back stopped (y velocity 0,
   both ground flags cleared). A speed portal (either player's) sets a pending speed that
   `GJBaseGameLayer::update` gives player 1 and, in dual, player 2 (`updateTimeMod`) at the start of the
-  next step. The rest of the step (slopes, orbs, X-snaps, rotation easing) still uses the old speed. A speed portal
+  next step. The rest of the step (slopes, orbs, X-snaps, rotation easing) still uses the old speed. `updateTimeMod` also restarts a ball's roll (whatever
+  mode the player has by the next step: a ball portal after the speed portal counts). A speed portal
   (a trigger, `playerTouchedTrigger`) fires once in all, not again for the other player. At a dual portal GD turns
   player 2 by a step of its new spin (a ball's flip spin) in that step already. Gravity portals, blue pads and blue/green orbs flip through
   `GJBaseGameLayer::flipGravity`: in dual, with both players in the same mode (it compares ship, ufo,

@@ -713,6 +713,11 @@ void Player::postCollision() {
 	if (pendingSpeed >= 0) {
 		speed = pendingSpeed;
 		pendingSpeed = -1;
+		// (which restarts a ball's roll: this step turned with the old spin)
+		if (vehicle.type == VehicleType::Ball) {
+			stopRotation();
+			runBallRotation();
+		}
 	}
 	vehicle.update(*this);
 
