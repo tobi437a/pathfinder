@@ -285,6 +285,7 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   the collisions; the slope puts it back, except one that lets go (same target as last step, e.g. at
   its top), and a hazard slope (`m_slopeIsHazard`) overlapping the player's slope kills it then, on the
   step after landing (`destroyPlayer(p, nullptr)`). The sim takes that walk-off step in `preCollision`.
+  A gravity portal touched before the slope's collision flips that step's velocity (x -0.5).
 - The inner hitbox (`getObjectRect(0.3, 0.3)`: 9x9, a mini player's too, since the sim's tests agree with
   GD's deaths only that way) kills on a block, except when the player rises (y velocity > 0, not off a
   slope) with its feet within the landing distance of the block's top: then GD neither lands nor kills.
