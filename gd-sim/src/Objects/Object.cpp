@@ -65,6 +65,7 @@ std::optional<ObjectContainer> Object::create(std::unordered_map<int, std::strin
 	objs(({ 1565 }), Block, 17, 17)
 	objs(({ 1227 }), Block, 30, 7)
 	objs(({ 328 }), Block, 22, 22)
+	objs(({ 329 }), Block, 43, 22)
 	objs(({ 197 }), Block, 22, 21)
 	objs(({ 194 }), Block, 21, 21)
 	objs(({ 176 }), Block, 14, 21)
