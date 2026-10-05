@@ -61,8 +61,7 @@ offline regression set, `regress.py --runs runs-pre1.8 [--p2] --base w58p`: 415/
   but not all of them. Search improvements are for after 1.8 support.
 - Two-player levels (`kA10`, 4 in the batch) need player-2 inputs: the pathfinder only presses
   player 1, and the sim gives player 2 no button there.
-- Known unexplained: a pad then a slope in the same step (2284379 frame 778) - GD keeps the pad's
-  spin, so its slope collision skips `hitGround` there; the sim doesn't. Also parked: 1664135 (GD's
+- Parked: 1664135 (GD's
   m_wasOnSlope stays 0 a second step), 2040390 (GD spares player 1 at a sawblade it should touch), 2064569,
   1672208, 1693598 (slope handover), 1797252 (45-degree pad, 0.01 margin), 1841302 (ceiling slope covering a
   block), 1862685 (pad on a slope's flat side), 1734354 (dual ball slope landing).
@@ -309,7 +308,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   The flipped player lands on a block on its new side in the same step if it touches it; one that
   stood on a block has already moved a step of its old gravity into that block, so it can miss.
   Any pad launches a player standing on a block from that step into the block (no snap back),
-  unless a slope earlier in the step's collisions put it back on its surface (launched from there).
+  unless a slope (or a slope's side, as a block) earlier in the step's collisions put it back on its surface
+  (launched from there).
 - `m_isAccelerating` (0x952): set by a slope launch (`boostPlayer`) and a black (drop, type 32) or
   red ring, cleared by pads (not red) and, at the start of `updateJump`, for a ship/ufo/wave/swing
   whose y velocity is within [0, 8) up or (-6.4, 0] down (/ 0.85 mini). While set, the ship and ufo
