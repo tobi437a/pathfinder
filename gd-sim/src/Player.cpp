@@ -279,6 +279,12 @@ void Player::preCollision(bool pressed) {
 	floorSnapped = gravBottom(*this) < gravFloor() && !(cubeBounds && boosted);
 	if (floorSnapped) {
 		pos.y = grav(gravFloor()) + grav(size.y / 2);
+		// (GD's hitGround: a ball stops and starts rolling before the step's portals)
+		if (vehicle.type == VehicleType::Ball) {
+			if (velocity < 0)
+				velocity = 0;
+			hitGroundRotation();
+		}
 		// For a cube on the ground (not in dual mode, where the mode bounds work like a flying mode's) that's
 		// hitGround, which stops it: a gravity portal touched in this step flips a stopped player
 		if (vehicle.type == VehicleType::Cube && !upsideDown && !dual && !boosted && velocity <= 270)
@@ -522,7 +528,8 @@ void Player::updateRotation() {
 
 	// PlayerObject::hitGround runs every step on the ground, before this (on the mode floor before the step's
 	// portals: a player that turned into a ball there only starts rolling next step, unless a block grounds it)
-	if (grounded && !(becameBall && !onBlock))
+	// (one GD put on the mode floor and a gravity portal then flipped had its hitGround before the flip: preCollision)
+	if (grounded && !(becameBall && !onBlock) && !(floorSnapped && gravityPortal && !onBlock))
 		hitGroundRotation();
 
 	// PlayerObject::updateRotation(dt): a cube eases to the slope it's on, or to the nearest 90 degrees on the

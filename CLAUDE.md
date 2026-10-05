@@ -400,6 +400,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
 - Ship/UFO/ball hitting the ceiling (without flipping): velocity becomes 0, and the next step adds gravity *chosen for
   velocity 0* (the lighter one) before moving, so the player leaves the ceiling on that step. A ufo
   jumping on that next step moves up into the ceiling instead and stays there one step longer.
+- A ball snapped onto the mode floor gets its `hitGround` (velocity 0, roll) before the step's portals: a gravity
+  portal then flips a stopped ball and gives it the flip spin.
 - A player that moves exactly onto the mode floor (not below it) isn't snapped or grounded until its next step
   (`checkCollisions` compares strictly).
 - `GJBaseGameLayer::checkCollisions` snaps a normal-gravity cube below the floor onto the floor
