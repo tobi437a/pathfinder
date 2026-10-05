@@ -325,9 +325,12 @@ void Slope::collide(Player& p) const {
 			if (!up ? 5 < v0 : v0 < -5)
 				p.setGdVelocity(v0);
 		} else {
+			// (a slope on the head side clears both on-ground flags, m_isOnGround and m_isOnGround2)
 			double v = p.gdVelocity();
 			p.setGdVelocity(!up ? (0 <= v ? 0 : v) : (v <= 0 ? 0 : v));
 			p.grounded = false;
+			p.onGround2 = false;
+			p.groundCleared = true;
 		}
 	}
 	if (clampDown) {

@@ -63,7 +63,7 @@ offline regression set, `regress.py --runs runs-pre1.8 [--p2] --base w58p`: 415/
   player 1, and the sim gives player 2 no button there.
 - Parked: 1664135 (GD's
   m_wasOnSlope stays 0 a second step), 2040390 (GD spares player 1 at a sawblade it should touch), 2064569,
-  1672208, 1693598 (slope handover), 1797252 (45-degree pad, 0.01 margin), 1862685 (pad on a slope's flat side), 1734354 (dual ball slope landing).
+  1672208, 1693598 (slope handover), 1797252 (45-degree pad, 0.01 margin), 1862685 (pad on a slope's flat side).
 - `regress.py` labels each divergence p1, p2, rot, death-gd or death-sim. `--rot` scores cube/ball rotation (for rotated objects); look for remaining rotation
   bugs with it too.
 - End-to-end: rebuild Release `pathfinder-cli`, `batch.py --redo pathfind`, `batch.py --redo
@@ -268,6 +268,8 @@ world: `updateJump` subtracts sign * gravity; the sim's `velocity` is gravity-re
   the top of a neighbouring slope's side rect, so the player doesn't land on that). Both are set after the step's move, so
   a player that landed on a block in that step takes no walk-off step. Pads clear the slope flags;
   `flipGravity` flips which way is downhill.
+  A slope on the player's head side (`m_maybeUpsideDownSlope`) doesn't call `hitGround`: it stops the velocity into
+  it and clears both on-ground flags (no walk-off jump after it).
 - `m_speedMultiplier` (`updateTimeMod`) is 5.980002 / 5.7700018882751465 / 5.870002 / 6.000002 /
   6.000002 for m_playerSpeed 0.7 / 0.9 / 1.1 / 1.3 / 1.6, so x per step = speed * mult * 60 / 240
   (the sim's `player_speeds`). `m_gravity` 0.940199 / 0.958199 / 0.957199 / 0.961199 / 0.961199.

@@ -238,7 +238,7 @@ void Player::preCollision(bool pressed) {
 	walkedOff = false;
 	becameBall = false;
 	slopeFallVelocity = 0;
-	slopeLeftAir = false;
+	groundCleared = false;
 	ballJumped = false;
 	scaleRefreshed = false;
 	portalVelocityScale = 1;
@@ -571,7 +571,7 @@ void Player::leaveSlope() {
 			setGdVelocity(b);
 			velocityOverride = false;
 			grounded = false;
-			slopeLeftAir = true;
+			groundCleared = true;
 			boosted = true;
 			accelerating = true;
 			onGround2 = false;
@@ -591,7 +591,7 @@ void Player::leaveSlope() {
 			setGdVelocity((upsideDown ? -1 : 1) * -slope.yVelocity);
 			velocityOverride = false;
 			grounded = false;
-			slopeLeftAir = true;
+			groundCleared = true;
 			onGround2 = false;
 			stopRotation();
 			if (vehicle.type == VehicleType::Ball)
@@ -648,7 +648,7 @@ void Player::postCollision() {
 	}
 
 	// Coyote frames 
-	if (slopeLeftAir) {
+	if (groundCleared) {
 		coyoteFrames = INT_MAX;
 	} else if (prevPlayer().gravBottom(*this) > prevPlayer().gravFloor() && upsideDown == prevPlayer().upsideDown && !grounded && velocity <= 0) {
 		if (prevPlayer().grounded && !prevPlayer().input)

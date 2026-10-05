@@ -255,9 +255,9 @@ struct Player : public Entity {
 	/// GD's velocity after that step on a slope (the sim's standing player has none; the slope zeroes it again)
 	double slopeFallVelocity = 0;
 
-	/// Leaving a slope launched the player or let it fall off the bottom, which clears GD's m_isOnGround (no
-	/// coyote jump after it)
-	bool slopeLeftAir = false;
+	/// GD cleared m_isOnGround this frame (leaving a slope by a launch or off its bottom, a slope on the head
+	/// side): no walk-off jump (coyote frames) after it
+	bool groundCleared = false;
 
 	/// A ball jumped (flipped) at the end of this frame: GD does that in its next step's updateJump, so its
 	/// end-of-step checks still see the old gravity (Level::repelBalls)
