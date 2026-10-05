@@ -275,12 +275,22 @@ void Block::collideBlock(Player& p, bool bare) const {
 				if (!stopsHead(p)) {
 					p.dead = true;
 				} else {
+					// GD calls hitGround (the on-ground flags: a ball can jump from there) unless the block is wholly on
+					// the head side, at least the landing clip above the feet (hitGroundNoJump)
+					double feetClip = (p.vehicle.type == VehicleType::Ball ? 10 : 6) + slopeClip
+						- std::max(0.0, (double)p.grav(p.pos.y - p.prevPlayer().pos.y));
+					bool headSide = p.gravBottom(*this) - bottom >= feetClip;
+					double before = p.velocity;
 					p.pos.y = p.grav(p.gravBottom(*this)) - p.grav(p.size.y / 2);
 					p.velocity = 0;
 					p.headHit = true;
 					p.applyResize();
-					// (hitGround, which starts a ball's roll, without the on-ground flags)
-					if (p.vehicle.type == VehicleType::Ball) {
+					if (!headSide) {
+						if (before <= 5 * 54)
+							p.grounded = true;
+						p.hitGroundRotation();
+					} else if (p.vehicle.type == VehicleType::Ball) {
+						// (hitGroundNoJump starts a ball's roll, without the on-ground flags)
 						bool onGround2 = p.onGround2;
 						p.hitGroundRotation();
 						p.onGround2 = onGround2;
