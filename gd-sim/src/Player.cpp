@@ -321,8 +321,11 @@ void Player::preCollision(bool pressed) {
 		}
 		// For a cube on the ground (not in dual mode, where the mode bounds work like a flying mode's) that's
 		// hitGround, which stops it: a gravity portal touched in this step flips a stopped player
-		if (vehicle.type == VehicleType::Cube && !upsideDown && !dual && !boosted && velocity <= 270)
+		if (vehicle.type == VehicleType::Cube && !upsideDown && !dual && !boosted && velocity <= 270) {
 			velocity = 0;
+			// (and its rotation part: the spin stops before a gravity portal in this step can flip it)
+			hitGroundRotation();
+		}
 		// A falling ship or ufo: hitGround stops it before the collisions (a slope it rides below the floor then
 		// clamps that, see Slope::collide)
 		if ((vehicle.type == VehicleType::Ship || vehicle.type == VehicleType::Ufo) && velocity < 0)
