@@ -270,6 +270,10 @@ struct Player : public Entity {
 	/// A ball jumped (flipped) at the end of this frame: GD does that in its next step's updateJump, so its
 	/// end-of-step checks still see the old gravity (Level::repelBalls)
 	bool ballJumped = false;
+	/// The flags that jump cleared or set, for a repel that undoes it (GD never made that jump)
+	struct {
+		bool boosted, jumpBuffered, vehicleBuffer, clickUsed;
+	} beforeBallJump{};
 
 	/// GD caches the player's hitbox, so a size portal's new size only shows once the player is moved
 	/// (e.g. snapped onto a block) or at the end of the frame

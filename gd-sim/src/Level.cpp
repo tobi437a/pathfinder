@@ -229,7 +229,7 @@ Player& Level::runFrame(bool pressed, float dt) {
 				std::cout << (pl == &p ? "Flags " : "Flags2 ") << gameStates.size() << " og " << pl->grounded
 						  << " og2 " << pl->onGround2 << " rotating " << pl->isRotating << " spin " << pl->rotationSpeed
 						  << " slope " << pl->slope.on << pl->slope.was << " boosted " << pl->boosted
-						  << " acc " << pl->accelerating << " btn " << pl->button << " floor " << pl->floor << " ceiling "
+						  << " acc " << pl->accelerating << " btn " << pl->jumpBuffered << " floor " << pl->floor << " ceiling "
 						  << pl->ceiling << std::endl;
 				// `Pot <frame> <player> <x> <y> slope <x> <y>`: the potential and current slopes (verifier: GD lines)
 				auto at = [](Slope const* s) {
@@ -270,6 +270,11 @@ void Level::repelBalls(Player& p, Player& q) const {
 	if (flip->ballJumped) {
 		flip->ballJumped = false;
 		flip->input = flip->button;
+		// (nor clears m_jumpBuffered: it jumps once it is on the ground again)
+		flip->boosted = flip->beforeBallJump.boosted;
+		flip->jumpBuffered = flip->beforeBallJump.jumpBuffered;
+		flip->vehicleBuffer = flip->beforeBallJump.vehicleBuffer;
+		flip->clickUsed = flip->beforeBallJump.clickUsed;
 	} else
 		flip->flipGravity(!flip->upsideDown);
 	flip->velocity = roundVel(-2 * 54 + flip->acceleration * flip->dt, flip->upsideDown);
