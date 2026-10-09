@@ -158,7 +158,7 @@ Player& Level::runFrame(bool pressed, float dt) {
 	for (Player* pl : {&p, &q}) {
 		if (pl->flipPartnerNext) {
 			pl->flipPartnerNext = false;
-			pl->flipPartner();
+			pl->flipPartner(false);
 		}
 	}
 	int collisions = stepPlayer(p, pressed, dt);

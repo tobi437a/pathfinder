@@ -324,7 +324,8 @@ struct Player : public Entity {
 	void flipGravity(bool upsideDown);
 	/// GJBaseGameLayer::flipGravity's dual part, after this player's gravity portal, blue pad or blue/green orb
 	/// flip: with both players in the same mode, the other one takes the opposite gravity
-	void flipPartner();
+	/// (turned: the other player has turned this step already, as when player 2's collisions flip player 1)
+	void flipPartner(bool turned = true);
 	/// flipPartner at the start of the next frame: GD handles a fresh orb click there (pushButton), before either
 	/// player moves, where the sim clicks the orb a frame earlier
 	bool flipPartnerNext = false;

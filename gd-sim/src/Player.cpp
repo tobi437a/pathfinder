@@ -437,7 +437,7 @@ bool Player::flipsPartner() const {
 	return flipsPartnerKind() && partner->upsideDown == upsideDown;
 }
 
-void Player::flipPartner() {
+void Player::flipPartner(bool turned) {
 	if (!flipsPartner())
 		return;
 	Player& o = *partner;
@@ -455,7 +455,7 @@ void Player::flipPartner() {
 	};
 	float stepBefore = spinStep();
 	o.flipGravity(!upsideDown);
-	if (o.frame == frame) {
+	if (o.frame == frame && turned) {
 		o.rotation += spinStep() - stepBefore;
 		o.collisionUpsideDown = o.upsideDown;
 	}
