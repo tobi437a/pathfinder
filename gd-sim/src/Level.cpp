@@ -366,15 +366,17 @@ int Level::stepPlayer(Player& p, bool pressed, float dt) {
 	if (p.scaleRefreshed)
 		p.applyResize();
 
-	// Blocks are processed in descending order
-	for (int i = blocks.size() - 1; i >= 0; --i) {
-		if (p.dead) break;
+	// Blocks are processed in descending order. GD's loop doesn't stop when a block kills the player: the
+	// remaining blocks still push it (the position GD shows at the death)
+	bool deadBefore = p.dead;
+	for (int i = blocks.size() - 1; i >= 0 && !deadBefore; --i) {
 		auto& b = *blocks[i];
 		if (b->touching(p)) {
+			bool wasDead = p.dead;
 			++numCollisions;
 			b->collide(p);
 			trace(*b.operator->());
-			if (p.dead)
+			if (p.dead && !wasDead)
 				logDeath(p, *b.operator->());
 		}
 	}
