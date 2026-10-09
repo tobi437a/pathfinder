@@ -129,7 +129,10 @@ void Pad::collide(Player& p) const {
 	p.gravityPortal = false;
 	p.hitPad = true;
 	p.onGround2 = false;
-	p.accelerating = false;
+	// (bumpPlayer: yellow and pink pads end m_isAccelerating, a red one sets it; a blue pad, propellPlayer only,
+	// leaves it)
+	if (type != PadType::Blue)
+		p.accelerating = type == PadType::Red;
 	// PlayerObject::propellPlayer: launched, and off any slope
 	p.boosted = true;
 	p.slope.on = p.slope.was = false;
