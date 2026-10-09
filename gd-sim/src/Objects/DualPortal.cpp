@@ -59,9 +59,13 @@ void DualPortal::collide(Player& p) const {
 	p.dual = false;
 	Player& p1 = p.isP2 ? *p.partner : p;
 	if (p.isP2) {
+		bool groundedBefore = p1.grounded;
 		p1.copyAttributes(p);
 		copyWalkOff(p, p1);
 		p1.copiedFromP2 = true;
+		// (m_isOnGround stays player 1's: one in the air can't jump on its next step, even if player 2 had landed)
+		if (!groundedBefore)
+			p1.grounded = false;
 	}
 	p1.dual = false;
 	p1.updateGround(p1.modePortalY);
