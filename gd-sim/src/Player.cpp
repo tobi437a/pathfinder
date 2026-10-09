@@ -259,6 +259,7 @@ void Player::preCollision(bool pressed) {
 	groundCleared = false;
 	ballJumped = false;
 	slopeRaised = false;
+	flipFloorPutBack = false;
 	scaleRefreshed = false;
 	portalVelocityScale = 1;
 	roundVelocity = true;
@@ -352,6 +353,7 @@ void Player::preCollision(bool pressed) {
 		// (hitGround stops the spin; checkCollisions then clears m_isOnGround2)
 		hitGroundRotation();
 		onGround2 = false;
+		flipFloorPutBack = true;
 	}
 
 	// In dual mode GJBaseGameLayer::checkCollisions bounds every mode like a flying one: a cube past the
@@ -586,7 +588,7 @@ void Player::updateRotation() {
 	// (one GD put on the mode floor and a gravity portal then flipped had its hitGround before the flip: preCollision)
 	// (nor one a head hit grounded: that ran hitGround's rotation part already)
 	// (nor one whose on-ground flags a mode switch cleared after its landing: GD's hitGround came before that)
-	if (grounded && !headHit && !groundCleared && !(becameBall && !onBlock) && !(floorSnapped && gravityPortal && !onBlock))
+	if (grounded && !headHit && !groundCleared && !flipFloorPutBack && !(becameBall && !onBlock) && !(floorSnapped && gravityPortal && !onBlock))
 		hitGroundRotation();
 
 	// PlayerObject::updateRotation(dt): a cube eases to the slope it's on, or to the nearest 90 degrees on the
