@@ -195,6 +195,12 @@ Player& Level::runFrame(bool pressed, float dt) {
 		for (Player* pl : {&p, &q}) {
 			if (speed >= 0 && pl->speed != speed) {
 				pl->speed = speed;
+				// (player 1 after player 2's portal: the sim's velocity already has its next step's gravity, which
+				// for a cube in the air is the new speed's m_gravity)
+				if (pl->vehicle.type == VehicleType::Cube && !pl->grounded && !pl->velocityOverride) {
+					pl->acceleration = stepAcceleration(*pl);
+					pl->velocity = std::max(-810.0, roundVel(pl->collisionVelocity + pl->acceleration * pl->dt, pl->upsideDown));
+				}
 				if (pl->vehicle.type == VehicleType::Ball) {
 					pl->stopRotation();
 					pl->runBallRotation();
