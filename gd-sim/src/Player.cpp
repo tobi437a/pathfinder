@@ -718,7 +718,8 @@ void Player::postCollision() {
 	} else if (prevPlayer().gravBottom(*this) > prevPlayer().gravFloor() && upsideDown == prevPlayer().upsideDown && !grounded && velocity <= 0) {
 		if (prevPlayer().grounded && !prevPlayer().input)
 			coyoteFrames = 0;
-		coyoteFrames++;
+		if (coyoteFrames < INT_MAX)
+			coyoteFrames++;
 	} else {
 		// Nothing will check for coyote frames this high
 		coyoteFrames = INT_MAX;

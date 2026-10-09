@@ -1,6 +1,7 @@
 #include <Vehicle.hpp>
 #include <Player.hpp>
 #include <Object.hpp>
+#include <climits>
 #include <algorithm>
 #include <Slope.hpp>
 #include <cfloat>
@@ -310,6 +311,8 @@ Vehicle ball() {
 			p.ballJumped = true;
 			p.jumpBuffered = false;
 			p.clickUsed = true;
+			// (GD's jump clears m_isOnGround: no coyote jump after it until the ball lands)
+			p.coyoteFrames = INT_MAX;
 			p.vehicleBuffer = false;
 			p.buffer = false;
 			p.input = false;
