@@ -28,12 +28,21 @@ float normalizeRotation(Player const& p, float angle) {
         return playerRotation - diff;
 }
 
+/// The direction of travel updateShipRotation turns towards: from where the player was at the last step's turn
+/// (m_shipRotation, which GJBaseGameLayer::update sets after it), on the level's first step GD's (0, 0)
+static Vec2D travel(Player const& p) {
+	// (the state before a level's first step has frame 1)
+	if (p.prevPlayer().frame <= 1)
+		return p.pos - Vec2D(0, -90);
+	return p.pos - p.prevPlayer().pos;
+}
+
 /// PlayerObject::updateShipRotation (ship, wave): turns towards the direction of travel
 void rotateFly(Player& p, float mult) {
 	// (not on a slope: Player::updateRotation turns it towards the slope)
 	if (p.slope.on)
 		return;
-	auto diff = p.pos - p.prevPlayer().pos;
+	auto diff = travel(p);
 
 	// Unknown why this happens
 	if (p.dt * 72 <= std::pow(diff.x, 2) + std::pow(diff.y, 2)) {
@@ -46,7 +55,7 @@ void rotateFly(Player& p, float mult) {
 void rotateUfo(Player& p) {
 	if (p.slope.on)
 		return;
-	auto diff = p.pos - p.prevPlayer().pos;
+	auto diff = travel(p);
 	if (p.dt * 72 <= std::pow(diff.x, 2) + std::pow(diff.y, 2)) {
 		float lean = atan2f((float)diff.y, (float)diff.x) * 0.4f;
 		float gdTarget = !p.upsideDown ? std::max(-0.1f, lean) : std::min(0.1f, lean);
