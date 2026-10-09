@@ -268,6 +268,8 @@ void Block::collideBlock(Player& p, bool bare) const {
 		else if (!padHitBefore) {
 			p.grounded = true;
 			p.groundCleared = false;
+			if (bare)
+				p.slopeSideLanded = true;
 		}
 		// (hitGround's rotation part now, also when something later in the step takes the player off again, e.g. a
 		// slope launch)

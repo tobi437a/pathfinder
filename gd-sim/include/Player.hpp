@@ -279,6 +279,8 @@ struct Player : public Entity {
 	/// GD put this upside-down cube back on the ground it fell under after a flip (checkCollisions: hitGround, then
 	/// m_isOnGround2 cleared): its landing rotation is done
 	bool flipFloorPutBack = false;
+	/// A slope's side (a block in the slopes' turn of the collisions, before the portals) landed the player this step
+	bool slopeSideLanded = false;
 	/// A slope this frame turned the player's velocity upwards (a flying player held on an uphill slope)
 	bool slopeRaised = false;
 	/// The flags that jump cleared or set, for a repel that undoes it (GD never made that jump)

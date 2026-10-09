@@ -268,6 +268,7 @@ void Player::preCollision(bool pressed) {
 	ballJumped = false;
 	slopeRaised = false;
 	flipFloorPutBack = false;
+	slopeSideLanded = false;
 	scaleRefreshed = false;
 	portalVelocityScale = 1;
 	roundVelocity = true;
