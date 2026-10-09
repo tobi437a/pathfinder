@@ -152,6 +152,8 @@ frame + positions, max diff) and `verify\<level>\real.txt`, `sim.txt`, `level.lv
 - `-Minimize` waits until the mod has taken `verify.json` before minimising: minimised during the
   loading screen, GD pauses before mods load and never finishes loading.
 - Eclipse hacks that change physics (TPS bypass, noclip) or a playing macro would skew results.
+- GD must run with High texture quality: sawblade radii depend on the loaded sprite sheet (the sim uses
+  the `-uhd` sizes, see `Object.cpp`).
 - real.txt also gets (sim coords; the tools skip lines not starting with `Frame`): per GD X-snap
   call `Snap <frame> obj <x> <y> prev <x> <y> offset <o> x <before> -> <after>`; per step
   `Cam <frame> <x> <y> vis <x> <y> flip <value> <dir>` and, while the last snap block's sprite is

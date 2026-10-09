@@ -1,5 +1,6 @@
 #include <Hazard.hpp>
 #include <Player.hpp>
+#include <Slope.hpp>
 #include <cmath>
 
 Hazard::Hazard(Vec2D size, std::unordered_map<int, std::string>&& fields) : Object(size, std::move(fields)) {
@@ -24,29 +25,20 @@ Hazard::Hazard(Vec2D size, std::unordered_map<int, std::string>&& fields) : Obje
 }
 
 bool Sawblade::touching(Player const& p) const {
-	// Hitbox detection for circle
-
-	Vec2D corners[4] = {
-		Vec2D(p.getLeft(), p.getBottom()),
-		Vec2D(p.getRight(), p.getBottom()),
-		Vec2D(p.getRight(), p.getTop()),
-		Vec2D(p.getLeft(), p.getTop())
-	};
-
-	float radius = size.x;
-
-	for (auto& c : corners) {
-		auto diff = c - pos;
-		if (std::sqrt(diff.x * diff.x + diff.y * diff.y) <= radius)
-			return true;
-		c = diff;
-	}
-
-	// Check if sawblade is physically inside the hitbox
-	if (std::signbit(corners[2].x) != std::signbit(corners[0].x) && std::signbit(corners[2].y) != std::signbit(corners[0].y)) {
+	// GJBaseGameLayer::playerCircleCollision (a level without m_fixRadiusCollision, as 1.8 ones are): the centre in
+	// the player's rect (edges included), or a corner of that rect closer than the radius; floats in GD's coordinates
+	GDRect r = GDRect::of(p);
+	float cx = pos.x, cy = pos.y + 90.f;
+	if (r.minX() <= cx && cx <= r.maxX() && r.minY() <= cy && cy <= r.maxY())
 		return true;
+	float radius = size.x;
+	for (float x : {r.maxX(), r.minX()}) {
+		for (float y : {r.maxY(), r.minY()}) {
+			float dx = x - cx, dy = y - cy;
+			if (std::sqrt(dx * dx + dy * dy) < radius)
+				return true;
+		}
 	}
-
 	return false;
 }
 

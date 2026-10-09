@@ -98,13 +98,16 @@ std::optional<ObjectContainer> Object::create(std::unordered_map<int, std::strin
 	objs(({ 919 }), Hazard, 25, 6)
 	objs(({ 179 }), Hazard, 4, 8)
 
+	// Sawblades: GD's radius (EnhancedGameObject::customSetup, m_objectRadius) is a constant or the sprite's trimmed
+	// width (m_width) times a factor per id, so it depends on the texture quality GD loaded: these are for High
+	// (GJ_GameSheet*-uhd, width / 4); Medium (-hd) gives 98 12, 183 15.66, 187 21.96
 	objs(({ 88, 186, 740, 1705 }), Sawblade, 32.3, 32.3)
 	objs(({ 89, 1706 }), Sawblade, 21.6, 21.6)
-	objs(({ 98 }), Sawblade, 12, 12)
-	objs(({ 183 }), Sawblade, 15.660001, 15.660001)
+	objs(({ 98 }), Sawblade, 11.775001, 11.775001)
+	objs(({ 183 }), Sawblade, 15.3, 15.3)
 	objs(({ 184 }), Sawblade, 20.4, 20.4)
 	objs(({ 185 }), Sawblade, 2.8500001, 2.8500001)
-	objs(({ 187, 741 }), Sawblade, 21.960001, 21.960001)
+	objs(({ 187, 741 }), Sawblade, 21.870001, 21.870001)
 	objs(({ 188, 742 }), Sawblade, 12.6000004, 12.6000004)
 	objs(({ 397, 1708 }), Sawblade, 28.9, 28.9)
 	objs(({ 398, 1709 }), Sawblade, 17.44, 17.44)
