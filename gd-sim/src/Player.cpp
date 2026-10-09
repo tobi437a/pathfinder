@@ -291,9 +291,23 @@ void Player::preCollision(bool pressed) {
 	// collisions (postCollision then decides about grounding)
 	startFloor = floor;
 	startCeiling = ceiling;
+
+	// GD marks the player out of bounds (m_isOutOfBounds) and only kills it on the second such step in a row.
+	outOfBounds = false;
+	auto outOfBoundsStep = [&] {
+		outOfBounds = true;
+		if (prevPlayer().outOfBounds)
+			dead = true;
+	};
+	// A flying player (or ball, or any player in dual mode) that was on a slope last step and whose centre is past
+	// the mode's floor or ceiling isn't put back: it's out of bounds
+	bool pastBounds = pastBoundsOnSlope(slope.was);
+	if (pastBounds)
+		outOfBoundsStep();
+
 	// (not a launched cube, m_maybeIsBoosted: one that jumps below the floor, off a downhill slope, rises from there)
 	bool cubeBounds = vehicle.type == VehicleType::Cube && !upsideDown && !dual;
-	floorSnapped = gravBottom(*this) < gravFloor() && !(cubeBounds && boosted);
+	floorSnapped = gravBottom(*this) < gravFloor() && !(cubeBounds && boosted) && !pastBounds;
 	if (floorSnapped) {
 		pos.y = grav(gravFloor()) + grav(size.y / 2);
 		// (GD's hitGround: a ball stops and starts rolling before the step's portals)
@@ -306,18 +320,15 @@ void Player::preCollision(bool pressed) {
 		// hitGround, which stops it: a gravity portal touched in this step flips a stopped player
 		if (vehicle.type == VehicleType::Cube && !upsideDown && !dual && !boosted && velocity <= 270)
 			velocity = 0;
+		// A falling ship or ufo: hitGround stops it before the collisions (a slope it rides below the floor then
+		// clamps that, see Slope::collide)
+		if ((vehicle.type == VehicleType::Ship || vehicle.type == VehicleType::Ufo) && velocity < 0)
+			velocity = 0;
 	}
 
 	// An upside down cube below the ground is out of bounds, unless it flipped gravity within 0.1 s (m_lastFlipTime):
 	// then GD puts it back on and stops it, and hitGround sets the on-ground flag if it was slow enough
 	// (5, see the ball)
-	// GD marks the player out of bounds (m_isOutOfBounds) and only kills it on the second such step in a row.
-	outOfBounds = false;
-	auto outOfBoundsStep = [&] {
-		outOfBounds = true;
-		if (prevPlayer().outOfBounds)
-			dead = true;
-	};
 	// Above the level's top (m_maxGameplayY: 2790 in GD's y, raised by the mini player's smaller half height)
 	float shrink = small ? (1 - 0.6f) * (vehicle.type == VehicleType::Wave ? 20.0f : 30.0f) * 0.5f : 0;
 	if ((float)(pos.y + 90) > 2790.0f + shrink)
@@ -337,7 +348,7 @@ void Player::preCollision(bool pressed) {
 	// In dual mode GJBaseGameLayer::checkCollisions bounds every mode like a flying one: a cube past the
 	// ceiling (relative to its gravity) is out of bounds, unless gravity or the mode changed within 0.2 s, which puts it
 	// back under it, stopped and off the ground
-	if (dual && vehicle.type == VehicleType::Cube && gravTop(*this) > gravCeiling()) {
+	if (dual && vehicle.type == VehicleType::Cube && gravTop(*this) > gravCeiling() && !pastBounds) {
 		if (!changedWithin(0.2)) {
 			outOfBoundsStep();
 			return;
@@ -352,7 +363,7 @@ void Player::preCollision(bool pressed) {
 	// A ball too (whatever its velocity: one standing on a block that reaches over the ceiling is put under it, and
 	// the block puts it back on top; the ball's clamp handles one rising into the ceiling)
 	ceilingSnapped = (vehicle.type == VehicleType::Ship || vehicle.type == VehicleType::Ufo || vehicle.type == VehicleType::Ball)
-		&& gravTop(*this) > gravCeiling();
+		&& gravTop(*this) > gravCeiling() && !pastBounds;
 	if (ceilingSnapped) {
 		pos.y = grav(gravCeiling()) - grav(size.y / 2);
 		if (velocity > 0 && vehicle.type != VehicleType::Ball)
@@ -676,7 +687,8 @@ void Player::postCollision() {
 	// (GD snaps a player strictly below the floor (preCollision): one that moved exactly onto it isn't grounded until
 	// its next step; the sim's resting player doesn't move, GD's falls a step below and is put back)
 	float bottom = gravBottom(*this);
-	if ((bottom < boundFloor || (bottom == boundFloor && (velocity == 0 || floorSnapped))) && !velocityOverride && (velocity <= 0 || hitPad)) {
+	if ((bottom < boundFloor || (bottom == boundFloor && (velocity == 0 || floorSnapped))) && !velocityOverride && (velocity <= 0 || hitPad)
+		&& !pastBoundsOnSlope(slope.on)) {
 		if (!headHit && !slope.on)
 			pos.y = grav(boundFloor) + grav(size.y / 2);
 		// (GD's floor snap comes before the step's portals: one that switched a ship, ufo or wave on or off since

@@ -305,6 +305,12 @@ struct Player : public Entity {
 	inline float gravTop(Entity const& e) const { return upsideDown ? -e.getBottom() : e.getTop(); }
 	inline float gravFloor() const { return upsideDown ? -ceiling : floor; }
 	inline float gravCeiling() const { return upsideDown ? -floor : ceiling; }
+	/// GJBaseGameLayer::checkCollisions doesn't put a player that was on a slope (m_wasOnSlope) back inside the
+	/// mode's bounds once its centre is past the floor or ceiling (a flying mode or ball, or any mode in dual): it is
+	/// out of bounds
+	inline bool pastBoundsOnSlope(bool wasOnSlope) const {
+		return wasOnSlope && (vehicle.type != VehicleType::Cube || dual) && (pos.y < floor || ceiling < pos.y);
+	}
 
 	void setVelocity(double v, bool override=false);
 
