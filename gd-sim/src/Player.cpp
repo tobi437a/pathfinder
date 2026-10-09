@@ -429,6 +429,9 @@ void Player::preCollision(bool pressed) {
 		if (gravBottom(*this) < gravFloor() && (vehicle.type != VehicleType::Cube || dual)) {
 			pos.y = grav(gravFloor()) + grav(size.y / 2);
 			slope.was = false;
+			// (the snap's hitGround restarts a ball's roll, off the slope: at the plain speed)
+			if (vehicle.type == VehicleType::Ball)
+				hitGroundRotation();
 		}
 	}
 }

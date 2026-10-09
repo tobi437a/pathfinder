@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Replay batch runs in real GD with GD's own collision log around given frames.
 
-  python tools/gdcoll.py 2240089:8795-8800 2170717:8478-8484 [--no-run]
+  python tools/gdcoll.py 2240089:8795-8800 2170717:8478-8484 [--no-run] [--runs runs-pre1.8]
 
-Plays runs/<id>/macro.gdr2 through tools/verify.ps1 (GD minimised, ~1 min per level) with the job's
+Plays runs/<id>/macro.gdr2 (or <--runs>/<id>/macro.gdr2) through tools/verify.ps1 (GD minimised, ~1 min per level) with the job's
 "coll" window, so real.txt gets a `Coll` line per PlayerObject::collidedWithObjectInternal call (blocks;
 a slope's side) and a `SlopeColl` line per collidedWithSlopeInternal call in those real frames (see
 src/verify.cpp). The result goes to build/re/batch/coll/<id>.real.txt (runs/<id>/real.txt is left alone).
@@ -25,13 +25,14 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("runs", nargs="+", help="<id>:<from>-<to> (real frames)")
     ap.add_argument("--no-run", action="store_true")
+    ap.add_argument("--runs", dest="runs_dir", default="runs", help="runs directory under build/re/batch (e.g. runs-pre1.8)")
     a = ap.parse_args()
     jobs = []
     for r in a.runs:
         lid, _, win = r.partition(":")
         lo, _, hi = win.partition("-")
         jobs.append({"level": lid, "levelFile": str((DATA / "levels" / f"{lid}.txt").resolve()),
-                     "macro": str((DATA / "runs" / lid / "macro.gdr2").resolve()),
+                     "macro": str((DATA / a.runs_dir / lid / "macro.gdr2").resolve()),
                      "coll": [int(lo), int(hi or lo)]})
     if not a.no_run:
         job_file = DATA / "coll-jobs.json"
