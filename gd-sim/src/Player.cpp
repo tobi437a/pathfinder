@@ -106,6 +106,7 @@ void Player::copyAttributes(Player const& other) {
 	ballRotating = own.ballRotating;
 	ballRotating2 = own.ballRotating2;
 	pendingSpin.reset();
+	beforeTurn = own.beforeTurn;
 	isP2 = own.isP2;
 	partner = own.partner;
 	slope = own.slope;
@@ -124,6 +125,12 @@ void Player::copyAttributes(Player const& other) {
 	// and updateTimeMod, which restarts a ball's roll
 	VehicleType from = own.vehicle.type, to = vehicle.type;
 	auto flies = [](VehicleType t) { return t == VehicleType::Ship || t == VehicleType::Ufo || t == VehicleType::Wave; };
+	// (all before togglePlayerScale: the spins they start are for the player's own size)
+	bool newSmall = small;
+	small = own.small;
+	// (switching a ship, ufo or wave on or off clears both on-ground flags)
+	if (from != to && (flies(from) || flies(to)))
+		onGround2 = false;
 	if (from != to) {
 		stopRotation();
 		if (flies(from) || flies(to))
@@ -137,6 +144,7 @@ void Player::copyAttributes(Player const& other) {
 		stopRotation();
 		runBallRotation();
 	}
+	small = newSmall;
 }
 
 void Player::resetObject() {
