@@ -755,8 +755,9 @@ void Player::postCollision() {
 	vehicle.update(*this);
 
 	// A ufo jumping as it walks off a block (or a mini ufo, which starts above the floor, pressed on the
-	// level's first frame) still takes GD's walk-off step: GD walks off one step and jumps on the next
-	if (ufoJump && velocityOverride && !groundedBefore && prevPlayer().grounded
+	// level's first frame) still takes GD's walk-off step: GD walks off one step and jumps on the next (once: off a slope
+	// preCollision took it)
+	if (ufoJump && velocityOverride && !groundedBefore && !walkedOff && prevPlayer().grounded
 		&& prevPlayer().velocity == 0 && prevPlayer().gravBottom(*this) > prevPlayer().gravFloor()) {
 		double fallAccel = ufoRestFall();
 		moveY(roundVel(prevPlayer().grav(fallAccel) * dt, prevPlayer().upsideDown));
