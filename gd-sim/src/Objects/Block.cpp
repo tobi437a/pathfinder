@@ -273,6 +273,13 @@ void Block::collideBlock(Player& p, bool bare) const {
 		// slope launch)
 		if (!padHitBefore)
 			p.hitGroundRotation();
+		else if (p.clickedOrb && p.pendingSpin && p.vehicle.type == VehicleType::Cube) {
+			// (GD lands before its click, which is its next step: this step's rotation eases to the ground, the
+			// ring's spin starts after it, and the ring clears m_isOnGround2 again)
+			p.hitGroundRotation();
+			p.onGround2 = false;
+			p.orbFromGround = true;
+		}
 
 		if (!bare)
 			snapX(p);
