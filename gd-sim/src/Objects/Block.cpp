@@ -263,7 +263,18 @@ void Block::collideBlock(Player& p, bool bare) const {
 		// After an orb click, the next frame will cause the player to slightly dip into the block. hitGround stops
 		// the player, but only grounds it (m_isOnGround) at y velocity <= 5 relative to gravity: a player rising
 		// faster off a slope isn't (it can't jump from there)
-		if (!padHitBefore && p.velocity > 5 * 54)
+		// A block whose bottom is at least the landing clip above the player's feet (before or after this step's
+		// move: a thin one it fell past the bottom of) lands it with hitGroundNoJump: stopped, but not on the ground
+		// (bottom is the feet before the landing put the player on top)
+		double moved = bottom - p.gravBottom(p.prevPlayer());
+		double feetClip = bottom + (landClip - std::max(0.0, -moved));
+		bool noJump = !padHitBefore && (p.gravBottom(*this) >= feetClip || p.gravBottom(*this) >= feetClip - moved);
+		if (noJump) {
+			p.velocity = 0;
+			bool onGround2 = p.onGround2;
+			p.hitGroundRotation();
+			p.onGround2 = onGround2;
+		} else if (!padHitBefore && p.velocity > 5 * 54)
 			p.velocity = 0;
 		else if (!padHitBefore) {
 			p.grounded = true;
@@ -273,7 +284,7 @@ void Block::collideBlock(Player& p, bool bare) const {
 		}
 		// (hitGround's rotation part now, also when something later in the step takes the player off again, e.g. a
 		// slope launch)
-		if (!padHitBefore)
+		if (!padHitBefore && !noJump)
 			p.hitGroundRotation();
 		else if (p.clickedOrb && p.pendingSpin && (p.vehicle.type == VehicleType::Cube || p.vehicle.type == VehicleType::Ball)) {
 			// (GD lands before its click, which is its next step: this step's rotation eases a cube to the ground or
