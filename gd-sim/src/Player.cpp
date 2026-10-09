@@ -396,6 +396,13 @@ void Player::preCollision(bool pressed) {
 		moveY(roundVel(grav(fallAccel) * dt, upsideDown));
 		walkedOff = true;
 		slopeFallVelocity = roundVel(fallAccel * dt, upsideDown);
+		// That step comes before GD's floor snap: one that takes the player below the mode floor (a slope starting
+		// just above it) is put back, and a flying player or ball, or any player in dual mode, is off the slope for
+		// a step (m_wasOnSlope cleared: landing on it again restarts its launch ramp)
+		if (gravBottom(*this) < gravFloor() && (vehicle.type != VehicleType::Cube || dual)) {
+			pos.y = grav(gravFloor()) + grav(size.y / 2);
+			slope.was = false;
+		}
 	}
 }
 
