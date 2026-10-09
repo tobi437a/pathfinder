@@ -270,6 +270,8 @@ struct Player : public Entity {
 	/// A ball jumped (flipped) at the end of this frame: GD does that in its next step's updateJump, so its
 	/// end-of-step checks still see the old gravity (Level::repelBalls)
 	bool ballJumped = false;
+	/// A slope this frame turned the player's velocity upwards (a flying player held on an uphill slope)
+	bool slopeRaised = false;
 	/// The flags that jump cleared or set, for a repel that undoes it (GD never made that jump)
 	struct {
 		bool boosted, jumpBuffered, vehicleBuffer, clickUsed;

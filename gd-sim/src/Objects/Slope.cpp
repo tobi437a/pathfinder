@@ -348,8 +348,10 @@ void Slope::collide(Player& p) const {
 	}
 	if (raise) {
 		double v = p.gdVelocity();
-		if (!up ? v < 2 : -2 < v)
+		if (!up ? v < 2 : -2 < v) {
 			p.setGdVelocity(!up ? 2 : -2);
+			p.slopeRaised = true;
+		}
 	}
 
 	// The launch speed off its top (see Player::leaveSlope)

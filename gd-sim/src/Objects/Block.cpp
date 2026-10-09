@@ -199,7 +199,8 @@ void Block::collideBlock(Player& p, bool bare) const {
 	// handles the click a step later. Not one taken with the button held as it's touched, which GD
 	// activates in this step's collisions. Pads and gravity portals don't: GD only lands when moving
 	// towards the block (yVelocity <= 0), or when it was on a slope last frame.
-	bool padHitBefore = (!p.gravityPortal && !p.hitPad && !p.prevPlayer().grounded && p.prevPlayer().velocity <= 0 && p.velocity > 0 && !(p.clickedOrb && p.prevPlayer().button));
+	// (not a slope's raise: GD's rising player doesn't land)
+	bool padHitBefore = (!p.gravityPortal && !p.hitPad && !p.slopeRaised && !p.prevPlayer().grounded && p.prevPlayer().velocity <= 0 && p.velocity > 0 && !(p.clickedOrb && p.prevPlayer().button));
 	// (likewise a fresh orb click off a block a slope earlier in the step moved the player into: GD's block puts it
 	// back, the click is its next step)
 	if (p.clickedOrb && p.button && !p.prevPlayer().button && p.prevPlayer().grounded && p.walkedOff && !p.hitPad && !p.gravityPortal)
