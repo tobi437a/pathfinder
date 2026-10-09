@@ -467,16 +467,33 @@ void Player::flipPartner(bool turned) {
 	double gd = o.grounded ? 0 : o.collisionVelocity;
 	// GD turns both players after both stepped (updateRotation): player 1, flipped by player 2 after its own turn,
 	// turns with the spin the flip gives it (a ball's), not the one before
+	// (it turns again from where its turn this frame started, flipped, with the velocity the flip gives it)
+	bool afterTurn = o.frame == frame && turned;
+	bool redo = afterTurn && o.beforeTurn.frame == o.frame;
 	float stepBefore = o.spinStep();
+	if (redo) {
+		auto const& b = o.beforeTurn;
+		o.rotation = b.rotation;
+		o.rotationSpeed = b.spin.speed;
+		o.rotateSpeed = b.spin.rotateSpeed;
+		o.isRotating = b.spin.isRotating;
+		o.ballRotating = b.spin.ballRotating;
+		o.ballRotating2 = b.spin.ballRotating2;
+		o.onGround2 = b.onGround2;
+		o.pendingSpin = b.pendingSpin;
+	}
 	o.flipGravity(!upsideDown);
-	if (o.frame == frame && turned) {
-		o.rotation += o.spinStep() - stepBefore;
+	if (afterTurn) {
+		if (!redo)
+			o.rotation += o.spinStep() - stepBefore;
 		o.collisionUpsideDown = o.upsideDown;
 	}
 	o.partnerFlipped = true;
 	o.velocity = -gd / 2;
 	o.collisionVelocity = o.velocity;
 	o.grounded = false;
+	if (redo)
+		o.turn();
 	o.acceleration = stepAcceleration(o);
 	o.velocity = roundVel(o.velocity + o.acceleration * o.dt, o.upsideDown);
 }
@@ -591,6 +608,11 @@ void Player::updateRotation() {
 	if (grounded && !headHit && !groundCleared && !flipFloorPutBack && !(becameBall && !onBlock) && !(floorSnapped && gravityPortal && !onBlock))
 		hitGroundRotation();
 
+	beforeTurn = {frame, rotation, Spin {rotationSpeed, rotateSpeed, isRotating, ballRotating, ballRotating2}, onGround2, pendingSpin};
+	turn();
+}
+
+void Player::turn() {
 	// PlayerObject::updateRotation(dt): a cube eases to the slope it's on, or to the nearest 90 degrees on the
 	// ground (m_isOnGround2, unless falling); otherwise the spin goes on
 	if (vehicle.type == VehicleType::Cube) {

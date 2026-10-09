@@ -213,6 +213,12 @@ struct Player : public Entity {
 	/// after the sim (see Orb::collide)
 	struct Spin { float speed, rotateSpeed; bool isRotating, ballRotating, ballRotating2; };
 	std::optional<Spin> pendingSpin;
+	/// The rotation state this frame's turn (updateRotation, after the landing part) started from: a flip by the other
+	/// player after it, which GD has before both players turn, turns it again from there (flipPartner)
+	struct TurnStart { int frame = -1; float rotation = 0; Spin spin {}; bool onGround2 = false; std::optional<Spin> pendingSpin; };
+	TurnStart beforeTurn;
+	/// updateRotation's turn: easing to the ground or slope, the spin, then a pending spin
+	void turn();
 
 	/// A pad was touched this frame (pads, unlike orbs, don't snap the player onto a block)
 	bool hitPad;
