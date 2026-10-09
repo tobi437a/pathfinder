@@ -44,28 +44,34 @@ letters (r p i), and the verifier's `realMode`. GD's fly-mode floor/ceiling are
 
 The batch (`build
 eatch`) is 453 rated 1.8 levels (all of them with gameVersion 18).
-`runs-pre1.8\` is a snapshot of the runs recorded with the pre-dual pathfinder's macros (GD's
-`real.txt` for each; the 173 that reach a dual portal with GD's player 2 too, `P2` lines): the
-offline regression set, `regress.py --runs runs-pre1.8 [--p2] --base w58p`: 415/453 runs match GD to the end
-(players 1 and 2).
+Two offline regression sets, each GD's `real.txt` per level (with `P2` lines in dual):
+`runs-pre1.8\` (macros from the pre-dual pathfinder) and `runs\` (macros from the current one).
+Both now match GD to the end in all 453 runs for players 1 and 2 (`regress.py --p2`), and with
+cube/ball rotation too (`--rot`). Baselines: `regress.py --p2 --rot --base r34` (runs) and
+`--runs runs-pre1.8 --p2 --rot --base rq18`; a sim change must keep both at 453.
+- In progress: ship/ufo/wave rotation (`--rotfly`): 264/453 match (`--p2 --rot --rotfly --base f1`).
+  Fly rotation is `rotateFly`/`rotateUfo` in `Vehicle.cpp`, a port of `PlayerObject::updateShipRotation`
+  (asm in `builde\shiprotasm.txt`: target atan2 of the step's travel from `m_shipRotation`, which
+  `GJBaseGameLayer::update` sets to the position after each step's turn; slerp t = min(dt, factor*dt);
+  ufo target * 0.4 clamped; special cases for `0x658`, platformer, going left still unported).
+  Next: triage the remaining 189 (scratchpad-style per-run summary: real vs sim `Rot` and mode at the
+  divergence, like `diverge.py`), port the missing branches, then check `--tol 1e-6` (positions bit
+  for bit: 443/453 runs, 448/453 pre-1.8; the others differ by < 0.01).
+- Then: rebuild Release `pathfinder-cli` and run the end-to-end batch (below) to measure how many
+  levels the pathfinder now beats in GD (last: 316/453 beaten, 111 complete in the sim but die in GD).
+- GD collision logs for a run's frames: `tools\gdcoll.py <id>:<from>-<to> [--runs runs-pre1.8]`
+  (launches GD minimised; adds `Coll`/`SlopeColl` lines and GD's flags to a fresh real.txt).
 - Dual (`Objects/DualPortal.cpp`, `Player::updateGround`, `Player::flipPartner`, `startDual`,
   `copyAttributes`, `Level::runFrame`) follows `toggleDualMode`, `updateDualGround`,
   `playerWillSwitchMode`, `GJBaseGameLayer::flipGravity` and the per-step order of
   `GJBaseGameLayer::update` (comments in that code).
-- Latest end-to-end (macros from the current pathfinder, `runs\`): 316/453 beaten in GD (pre-1.8
-  pathfinder: 173), 111 complete in the sim but die in GD (`report.md`). Their fresh `real.txt` are
-  the second regression set: `regress.py --p2 --base w57p` (377/453 match to the end; `--rot --base rot15`: 248).
 - Pathfinder (`batch.py pathfind`, 120 s): 427/453 complete in the sim, 26 stuck. Several stuck ones
   end in a secret path that runs into a wall, with the real route branching off far back; the search
   backs off exponentially from a dead end and penalises staying on it (`DeadPath`), which gets some
   but not all of them. Search improvements are for after 1.8 support.
 - Two-player levels (`kA10`, 4 in the batch) need player-2 inputs: the pathfinder only presses
   player 1, and the sim gives player 2 no button there.
-- Parked: 1664135 (GD's
-  m_wasOnSlope stays 0 a second step), 2040390 (GD spares player 1 at a sawblade it should touch),
-  1862685 (pad on a slope's flat side).
-- `regress.py` labels each divergence p1, p2, rot, death-gd or death-sim. `--rot` scores cube/ball rotation (for rotated objects); look for remaining rotation
-  bugs with it too.
+- `regress.py` labels each divergence p1, p2, rot, rotfly, death-gd or death-sim.
 - End-to-end: rebuild Release `pathfinder-cli`, `batch.py --redo pathfind`, `batch.py --redo
   verify` (GD minimised, ~25 min; a long background job can get killed under memory pressure -
   then `verify --import-only` and verify the rest with `--ids`), `batch.py report`.
