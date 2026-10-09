@@ -281,6 +281,8 @@ struct Player : public Entity {
 	bool flipFloorPutBack = false;
 	/// A slope's side (a block in the slopes' turn of the collisions, before the portals) landed the player this step
 	bool slopeSideLanded = false;
+	/// A speed portal (any speed) was taken this step
+	bool tookSpeedPortal = false;
 	/// A slope this frame turned the player's velocity upwards (a flying player held on an uphill slope)
 	bool slopeRaised = false;
 	/// The flags that jump cleared or set, for a repel that undoes it (GD never made that jump)

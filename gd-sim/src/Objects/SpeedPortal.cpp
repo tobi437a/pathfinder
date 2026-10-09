@@ -36,5 +36,6 @@ void SpeedPortal::collide(Player& p) const {
 	// GD sets the new speed at the start of its next step (updateTimeMod): the rest of this step's collisions
 	// (slopes, orbs, X-snaps) still see the old one (Player::postCollision applies it)
 	p.pendingSpeed = speed;
+	p.tookSpeedPortal = true;
 	// (updateTimeMod also restarts a ball's roll, at the start of GD's next step: Player::postCollision)
 }

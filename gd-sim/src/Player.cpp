@@ -269,6 +269,7 @@ void Player::preCollision(bool pressed) {
 	slopeRaised = false;
 	flipFloorPutBack = false;
 	slopeSideLanded = false;
+	tookSpeedPortal = false;
 	scaleRefreshed = false;
 	portalVelocityScale = 1;
 	roundVelocity = true;

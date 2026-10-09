@@ -137,7 +137,6 @@ Player& Level::runFrame(bool pressed, float dt) {
 	// player 1's step; both get the button. Each sees the other as `partner` (the dual ground, portals).
 	Player q = gameStates2.back();
 	bool wasDual = p.dual;
-	int speed1 = p.speed, speed2 = q.speed;
 	p.partner = &q;
 	q.partner = &p;
 	// Both clicked a blue or green orb: GD's next step pushes player 1's (which turns player 2 the other way
@@ -166,8 +165,8 @@ Player& Level::runFrame(bool pressed, float dt) {
 		// (not once player 1 died: GD stops the step there)
 		q.partnerFlipsNext = p.flipPartnerNext && p.flipsPartner();
 		// A speed portal player 1 took this step gives player 2 the new speed from GD's next step on too
-		// (updateTimeMod): its collisions this step still see the old one
-		if (p.speed != speed1)
+		// (updateTimeMod, also at the same speed): its collisions this step still see the old one
+		if (p.tookSpeedPortal)
 			q.pendingSpeed = p.speed;
 		stepPlayer(q, twoPlayer ? q.button : pressed, dt);
 		q.partnerFlipsNext = false;
@@ -191,13 +190,16 @@ Player& Level::runFrame(bool pressed, float dt) {
 	}
 	if (p.dual) {
 		// A speed portal sets GD's speed for the next step, which updateTimeMod gives both players at its start
-		int speed = wasDual && q.speed != speed2 ? q.speed : p.speed != speed1 ? p.speed : -1;
+		// (updateTimeMod runs at the same speed too: it restarts a ball's roll; the player that took the portal had it
+		// in its own step)
+		int speed = wasDual && q.tookSpeedPortal ? q.speed : p.tookSpeedPortal ? p.speed : -1;
 		for (Player* pl : {&p, &q}) {
-			if (speed >= 0 && pl->speed != speed) {
+			if (speed >= 0 && (pl->speed != speed || !pl->tookSpeedPortal)) {
+				bool changed = pl->speed != speed;
 				pl->speed = speed;
 				// (player 1 after player 2's portal: the sim's velocity already has its next step's gravity, which
 				// for a cube in the air is the new speed's m_gravity)
-				if (pl->vehicle.type == VehicleType::Cube && !pl->grounded && !pl->velocityOverride) {
+				if (changed && pl->vehicle.type == VehicleType::Cube && !pl->grounded && !pl->velocityOverride) {
 					pl->acceleration = stepAcceleration(*pl);
 					pl->velocity = std::max(-810.0, roundVel(pl->collisionVelocity + pl->acceleration * pl->dt, pl->upsideDown));
 				}
