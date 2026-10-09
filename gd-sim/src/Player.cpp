@@ -445,6 +445,11 @@ bool Player::flipsPartner() const {
 	return flipsPartnerKind() && partner->upsideDown == upsideDown;
 }
 
+float Player::spinStep() const {
+	float mult = ballRotating && vehicle.type == VehicleType::Ball ? rotateSpeed : 1;
+	return ((float)(dt * 60) / 60.0f) * rotationSpeed * mult;
+}
+
 void Player::flipPartner(bool turned) {
 	if (!flipsPartner())
 		return;
@@ -457,14 +462,10 @@ void Player::flipPartner(bool turned) {
 	double gd = o.grounded ? 0 : o.collisionVelocity;
 	// GD turns both players after both stepped (updateRotation): player 1, flipped by player 2 after its own turn,
 	// turns with the spin the flip gives it (a ball's), not the one before
-	auto spinStep = [&] {
-		float mult = o.ballRotating && o.vehicle.type == VehicleType::Ball ? o.rotateSpeed : 1;
-		return ((float)(o.dt * 60) / 60.0f) * o.rotationSpeed * mult;
-	};
-	float stepBefore = spinStep();
+	float stepBefore = o.spinStep();
 	o.flipGravity(!upsideDown);
 	if (o.frame == frame && turned) {
-		o.rotation += spinStep() - stepBefore;
+		o.rotation += o.spinStep() - stepBefore;
 		o.collisionUpsideDown = o.upsideDown;
 	}
 	o.partnerFlipped = true;
