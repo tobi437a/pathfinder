@@ -265,8 +265,10 @@ void Block::collideBlock(Player& p, bool bare) const {
 		// faster off a slope isn't (it can't jump from there)
 		if (!padHitBefore && p.velocity > 5 * 54)
 			p.velocity = 0;
-		else if (!padHitBefore)
+		else if (!padHitBefore) {
 			p.grounded = true;
+			p.groundCleared = false;
+		}
 		// (hitGround's rotation part now, also when something later in the step takes the player off again, e.g. a
 		// slope launch)
 		if (!padHitBefore)

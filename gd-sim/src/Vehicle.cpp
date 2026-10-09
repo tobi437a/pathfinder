@@ -81,7 +81,9 @@ Vehicle cube() {
 		bool jump = false;
 
 		if (p.grounded) {
-			if (p.input) {
+			// (not when GD cleared the on-ground flag after the landing, e.g. a ufo portal off a slope: standing, it
+			// can't jump in GD's next step)
+			if (p.input && !p.groundCleared) {
 				jump = !p.partnerFlipsNext;
 			} else {
 				p.setVelocity(0, true);
