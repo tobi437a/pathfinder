@@ -688,8 +688,10 @@ void Player::postCollision() {
 	// (GD snaps a player strictly below the floor (preCollision): one that moved exactly onto it isn't grounded until
 	// its next step; the sim's resting player doesn't move, GD's falls a step below and is put back)
 	float bottom = gravBottom(*this);
+	// (not in the gravity a fresh orb click flipped it to: GD clicks at its next step)
+	bool clickFlipped = clickedOrb && button && !prevPlayer().button && upsideDown != prevPlayer().upsideDown;
 	if ((bottom < boundFloor || (bottom == boundFloor && (velocity == 0 || floorSnapped))) && !velocityOverride && (velocity <= 0 || hitPad)
-		&& !pastBoundsOnSlope(slope.on)) {
+		&& !pastBoundsOnSlope(slope.on) && !clickFlipped) {
 		if (!headHit && !slope.on)
 			pos.y = grav(boundFloor) + grav(size.y / 2);
 		// (GD's floor snap comes before the step's portals: one that switched a ship, ufo or wave on or off since

@@ -160,6 +160,11 @@ void Block::collideBlock(Player& p, bool bare) const {
 					p.upsideDown = !prev.upsideDown;
 				}
 			}
+		} else if ((p.vehicle.type == VehicleType::Ball || p.vehicle.type == VehicleType::Ship || p.vehicle.type == VehicleType::Ufo)
+			&& prev.velocity >= 0 && prev.gravBottom(*this) < prev.gravTop(p)
+			&& prev.gravTop(p) - prev.gravBottom(*this) <= (p.vehicle.type == VehicleType::Ball ? 10 : 6)) {
+			// ...or still stops its head (a ball, ship or ufo), see the head hits below
+			p.pos.y = prev.grav(prev.gravBottom(*this)) - prev.grav(p.size.y / 2);
 		}
 		return;
 	}
