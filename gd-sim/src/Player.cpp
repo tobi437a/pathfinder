@@ -614,7 +614,8 @@ void Player::updateRotation() {
 	// (one GD put on the mode floor and a gravity portal then flipped had its hitGround before the flip: preCollision)
 	// (nor one a head hit grounded: that ran hitGround's rotation part already)
 	// (nor one whose on-ground flags a mode switch cleared after its landing: GD's hitGround came before that)
-	if (grounded && !headHit && !groundCleared && !flipFloorPutBack && !(becameBall && !onBlock) && !(floorSnapped && gravityPortal && !onBlock))
+	// (nor one on a slope's side, which comes before the portals: a gravity portal after it cleared the flag)
+	if (grounded && !headHit && !groundCleared && !flipFloorPutBack && !(slopeSideLanded && gravityPortal) && !(becameBall && !onBlock) && !(floorSnapped && gravityPortal && !onBlock))
 		hitGroundRotation();
 
 	beforeTurn = {frame, rotation, Spin {rotationSpeed, rotateSpeed, isRotating, ballRotating, ballRotating2}, onGround2, pendingSpin};
