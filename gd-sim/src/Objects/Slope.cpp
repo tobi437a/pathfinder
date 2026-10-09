@@ -149,8 +149,11 @@ bool Slope::preCollide(Player& p, GDRect const& S, GDRect const& P) const {
 		if (!p.slope.on) {
 			addPotential(p, this);
 			auto risingFloor = [](Slope const* s) { return s->uphill && !s->ceiling(); };
+			// (by their sprite positions, getPosition, which a mirror portal moves mid-flip)
+			auto spriteX = [&](Slope const* s) { return s->pos.x + p.spriteShift(s->pos.x); };
 			auto cur = p.slope.potential;
-			if (!cur || (!risingFloor(cur) && !risingFloor(this) && pos.x < cur->pos.x) || (risingFloor(cur) && cur->pos.x < pos.x))
+			if (!cur || (!risingFloor(cur) && !risingFloor(this) && spriteX(this) < spriteX(cur))
+				|| (risingFloor(cur) && spriteX(cur) < spriteX(this)))
 				p.slope.potential = this;
 		}
 	}
