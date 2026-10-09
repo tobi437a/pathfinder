@@ -126,8 +126,10 @@ void Player::copyAttributes(Player const& other) {
 	auto flies = [](VehicleType t) { return t == VehicleType::Ship || t == VehicleType::Ufo || t == VehicleType::Wave; };
 	if (from != to) {
 		stopRotation();
-		if (flies(from) || flies(to) || from == VehicleType::Ball)
+		if (flies(from) || flies(to))
 			rotation = 0;
+		else if (from == VehicleType::Ball)
+			rotation = upsideDown ? 180 : 0;
 		if (flies(from) && to == VehicleType::Cube)
 			runNormalRotation();
 	}

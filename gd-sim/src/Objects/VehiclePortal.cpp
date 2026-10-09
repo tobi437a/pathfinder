@@ -53,11 +53,13 @@ void VehiclePortal::collide(Player& player) const {
 		player.vehicle = Vehicle::from(type);
 		if (type == VehicleType::Ball)
 			player.becameBall = true;
-		// toggleFlyMode, toggleBirdMode, toggleDartMode (on or off) and toggleRollMode (off) set the rotation
-		// to 0; all of them stop it
+		// toggleFlyMode, toggleBirdMode, toggleDartMode (on or off) set the rotation to 0, toggleRollMode (off) to 180
+		// upside down, else 0; all of them stop it
 		player.stopRotation();
-		if (flies(from) || flies(type) || from == VehicleType::Ball)
+		if (flies(from) || flies(type))
 			player.rotation = 0;
+		else if (from == VehicleType::Ball)
+			player.rotation = player.upsideDown ? 180 : 0;
 		if (flies(from) || flies(type))
 			player.onGround2 = false;
 		// ...and switching the ship, ufo or wave off (resetPlayerIcon) starts a cube's spin (a ball's roll too,
