@@ -346,6 +346,9 @@ void Player::preCollision(bool pressed) {
 			grounded = true;
 		if (velocity > 0)
 			velocity = 0;
+		// (hitGround stops the spin; checkCollisions then clears m_isOnGround2)
+		hitGroundRotation();
+		onGround2 = false;
 	}
 
 	// In dual mode GJBaseGameLayer::checkCollisions bounds every mode like a flying one: a cube past the
