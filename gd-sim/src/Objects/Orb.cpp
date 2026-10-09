@@ -119,7 +119,9 @@ void Orb::collide(Player& p) const {
 	// the button held can take an orb with that click, unless an orb or a jump already used it.
 	if (p.buffer || (p.prevPlayer().buffer && !p.button) || (p.vehicle.type == VehicleType::Ball && p.vehicleBuffer && !p.clickUsed)) {
 		// (GD handles a fresh click at its next step: this step's rotation still sees the player on the ground)
-		if (p.button && !p.prevPlayer().button && p.onGround2 && p.prevPlayer().grounded)
+		// (on m_isOnGround2 and not falling: updateRotation eases it, see Player::updateRotation)
+		bool falling = p.upsideDown ? p.gdVelocity() > 0.25 : p.gdVelocity() < -0.25;
+		if (p.button && !p.prevPlayer().button && p.onGround2 && (p.prevPlayer().grounded || !falling))
 			p.orbFromGround = true;
 		p.buffer = false;
 		p.vehicleBuffer = false;
