@@ -55,7 +55,9 @@ void rotateUfo(Player& p) {
 	auto diff = travel(p);
 	if (p.dt * 72 <= std::pow(diff.x, 2) + std::pow(diff.y, 2)) {
 		float lean = atan2f((float)diff.y, (float)diff.x) * 0.4f;
-		float gdTarget = !p.upsideDown ? std::max(-0.1f, lean) : std::min(0.1f, lean);
+		// (in the gravity GD has at its turn: not yet an orb's it clicks at its next step)
+		bool upsideDown = p.upsideDown != p.orbFlipPending;
+		float gdTarget = !upsideDown ? std::max(-0.1f, lean) : std::min(0.1f, lean);
 		p.rotation = slerp(p.rotation * 0.017453292f, -gdTarget, (float)(p.dt * 60) * 0.07f) * 57.29578f;
 	}
 }

@@ -261,6 +261,7 @@ void Player::preCollision(bool pressed) {
 	modeFlip = false;
 	hitPad = false;
 	clickedOrb = false;
+	orbFlipPending = false;
 	onBlock = false;
 	headHit = false;
 	walkedOff = false;

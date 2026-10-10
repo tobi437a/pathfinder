@@ -180,6 +180,8 @@ void Orb::collide(Player& p) const {
 					p.flipPartner();
 			}
 		}
+		if (freshClick && (type == OrbType::Green || type == OrbType::Blue))
+			p.orbFlipPending = !p.orbFlipPending;
 		if (freshClick) {
 			p.pendingSpin = Player::Spin {p.rotationSpeed, p.rotateSpeed, p.isRotating, p.ballRotating, p.ballRotating2};
 			p.rotationSpeed = before.speed;

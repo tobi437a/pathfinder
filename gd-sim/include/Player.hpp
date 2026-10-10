@@ -362,6 +362,9 @@ struct Player : public Entity {
 	/// Player 1 took player 2's place at a solo portal this frame (DualPortal::collide), with player 2's state
 	/// from its collisions: GD steps it from there next step (Level::runFrame)
 	bool copiedFromP2 = false;
+	/// A fresh click on a blue or green orb flipped gravity this frame, which GD only does at its next step
+	/// (pushButton): this step's turn still has the old gravity (rotateUfo)
+	bool orbFlipPending = false;
 
 	/// GD's y velocity (m_yVelocity: GD units, positive = up in the world) and setYVelocity (rounds to 1/1000)
 	double gdVelocity() const { return grav(velocity) / 54; }
