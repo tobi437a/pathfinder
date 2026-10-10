@@ -217,6 +217,12 @@ struct Player : public Entity {
 	/// player after it, which GD has before both players turn, turns it again from there (flipPartner)
 	struct TurnStart { int frame = -1; float rotation = 0; Spin spin {}; bool onGround2 = false; std::optional<Spin> pendingSpin; };
 	TurnStart beforeTurn;
+	/// GD's m_shipRotation: where the player was at its last turn (set after both players turned, player 2's only in
+	/// dual mode; copied by copyAttributes), which a ship, ufo or wave turns towards its travel from. GD's (0, 0) before
+	/// the level's first step.
+	Vec2D shipRotation {0, -90};
+	/// The rotation before this frame's fly turn (Vehicle::turn)
+	float beforeFlyTurn = 0;
 	/// updateRotation's turn: easing to the ground or slope, the spin, then a pending spin
 	void turn();
 

@@ -107,6 +107,7 @@ void Player::copyAttributes(Player const& other) {
 	ballRotating2 = own.ballRotating2;
 	pendingSpin.reset();
 	beforeTurn = own.beforeTurn;
+	beforeFlyTurn = own.beforeFlyTurn;
 	isP2 = own.isP2;
 	partner = own.partner;
 	slope = own.slope;
@@ -871,6 +872,7 @@ void Player::postCollision() {
 	}
 
 	// (GD's walk-off step comes before the turn: a ship leaving the ground turns towards that step's travel)
+	beforeFlyTurn = rotation;
 	if (vehicle.turn)
 		vehicle.turn(*this);
 

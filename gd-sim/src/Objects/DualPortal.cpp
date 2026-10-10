@@ -75,6 +75,10 @@ void DualPortal::collide(Player& p) const {
 				p1.rotation = p1.beforeTurn.rotation;
 			p1.turn();
 		}
+		// ...and a ship, ufo or wave towards its travel from where player 2 turned last (the copied m_shipRotation), in
+		// Player::startDual: from the rotation before the sim's turn
+		if (p1.vehicle.turn && !switches)
+			p1.rotation = p1.beforeFlyTurn;
 	}
 	p1.dual = false;
 	p1.updateGround(p1.modePortalY);

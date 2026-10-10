@@ -210,6 +210,10 @@ Player& Level::runFrame(bool pressed, float dt) {
 			}
 		}
 	}
+	// GJBaseGameLayer::update keeps where each player turned (m_shipRotation), player 2's only in dual mode
+	p.shipRotation = p.pos;
+	if (p.dual)
+		q.shipRotation = q.pos;
 	if (!p.dual) {
 		// Player 2 idles; keep a copy of player 1 so its lane has states for every frame
 		q.copyAttributes(p);

@@ -29,12 +29,9 @@ float normalizeRotation(Player const& p, float angle) {
 }
 
 /// The direction of travel updateShipRotation turns towards: from where the player was at the last step's turn
-/// (m_shipRotation, which GJBaseGameLayer::update sets after it), on the level's first step GD's (0, 0)
+/// (m_shipRotation, see Player::shipRotation)
 static Vec2D travel(Player const& p) {
-	// (the state before a level's first step has frame 1)
-	if (p.prevPlayer().frame <= 1)
-		return p.pos - Vec2D(0, -90);
-	return p.pos - p.prevPlayer().pos;
+	return p.pos - p.shipRotation;
 }
 
 /// PlayerObject::updateShipRotation (ship, wave): turns towards the direction of travel
