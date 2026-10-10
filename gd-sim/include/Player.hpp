@@ -248,6 +248,8 @@ struct Player : public Entity {
 	/// The mode's floor and ceiling when this frame's collisions began: GD bounds the player before them, so a
 	/// portal that moves the ground takes effect a step later (postCollision)
 	float startFloor = 0, startCeiling = 0;
+	/// The player's half height at GD's floor snap (before this step's portals)
+	double startHalfHeight = 0;
 	/// A ship or ufo above the mode ceiling after moving was put back under it before collisions
 	bool ceilingSnapped = false;
 

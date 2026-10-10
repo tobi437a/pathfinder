@@ -315,6 +315,7 @@ void Player::preCollision(bool pressed) {
 	// collisions (postCollision then decides about grounding)
 	startFloor = floor;
 	startCeiling = ceiling;
+	startHalfHeight = size.y / 2;
 
 	// GD marks the player out of bounds (m_isOutOfBounds) and only kills it on the second such step in a row.
 	outOfBounds = false;
@@ -785,14 +786,15 @@ void Player::postCollision() {
 	float boundFloor = upsideDown ? -startCeiling : startFloor;
 	// (GD snaps a player strictly below the floor (preCollision): one that moved exactly onto it isn't grounded until
 	// its next step; the sim's resting player doesn't move, GD's falls a step below and is put back)
-	float bottom = gravBottom(*this);
+	// (GD's snap sees the player's size before this step's size portal: the sim may have applied it already)
+	float bottom = gravBottom(*this) + (float)(size.y / 2 - startHalfHeight);
 	// (not in the gravity a fresh orb click flipped it to: GD clicks at its next step)
 	bool clickFlipped = clickedOrb && button && !prevPlayer().button && upsideDown != prevPlayer().upsideDown;
 	// (nor one a slope over its head pushed past the floor after GD's snap: GD puts it back at its next step)
 	if ((bottom < boundFloor || (bottom == boundFloor && (velocity == 0 || floorSnapped))) && !velocityOverride && (velocity <= 0 || hitPad)
 		&& !pastBoundsOnSlope(slope.on) && !clickFlipped && !(slope.on && slope.head && !floorSnapped)) {
 		if (!headHit && !slope.on)
-			pos.y = grav(boundFloor) + grav(size.y / 2);
+			pos.y = grav(boundFloor) + grav(startHalfHeight);
 		// (GD's floor snap comes before the step's portals: one that switched a ship, ufo or wave on or off since
 		// cleared the on-ground flag again)
 		if (!hitPad && !groundCleared)
