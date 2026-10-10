@@ -231,8 +231,7 @@ Vehicle ball() {
 
 	v.type = VehicleType::Ball;
 	v.clamp = +[](Player& p) {
-		if (p.velocity >= 810)
-			p.velocity = 810;
+		// (updateJump caps the fall only: a pad launches a ball faster than 810)
 		if (p.velocity <= -810)
 			p.velocity = -810;
 
