@@ -43,7 +43,8 @@ void rotateFly(Player& p, float mult) {
 
 	// Unknown why this happens
 	if (p.dt * 72 <= std::pow(diff.x, 2) + std::pow(diff.y, 2)) {
-		p.rotation = slerp(p.rotation * 0.017453292f, atan2(diff.y, diff.x), (p.dt * 60) * mult) * 57.29578f;
+		// (atan2f of GD's float travel)
+		p.rotation = slerp(p.rotation * 0.017453292f, atan2f((float)diff.y, (float)diff.x), (p.dt * 60) * mult) * 57.29578f;
 	}
 }
 

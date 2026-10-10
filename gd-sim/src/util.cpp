@@ -2,6 +2,8 @@
 #include <cmath>
 #include <complex>
 
+/// GD's slerp of two angles (FUN_140071ef0, used by PlayerObject::updateRotation and updateShipRotation): in floats,
+/// but the final atan2 in double
 float slerp(float fromAngle, float toAngle, float t) {
     std::complex<float> fromVec = std::polar(1.0f, fromAngle * 0.5f);
     std::complex<float> toVec = std::polar(1.0f, toAngle * 0.5f);
@@ -14,7 +16,7 @@ float slerp(float fromAngle, float toAngle, float t) {
     }
 
     std::complex<float> weight = std::complex(1.0f - t, t);
-    if (dot < 0.9999) {
+    if (1.0f - dot > 0.0001f) {
         float between = std::acos(dot);
 
         weight *= between;
@@ -23,7 +25,8 @@ float slerp(float fromAngle, float toAngle, float t) {
     }
 
     std::complex<float> interpVec = (weight.imag() * toVec) + (weight.real() * fromVec);
-    return std::atan2(std::imag(interpVec), std::real(interpVec)) * 2;
+    double angle = std::atan2((double)std::imag(interpVec), (double)std::real(interpVec));
+    return (float)(angle + angle);
 }
 
 
