@@ -126,7 +126,8 @@ bool Block::touching(Player const& p) const {
 	// GD keeps a player resting on a block at its float y (block top + half its height, rounded in GD's
 	// coordinates), which can be a hair above the top; it still touches the block, since every step's gravity
 	// moves it into the block before the collisions. The sim's resting player doesn't move.
-	if (!p.prevPlayer().grounded || p.velocity != 0)
+	// (not one a slope put there this step, earlier in the collisions: that's GD's y, and GD's gap)
+	if (!p.prevPlayer().grounded || p.velocity != 0 || p.slope.on)
 		return false;
 	double gap = p.gravBottom(p) - p.gravTop(*this);
 	return gap > 0 && gap < 1e-3 && p.getRight() >= getLeft() && getRight() >= p.getLeft();
