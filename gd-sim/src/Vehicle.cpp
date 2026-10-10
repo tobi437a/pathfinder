@@ -255,6 +255,9 @@ Vehicle ball() {
 				bool onGround2 = p.onGround2;
 				p.hitGroundRotation();
 				p.onGround2 = onGround2;
+				// (hitGround's m_isOnGround, at <= 270: updateJump clears it before falling, unless the ball is
+				// boosted, whose updateJump only applies gravity)
+				p.ceilingGround = hitVelocity <= 270 && p.boosted;
 				p.velocity = roundVel(gdFall(p, 0.958199f, 0.6f) * p.dt, p.upsideDown);
 			}
 		}
@@ -292,6 +295,8 @@ Vehicle ball() {
 			}
 			p.buffer = false;
 		} else if (p.buffer && p.coyoteFrames < (p.upsideDown || p.dual ? 16 : 1)) {
+			jump = !p.partnerFlipsNext;
+		} else if (p.prevPlayer().ceilingGround && p.input && (p.prevPlayer().buffer || !p.prevPlayer().input || p.vehicleBuffer)) {
 			jump = !p.partnerFlipsNext;
 		}
 

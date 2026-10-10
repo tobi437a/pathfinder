@@ -275,6 +275,7 @@ void Player::preCollision(bool pressed) {
 	slopeFallVelocity = 0;
 	groundCleared = false;
 	ballJumped = false;
+	ceilingGround = false;
 	slopeRaised = false;
 	flipFloorPutBack = false;
 	slopeSideLanded = false;
