@@ -11,7 +11,7 @@ levels that got better (diverge later) or worse; --save writes build/re/batch/re
 --rot also counts a cube or ball whose rotation (mod 90: the hitbox is square) differs by more than
 --tol as diverged, for checking the player rotation that rotated objects are tested against.
 --rotfly also counts a ship's, ufo's or wave's rotation (the sim's is counter-clockwise, GD's clockwise).
---p2 also compares player 2 in dual mode (P2 lines of the traces).
+--p2 also compares player 2 in dual mode (P2 lines of the traces), with --rot / --rotfly its rotation too (p2rot).
 A run whose sim dies at another step than GD (verify.json "died") counts as diverged at the earlier death.
 Each divergence has a kind: p1 / p2 (position), rot, death-gd (GD dies first), death-sim (the sim does).
 --runs DIR scores another copy of the runs (e.g. runs-pre1.8, a snapshot kept before re-pathfinding).
@@ -49,13 +49,25 @@ def modes(path: Path):
 
 
 def p2_path(path: Path):
-    """{frame: (x, y)} from a trace's P2 lines (player 2 in dual mode)."""
+    """{frame: (x, y, rotation, mode)} from a trace's P2 lines (player 2 in dual mode)."""
     out = {}
     for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
         if line.startswith("P2 "):
             f = line.split()
-            out[int(f[1])] = (float(f[3]), float(f[5]))
+            d = dict(zip(f[2::2], f[3::2]))
+            out[int(f[1])] = (float(d["X"]), float(d["Y"]), float(d["Rot"]), d["Mode"])
     return out
+
+
+def rot_diverged(rr, sr, mode):
+    """Whether GD's rotation rr and the sim's sr differ by more than TOL for a player in mode (--rot, --rotfly)."""
+    if ROT and mode[:1] in ("c", "b"):
+        d = (rr - sr) % 90
+        return min(d, 90 - d) > TOL
+    if ROTFLY and mode[:1] in ("s", "u", "w"):
+        d = (rr + sr) % 360
+        return min(d, 360 - d) > TOL
+    return False
 
 
 def score(run: Path):
@@ -91,17 +103,13 @@ def score(run: Path):
         if f in real2:
             if f + 1 not in sim2:
                 return f, len(frames), "p2"
-            (rx2, ry2), (sx2, sy2) = real2[f], sim2[f + 1]
+            (rx2, ry2, rr2, rm2), (sx2, sy2, sr2, _) = real2[f], sim2[f + 1]
             if abs(rx2 - sx2) > TOL or abs(ry2 - sy2) > TOL:
                 return f, len(frames), "p2"
-        if ROT and f <= rot_last and real_modes.get(f, "")[:1] in ("c", "b"):
-            d = (rr - sr) % 90
-            if min(d, 90 - d) > TOL:
-                return f, len(frames), "rot"
-        if ROTFLY and f <= rot_last and real_modes.get(f, "")[:1] in ("s", "u", "w"):
-            d = (rr + sr) % 360
-            if min(d, 360 - d) > TOL:
-                return f, len(frames), "rotfly"
+            if f <= rot_last and rot_diverged(rr2, sr2, rm2):
+                return f, len(frames), "p2rot"
+        if f <= rot_last and rot_diverged(rr, sr, real_modes.get(f, "")):
+            return f, len(frames), "rot" if real_modes.get(f, "")[:1] in ("c", "b") else "rotfly"
     if frames:
         real_death = max(real) if real_died else None
         sim_death = max(sim) - 1 if sim_died else None

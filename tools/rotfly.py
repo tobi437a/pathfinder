@@ -7,7 +7,7 @@ For each run whose first divergence (regress-NAME.json, default the newest) is o
 frame, GD's and the sim's mode and rotation there and a step before, the turn's target each implies (inverting
 the slerp: target = old + (new - old) / t, with t the mode's factor * 0.25), and the angle of the step's travel
 in GD (this step's and the last one's), all in GD's clockwise degrees. Then the counts per sim/real mode pair.
-Uses runs/<id>/real.txt and the current sim's runs/<id>/simdbg.txt (written by regress.py).
+--p2: player 2 (P2 lines; --kind p2rot). Uses runs/<id>/real.txt and the current sim's runs/<id>/simdbg.txt (written by regress.py).
 """
 import argparse
 import collections
@@ -55,8 +55,11 @@ def main():
     ap.add_argument("--regress")
     ap.add_argument("--runs", default="runs")
     ap.add_argument("--ids")
-    ap.add_argument("--kind", default="rotfly")
+    ap.add_argument("--kind", help="divergence kind (default rotfly, p2rot with --p2)")
+    ap.add_argument("--p2", action="store_true", help="player 2 (P2 lines; any mode: a cube's or ball's target is meaningless)")
     a = ap.parse_args()
+    a.kind = a.kind or ("p2rot" if a.p2 else "rotfly")
+    tag = "P2" if a.p2 else "Frame"
     scores = sorted(DATA.glob("regress-*.json"), key=lambda p: p.stat().st_mtime)
     path = DATA / f"regress-{a.regress}.json" if a.regress else scores[-1]
     reg = json.loads(path.read_text(encoding="utf-8"))
@@ -66,7 +69,7 @@ def main():
     for k in ids:
         run = DATA / a.runs / k
         f = reg[k]["diverge"]
-        real, sim = frames(run / "real.txt"), frames(run / "simdbg.txt")
+        real, sim = frames(run / "real.txt", tag), frames(run / "simdbg.txt", tag)
         if f not in real or f + 1 not in sim or f - 1 not in real:
             print(k, f, "?")
             continue

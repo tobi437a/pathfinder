@@ -144,8 +144,13 @@ Player& Level::runFrame(bool pressed, float dt) {
 	// up in player 1's new gravity with its orb's velocity, and player 1 flipped back.
 	if (p.flipPartnerNext && q.flipPartnerNext) {
 		p.flipPartnerNext = false;
-		if (q.upsideDown != p.upsideDown && p.flipsPartnerKind())
+		if (q.upsideDown != p.upsideDown && p.flipsPartnerKind()) {
 			q.flipGravity(p.upsideDown);
+			// (a cube's ring spin, ringJump's runNormalRotation, started in the gravity player 1's flip gave it: the
+			// other way round. A ball's flipGravity restarts its spin anyway.)
+			if (q.vehicle.type == VehicleType::Cube)
+				q.rotationSpeed = -q.rotationSpeed;
+		}
 	}
 	// Player 1's blue or green orb click flips player 2 before player 2's own click takes its orb: one that took
 	// another orb with that click keeps that orb's velocity, in the new gravity
