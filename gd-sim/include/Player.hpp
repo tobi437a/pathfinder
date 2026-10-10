@@ -206,6 +206,8 @@ struct Player : public Entity {
 	/// releaseButton clears).
 	void copyAttributes(Player const& other);
 	void resetObject();
+	/// PlayerObject::updateJump's first step: m_isAccelerating ends within the ship's velocity caps
+	void endAccelerating();
 	/// Player 2's start in the frame of the dual portal: GD steps it from the next step on, whose updateJump adds
 	/// gravity before it moves; the sim does that at the end of this frame (like postCollision)
 	void startDual();

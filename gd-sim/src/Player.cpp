@@ -166,9 +166,21 @@ void Player::resetObject() {
 	snapData = decltype(snapData){};
 }
 
+void Player::endAccelerating() {
+	// PlayerObject::updateJump first ends m_isAccelerating for a ship, ufo or wave whose velocity is
+	// within the ship's caps: [0, 8) up or (-6.4, 0] down (/ 0.85 when mini)
+	if (vehicle.type == VehicleType::Ship || vehicle.type == VehicleType::Ufo || vehicle.type == VehicleType::Wave) {
+		float size = small ? 0.85f : 1;
+		double v = velocity / 54;
+		if ((v >= 0 && v < (double)(8.0f / size)) || (v <= 0 && v > (double)(-6.4f / size)))
+			accelerating = false;
+	}
+}
+
 void Player::startDual() {
 	velocityOverride = false;
 	coyoteFrames = INT_MAX;
+	endAccelerating();
 	collisionVelocity = velocity;
 	vehicle.update(*this);
 	if (vehicle.turn)
@@ -836,14 +848,7 @@ void Player::postCollision() {
 	// GJBaseGameLayer::update turns the player after the step's collisions (before the next step's updateJump)
 	updateRotation();
 
-	// PlayerObject::updateJump first ends m_isAccelerating for a ship, ufo or wave whose velocity is
-	// within the ship's caps: [0, 8) up or (-6.4, 0] down (/ 0.85 when mini)
-	if (vehicle.type == VehicleType::Ship || vehicle.type == VehicleType::Ufo || vehicle.type == VehicleType::Wave) {
-		float size = small ? 0.85f : 1;
-		double v = velocity / 54;
-		if ((v >= 0 && v < (double)(8.0f / size)) || (v <= 0 && v > (double)(-6.4f / size)))
-			accelerating = false;
-	}
+	endAccelerating();
 
 	collisionVelocity = velocity;
 	collisionUpsideDown = upsideDown;
