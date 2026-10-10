@@ -43,15 +43,16 @@ letters (r p i), and the verifier's `realMode`. GD's fly-mode floor/ceiling are
 ## Current work: 1.8 support (start here)
 
 The batch (`build\re\batch`) is 453 rated 1.8 levels (all of them with gameVersion 18).
-Two offline regression sets, each GD's `real.txt` per level (with `P2` lines in dual):
-`runs-pre1.8\` (macros from the pre-dual pathfinder) and `runs\` (macros from the current one).
-Both match GD bit for bit to the end in all 453 runs: players 1 and 2, positions, cube/ball and
-ship/ufo/wave rotation, deaths. Baselines: `regress.py --p2 --rot --rotfly --tol 1e-6 --base t6` (runs)
-and `--runs runs-pre1.8 --p2 --rot --rotfly --tol 1e-6 --base pt6` (at the default 0.01: `q12`, `pq12`);
-a sim change must keep both at 453.
-- Next: rebuild Release `pathfinder-cli` and run the end-to-end batch (below): new macros take new
-  paths, which the regression sets don't cover, and it measures how many levels the pathfinder beats
-  in GD (last: 316/453 beaten, 111 complete in the sim but die in GD; from before the rotation work).
+Three offline regression sets, each GD's `real.txt` per level (with `P2` lines in dual):
+`runs-pre1.8\` (macros from the pre-dual pathfinder), `runs-dual\` (from the pathfinder before the
+rotation work) and `runs\` (from the current one). `runs-pre1.8` and `runs-dual` match GD bit for bit
+to the end in all 453 runs: players 1 and 2, positions, cube/ball and ship/ufo/wave rotation, deaths
+(`regress.py --runs runs-dual --p2 --rot --rotfly --tol 1e-6 --base t6`, `--runs runs-pre1.8 ... --base
+pt6`); a sim change must keep both at 453. `runs` (the latest end-to-end batch): 418/453 match
+(`--p2 --rot --rotfly --base e0`: p1 13, rot 9, p2 8, p2rot 4, death-gd 1).
+- Next: triage and fix the 35 diverging `runs` (`triage.py`, `diverge.py`, `rotfly.py`).
+- Last end-to-end batch (`batch.py report`): 405/453 beaten in GD; 7 complete in the sim but die in
+  GD, 4 die in the sim but not in GD, 13 complete in both but drift, 24 stuck.
 - `tools\rotfly.py [--p2] [--regress NAME] [--runs DIR]`: per diverged run, GD's and the sim's mode and
   rotation at a rotation divergence, the turn target each implies and the step's travel angle.
 - GD collision logs for a run's frames: `tools\gdcoll.py <id>:<from>-<to> [--runs runs-pre1.8]`
