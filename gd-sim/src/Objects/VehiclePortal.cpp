@@ -29,6 +29,7 @@ void VehiclePortal::collide(Player& player) const {
 	EffectObject::collide(player);
 
 	bool switched = player.vehicle.type != type;
+	VehicleType switchedFrom = player.vehicle.type;
 	if (switched) {
 		// GD checks pads and portals against the player's (cached) rect from before them, so the new size only
 		// shows for the blocks after a switch into or out of ship, ufo or wave (see scaleRefreshed), or else at
@@ -106,5 +107,8 @@ void VehiclePortal::collide(Player& player) const {
 		// (that flip comes before the switch, whose toggleRollMode stops the roll a ball's flipGravity started)
 		if (switched && type == VehicleType::Ball)
 			player.stopRotation();
+		// (and toggleRollMode off turns it the new way up)
+		if (switched && switchedFrom == VehicleType::Ball && type == VehicleType::Cube)
+			player.rotation = player.upsideDown ? 180 : 0;
 	}
 }
