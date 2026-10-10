@@ -149,7 +149,11 @@ void Player::copyAttributes(Player const& other) {
 }
 
 void Player::resetObject() {
-	// PlayerObject::resetObject (GD resets player 2 with it before a dual portal copies player 1 onto it)
+	// PlayerObject::resetObject (GD resets player 2 with it before a dual portal copies player 1 onto it): a normal
+	// cube, the right way up, off any slope, not spinning (so the copy switches modes from there, copyAttributes)
+	vehicle = Vehicle::from(VehicleType::Cube);
+	upsideDown = false;
+	small = false;
 	rotation = 0;
 	stopRotation();
 	pendingSpin.reset();
