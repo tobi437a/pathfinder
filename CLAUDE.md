@@ -42,23 +42,18 @@ letters (r p i), and the verifier's `realMode`. GD's fly-mode floor/ceiling are
 
 ## Current work: 1.8 support (start here)
 
-The batch (`build
-eatch`) is 453 rated 1.8 levels (all of them with gameVersion 18).
+The batch (`build\re\batch`) is 453 rated 1.8 levels (all of them with gameVersion 18).
 Two offline regression sets, each GD's `real.txt` per level (with `P2` lines in dual):
 `runs-pre1.8\` (macros from the pre-dual pathfinder) and `runs\` (macros from the current one).
-Both now match GD to the end in all 453 runs for players 1 and 2 (`regress.py --p2`), and with
-cube/ball rotation too (`--rot`). Baselines: `regress.py --p2 --rot --base r34` (runs) and
-`--runs runs-pre1.8 --p2 --rot --base rq18`; a sim change must keep both at 453.
-- In progress: ship/ufo/wave rotation (`--rotfly`): 264/453 match (`--p2 --rot --rotfly --base f1`).
-  Fly rotation is `rotateFly`/`rotateUfo` in `Vehicle.cpp`, a port of `PlayerObject::updateShipRotation`
-  (asm in `builde\shiprotasm.txt`: target atan2 of the step's travel from `m_shipRotation`, which
-  `GJBaseGameLayer::update` sets to the position after each step's turn; slerp t = min(dt, factor*dt);
-  ufo target * 0.4 clamped; special cases for `0x658`, platformer, going left still unported).
-  Next: triage the remaining 189 (scratchpad-style per-run summary: real vs sim `Rot` and mode at the
-  divergence, like `diverge.py`), port the missing branches, then check `--tol 1e-6` (positions bit
-  for bit: 443/453 runs, 448/453 pre-1.8; the others differ by < 0.01).
-- Then: rebuild Release `pathfinder-cli` and run the end-to-end batch (below) to measure how many
-  levels the pathfinder now beats in GD (last: 316/453 beaten, 111 complete in the sim but die in GD).
+Both match GD bit for bit to the end in all 453 runs: players 1 and 2, positions, cube/ball and
+ship/ufo/wave rotation, deaths. Baselines: `regress.py --p2 --rot --rotfly --tol 1e-6 --base t6` (runs)
+and `--runs runs-pre1.8 --p2 --rot --rotfly --tol 1e-6 --base pt6` (at the default 0.01: `q12`, `pq12`);
+a sim change must keep both at 453.
+- Next: rebuild Release `pathfinder-cli` and run the end-to-end batch (below): new macros take new
+  paths, which the regression sets don't cover, and it measures how many levels the pathfinder beats
+  in GD (last: 316/453 beaten, 111 complete in the sim but die in GD; from before the rotation work).
+- `tools\rotfly.py [--p2] [--regress NAME] [--runs DIR]`: per diverged run, GD's and the sim's mode and
+  rotation at a rotation divergence, the turn target each implies and the step's travel angle.
 - GD collision logs for a run's frames: `tools\gdcoll.py <id>:<from>-<to> [--runs runs-pre1.8]`
   (launches GD minimised; adds `Coll`/`SlopeColl` lines and GD's flags to a fresh real.txt).
 - Dual (`Objects/DualPortal.cpp`, `Player::updateGround`, `Player::flipPartner`, `startDual`,
@@ -71,7 +66,7 @@ cube/ball rotation too (`--rot`). Baselines: `regress.py --p2 --rot --base r34` 
   but not all of them. Search improvements are for after 1.8 support.
 - Two-player levels (`kA10`, 4 in the batch) need player-2 inputs: the pathfinder only presses
   player 1, and the sim gives player 2 no button there.
-- `regress.py` labels each divergence p1, p2, rot, rotfly, death-gd or death-sim.
+- `regress.py` labels each divergence p1, p2, p2rot, rot, rotfly, death-gd or death-sim.
 - End-to-end: rebuild Release `pathfinder-cli`, `batch.py --redo pathfind`, `batch.py --redo
   verify` (GD minimised, ~25 min; a long background job can get killed under memory pressure -
   then `verify --import-only` and verify the rest with `--ids`), `batch.py report`.
@@ -215,8 +210,7 @@ python tools\triage.py                       # sim mode + objects at each diverg
 python tools\diverge.py <id> [--frame F]     # one run: real vs sim per frame, button, nearby objects
 python tools\diverge.py <id> --p2 --flags   # player 2 instead; GD's and the sim's Flags lines per frame
 python tools\gdcoll.py <id>:<from>-<to> ...  # replay in GD with its collision log (Coll/SlopeColl lines per
-                                             # block / slope collision) -> build
-eatch\coll\<id>.real.txt
+                                             # block / slope collision) -> build\re\batch\coll\<id>.real.txt
 ```
 A run whose sim dies at another step than GD counts as diverged there. A sim fix should make runs better and none worse; real paths only cover what the old macros did,
 so finish with `batch.py pathfind`/`verify`. Traces (verifier and `gd-sim-test`) end with
