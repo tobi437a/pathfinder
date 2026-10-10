@@ -180,8 +180,11 @@ void Orb::collide(Player& p) const {
 					p.flipPartner();
 			}
 		}
-		if (freshClick && (type == OrbType::Green || type == OrbType::Blue))
+		if (freshClick && (type == OrbType::Green || type == OrbType::Blue)) {
 			p.orbFlipPending = !p.orbFlipPending;
+			// (so GD's m_lastFlipTime is a step later too)
+			p.lastFlipFrame = p.frame + 1;
+		}
 		if (freshClick) {
 			p.pendingSpin = Player::Spin {p.rotationSpeed, p.rotateSpeed, p.isRotating, p.ballRotating, p.ballRotating2};
 			p.rotationSpeed = before.speed;
