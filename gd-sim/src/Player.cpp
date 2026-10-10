@@ -772,8 +772,9 @@ void Player::postCollision() {
 	float bottom = gravBottom(*this);
 	// (not in the gravity a fresh orb click flipped it to: GD clicks at its next step)
 	bool clickFlipped = clickedOrb && button && !prevPlayer().button && upsideDown != prevPlayer().upsideDown;
+	// (nor one a slope over its head pushed past the floor after GD's snap: GD puts it back at its next step)
 	if ((bottom < boundFloor || (bottom == boundFloor && (velocity == 0 || floorSnapped))) && !velocityOverride && (velocity <= 0 || hitPad)
-		&& !pastBoundsOnSlope(slope.on) && !clickFlipped) {
+		&& !pastBoundsOnSlope(slope.on) && !clickFlipped && !(slope.on && slope.head && !floorSnapped)) {
 		if (!headHit && !slope.on)
 			pos.y = grav(boundFloor) + grav(size.y / 2);
 		// (GD's floor snap comes before the step's portals: one that switched a ship, ufo or wave on or off since
