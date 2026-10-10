@@ -32,6 +32,7 @@ struct MirrorPortal : public EffectObject {
 struct DualPortal : public EffectObject {
     bool on;
     DualPortal(Vec2D size, std::unordered_map<int, std::string>&& fields);
+    bool touching(Player const&) const override;
     void collide(Player&) const override;
 };
 

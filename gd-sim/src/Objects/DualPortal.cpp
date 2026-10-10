@@ -21,6 +21,14 @@ static void copyWalkOff(Player const& p, Player& copy) {
 	}
 }
 
+bool DualPortal::touching(Player const& p) const {
+	// GD marks a dual or solo portal activated with triggerActivated, not per player (activatedByPlayer like the other
+	// portals): one either player took is taken for both (also one player 1 took before dual mode)
+	if (p.partner && p.partner->usedEffects.contains(id))
+		return false;
+	return EffectObject::touching(p);
+}
+
 void DualPortal::collide(Player& p) const {
 	EffectObject::collide(p);
 	if (!p.partner || p.dual == on)

@@ -611,6 +611,52 @@ class $modify(VerifyCollPlayerObject, PlayerObject) {
 	}
 };
 
+// In the "coll" frames too: `Obj <frame> <player> obj <id> <x> <y> type <m_objectType> act <hasBeenActivatedByPlayer>
+// dis <m_isDisabled> <m_isGroupDisabled>` per object of collisionCheckObjects whose rect overlaps the player's,
+// `Act <frame> <player> obj <id> <x> <y> -> <canBeActivatedByPlayer>` and `Dual <frame> <player> on <0/1>` per
+// toggleDualMode.
+class $modify(VerifyCollBGL, GJBaseGameLayer) {
+	bool logging() {
+		auto run = activeRun(this);
+		return run && !run->finished && s_collFrom >= 0 && s_collFrom <= run->step && run->step <= s_collTo;
+	}
+	int which(PlayerObject* p) { return p == m_player2 ? 2 : 1; }
+
+	void collisionCheckObjects(PlayerObject* p, gd::vector<GameObject*>* objects, int count, float dt) {
+		if (logging()) {
+			auto run = activeRun(this);
+			auto rect = p->getObjectRect();
+			for (int i = 0; i < count; ++i) {
+				auto o = (*objects)[i];
+				if (!o || !o->getObjectRect().intersectsRect(rect))
+					continue;
+				run->realTrace += fmt::format("Obj {} {} obj {} {:.4f} {:.4f} type {} act {} dis {} {}\n", run->step, which(p),
+					o->m_objectID, o->getRealPosition().x, o->getRealPosition().y - 90, (int)o->m_objectType,
+					(int)o->hasBeenActivatedByPlayer(p), (int)o->m_isDisabled, (int)o->m_isGroupDisabled);
+			}
+		}
+		GJBaseGameLayer::collisionCheckObjects(p, objects, count, dt);
+	}
+
+	bool canBeActivatedByPlayer(PlayerObject* p, EffectGameObject* o) {
+		bool r = GJBaseGameLayer::canBeActivatedByPlayer(p, o);
+		if (logging()) {
+			auto run = activeRun(this);
+			run->realTrace += fmt::format("Act {} {} obj {} {:.4f} {:.4f} -> {}\n", run->step, which(p), o->m_objectID,
+				o->getRealPosition().x, o->getRealPosition().y - 90, (int)r);
+		}
+		return r;
+	}
+
+	void toggleDualMode(GameObject* o, bool dual, PlayerObject* p, bool noEffects) {
+		if (logging()) {
+			auto run = activeRun(this);
+			run->realTrace += fmt::format("Dual {} {} on {}\n", run->step, p ? which(p) : 0, (int)dual);
+		}
+		GJBaseGameLayer::toggleDualMode(o, dual, p, noEffects);
+	}
+};
+
 class $modify(VerifyPlayLayer, PlayLayer) {
 	bool init(GJGameLevel* level, bool useReplay, bool dontCreateObjects) {
 		if (!PlayLayer::init(level, useReplay, dontCreateObjects))
