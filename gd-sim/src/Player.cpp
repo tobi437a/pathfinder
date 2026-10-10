@@ -518,6 +518,12 @@ void Player::flipPartner(bool turned) {
 	}
 	o.acceleration = stepAcceleration(o);
 	o.velocity = roundVel(o.velocity + o.acceleration * o.dt, o.upsideDown);
+	// (that step's updateJump: a cube now falling in its new gravity starts spinning, see postCollision)
+	if (o.vehicle.type == VehicleType::Cube && !o.boosted && !o.isRotating && !o.slope.on
+		&& o.gdVelocity() * (o.upsideDown ? -1 : 1) < -0.25) {
+		o.stopRotation();
+		o.runNormalRotation();
+	}
 }
 
 void Player::stopRotation() {
