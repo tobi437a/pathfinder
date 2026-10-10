@@ -28,7 +28,8 @@ VehiclePortal::VehiclePortal(Vec2D size, std::unordered_map<int, std::string>&& 
 void VehiclePortal::collide(Player& player) const {
 	EffectObject::collide(player);
 
-	if (player.vehicle.type != type) {
+	bool switched = player.vehicle.type != type;
+	if (switched) {
 		// GD checks pads and portals against the player's (cached) rect from before them, so the new size only
 		// shows for the blocks after a switch into or out of ship, ufo or wave (see scaleRefreshed), or else at
 		// the end of the frame (the wave's own size is set next frame, see wave())
@@ -102,5 +103,8 @@ void VehiclePortal::collide(Player& player) const {
 		player.velocity = -player.velocity / 2;
 		player.flipGravity(!otherUp);
 		player.modeFlip = true;
+		// (that flip comes before the switch, whose toggleRollMode stops the roll a ball's flipGravity started)
+		if (switched && type == VehicleType::Ball)
+			player.stopRotation();
 	}
 }
