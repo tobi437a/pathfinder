@@ -166,6 +166,8 @@ void Player::startDual() {
 	coyoteFrames = INT_MAX;
 	collisionVelocity = velocity;
 	vehicle.update(*this);
+	if (vehicle.turn)
+		vehicle.turn(*this);
 	if (!velocityOverride)
 		velocity += acceleration * dt;
 	velocity = roundVel(velocity, upsideDown);
@@ -867,6 +869,10 @@ void Player::postCollision() {
 		}
 		velocity = newVel;
 	}
+
+	// (GD's walk-off step comes before the turn: a ship leaving the ground turns towards that step's travel)
+	if (vehicle.turn)
+		vehicle.turn(*this);
 
 	// GD rounds velocity to 1/1000 (of 1/54 units) after applying gravity; see roundVel
 	if (roundVelocity)

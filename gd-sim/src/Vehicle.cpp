@@ -215,9 +215,8 @@ Vehicle ship() {
 		if (p.grav(p.pos.y) >= p.gravCeiling()) {
 			p.setVelocity(0, false);
 		}
-
-		rotateFly(p, 0.15f);
 	};
+	v.turn = +[](Player& p) { rotateFly(p, 0.15f); };
 
 	v.bounds = 300;
 
@@ -410,9 +409,8 @@ Vehicle ufo() {
 			if (p.button)
 				p.input = false;
 		}
-
-		rotateUfo(p);
 	};
+	v.turn = rotateUfo;
 
 	v.bounds = 300;
 
@@ -449,9 +447,8 @@ Vehicle wave() {
 	v.update = +[](Player& p) {
 		p.acceleration = 0;
 		p.buffer = false;
-
-		rotateFly(p, p.small ? 0.4 : 0.25);
 	};
+	v.turn = +[](Player& p) { rotateFly(p, p.small ? 0.4 : 0.25); };
 
 	v.bounds = 300;
 

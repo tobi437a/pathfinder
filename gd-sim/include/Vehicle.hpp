@@ -25,6 +25,10 @@ struct Vehicle {
 	/// Vehicle-specific movement, done after collisions
 	void (*update)(Player&) = nullptr;
 
+	/// A ship's, ufo's or wave's turn towards its travel (PlayerObject::updateShipRotation), after the update and
+	/// the step's walk-off move
+	void (*turn)(Player&) = nullptr;
+
 	/// How far away the floor and ceiling are from each other, relative to portal
 	float bounds;
 
