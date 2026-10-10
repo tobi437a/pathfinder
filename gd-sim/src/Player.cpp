@@ -511,6 +511,11 @@ void Player::flipPartner(bool turned) {
 	o.grounded = false;
 	if (redo)
 		o.turn();
+	// (a ship's, ufo's or wave's turn too: a ufo leans within the flipped gravity's bounds)
+	if (afterTurn && o.vehicle.turn) {
+		o.rotation = o.beforeFlyTurn;
+		o.vehicle.turn(o);
+	}
 	o.acceleration = stepAcceleration(o);
 	o.velocity = roundVel(o.velocity + o.acceleration * o.dt, o.upsideDown);
 }
