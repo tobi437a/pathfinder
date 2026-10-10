@@ -266,6 +266,7 @@ void Player::preCollision(bool pressed) {
 	hitPad = false;
 	clickedOrb = false;
 	orbFlipPending = false;
+	cubeJumped = false;
 	onBlock = false;
 	headHit = false;
 	walkedOff = false;
@@ -480,6 +481,20 @@ void Player::flipPartner(bool turned) {
 	if (!flipsPartner())
 		return;
 	Player& o = *partner;
+	// (a cube that hasn't stepped yet this frame doesn't make the jump the sim gave it: see cubeJumped)
+	if (o.frame != frame && o.cubeJumped) {
+		auto const& b = o.beforeCubeJump;
+		o.cubeJumped = false;
+		o.boosted = b.boosted;
+		o.clickUsed = b.clickUsed;
+		o.buffer = b.buffer;
+		o.onGround2 = b.onGround2;
+		o.rotationSpeed = b.spin.speed;
+		o.rotateSpeed = b.spin.rotateSpeed;
+		o.isRotating = b.spin.isRotating;
+		o.ballRotating = b.spin.ballRotating;
+		o.ballRotating2 = b.spin.ballRotating2;
+	}
 	// The other player's velocity is GD's plus a step of its gravity (the sim adds that at the end of a frame,
 	// GD at the start of the next): take GD's (its velocity after its last collisions), halve it in the world like
 	// PlayerObject::flipGravity (-0.5 relative to gravity), and add the step again in the new gravity, with the

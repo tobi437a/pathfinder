@@ -115,6 +115,9 @@ Vehicle cube() {
 				606.421728
 			};
 
+			p.cubeJumped = true;
+			p.beforeCubeJump = {p.boosted, p.clickUsed, p.buffer, p.onGround2,
+				Player::Spin {p.rotationSpeed, p.rotateSpeed, p.isRotating, p.ballRotating, p.ballRotating2}};
 			p.setVelocity(jumpHeights[p.speed], p.prevPlayer().input);
 			p.grounded = false;
 			p.boosted = true;

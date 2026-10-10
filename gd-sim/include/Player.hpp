@@ -295,6 +295,13 @@ struct Player : public Entity {
 	struct {
 		bool boosted, jumpBuffered, vehicleBuffer, clickUsed;
 	} beforeBallJump{};
+	/// A cube jumped at the end of this frame, which GD does in its next step's updateJump: in dual mode the other
+	/// player's flip before that (flipPartner) clears m_isOnGround first, and GD never makes the jump. What the jump changed:
+	bool cubeJumped = false;
+	struct {
+		bool boosted, clickUsed, buffer, onGround2;
+		Spin spin;
+	} beforeCubeJump{};
 
 	/// GD caches the player's hitbox, so a size portal's new size only shows once the player is moved
 	/// (e.g. snapped onto a block) or at the end of the frame
