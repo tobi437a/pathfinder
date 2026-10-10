@@ -156,8 +156,12 @@ Player& Level::runFrame(bool pressed, float dt) {
 	// another orb with that click keeps that orb's velocity, in the new gravity
 	if (p.flipPartnerNext && q.clickedOrb && q.button && !q.prevPlayer().button) {
 		p.flipPartnerNext = false;
-		if (p.flipsPartner())
+		if (p.flipsPartner()) {
 			q.flipGravity(!p.upsideDown);
+			// (its ring's spin, from there: the other way round for a cube)
+			if (q.vehicle.type == VehicleType::Cube)
+				q.rotationSpeed = -q.rotationSpeed;
+		}
 	}
 	for (Player* pl : {&p, &q}) {
 		if (pl->flipPartnerNext) {
