@@ -403,11 +403,12 @@ Vehicle ufo() {
 			p.buffer = false;
 			p.grounded = false;
 		} else {
-			p.acceleration = ufoAcceleration(p);
-
 			if (p.grounded) {
 				p.setVelocity(0, true);
 			}
+			// (the next updateJump's gravity, for a grounded ufo from GD's stopped velocity: hitGround zeroed it, even
+			// when a pad's launch is what the sim's velocity still has)
+			p.acceleration = ufoAcceleration(p);
 
 			if (p.button)
 				p.input = false;
