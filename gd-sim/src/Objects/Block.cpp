@@ -7,6 +7,12 @@
 #include <algorithm>
 #include <iostream>
 
+/// GD puts the player on a block's top (bottom) at float(edge + half height) in its y (sim y + 90): a sum that isn't a
+/// float there rounds (to even when halfway)
+static double gdY(double y) {
+	return (double)(float)(y + 90.0) - 90.0;
+}
+
 Block::Block(Vec2D s, std::unordered_map<int, std::string>&& fields) : Object(s, std::move(fields)) {
 	// Blocks have a prio of 1, so they are processed later than most other objects.
 	prio = 1;
@@ -152,7 +158,7 @@ void Block::collideBlock(Player& p, bool bare) const {
 			// (still standing on it in the old gravity, see Player::onBlock)
 			p.onBlock = true;
 			if (!p.innerHitbox().intersects(*this) && prev.velocity <= 0 && oldBottom < prev.gravTop(*this)) {
-				p.pos.y = prev.grav(prev.gravTop(*this)) + prev.grav(p.size.y / 2);
+				p.pos.y = gdY(prev.grav(prev.gravTop(*this)) + prev.grav(p.size.y / 2));
 				// (X-snap in the gravity it landed in)
 				if (!bare) {
 					p.upsideDown = prev.upsideDown;
@@ -164,7 +170,7 @@ void Block::collideBlock(Player& p, bool bare) const {
 			&& prev.velocity >= 0 && prev.gravBottom(*this) < prev.gravTop(p)
 			&& prev.gravTop(p) - prev.gravBottom(*this) <= (p.vehicle.type == VehicleType::Ball ? 10 : 6)) {
 			// ...or still stops its head (a ball, ship or ufo), see the head hits below
-			p.pos.y = prev.grav(prev.gravBottom(*this)) - prev.grav(p.size.y / 2);
+			p.pos.y = gdY(prev.grav(prev.gravBottom(*this)) - prev.grav(p.size.y / 2));
 		}
 		return;
 	}
@@ -246,7 +252,7 @@ void Block::collideBlock(Player& p, bool bare) const {
 		// (the sim's gravity portal flips a step ahead of GD's m_lastFlipTime: GD counts one step fewer since then, so a
 		// block 25 sim steps after the flip is still within 0.1 s)
 		if (headSide && p.lastFlipFrame > 0 && stepsWithin(p.frame - p.lastFlipFrame - 1, 0.1) && p.vehicle.type != VehicleType::Wave) {
-			p.pos.y = p.grav(p.gravBottom(*this)) - p.grav(p.size.y / 2);
+			p.pos.y = gdY(p.grav(p.gravBottom(*this)) - p.grav(p.size.y / 2));
 			if (p.velocity <= 270)
 				p.grounded = true;
 			p.velocity = 0;
@@ -257,7 +263,7 @@ void Block::collideBlock(Player& p, bool bare) const {
 		} else
 			p.dead = true;
 	} else if (p.vehicle.type != VehicleType::Wave && landRange && !headFirst && (padHitBefore || p.velocity <= 0 || p.slope.was) && !flippedOffGround && !coverFeet) {
-		p.pos.y = p.grav(p.gravTop(*this)) + p.grav(p.size.y / 2);
+		p.pos.y = gdY(p.grav(p.gravTop(*this)) + p.grav(p.size.y / 2));
 		p.applyResize();
 
 		// After an orb click, the next frame will cause the player to slightly dip into the block. hitGround stops
@@ -323,7 +329,7 @@ void Block::collideBlock(Player& p, bool bare) const {
 						- std::max(0.0, (double)p.grav(p.pos.y - p.prevPlayer().pos.y));
 					bool headSide = p.gravBottom(*this) - bottom >= feetClip;
 					double before = p.velocity;
-					p.pos.y = p.grav(p.gravBottom(*this)) - p.grav(p.size.y / 2);
+					p.pos.y = gdY(p.grav(p.gravBottom(*this)) - p.grav(p.size.y / 2));
 					p.velocity = 0;
 					p.headHit = true;
 					p.applyResize();
