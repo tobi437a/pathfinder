@@ -289,6 +289,7 @@ void Player::preCollision(bool pressed) {
 	ballJumped = false;
 	// (GD's on-ground flag lasts while the ball stays boosted: its updateJump only applies gravity)
 	ceilingGround = ceilingGround && boosted && vehicle.type == VehicleType::Ball;
+	dualCeilingPutBack = false;
 	slopeRaised = false;
 	flipFloorPutBack = false;
 	slopeSideLanded = false;
@@ -401,6 +402,7 @@ void Player::preCollision(bool pressed) {
 		pos.y = grav(gravCeiling()) - grav(size.y / 2);
 		velocity = 0;
 		onGround2 = false;
+		dualCeilingPutBack = true;
 	}
 
 	// ...and a ship or ufo above the ceiling back under it, stopping it (the vehicle's clamp then adds the
@@ -899,7 +901,7 @@ void Player::postCollision() {
 		bool shipPress = vehicle.type == VehicleType::Ship && button && !prevPlayer().button && velocity == 0;
 		double shipFall = small ? -1051.8984 : -894.11464;
 		bool ballPress = vehicle.type == VehicleType::Ball && button && !prevPlayer().button && !onBlock && !clickedOrb && !slope.on;
-		if (!grounded && prevPlayer().grounded && ((!input && (prevPlayer().button || !button)) || buffer || (clickedOrb && !onBlock) || coyoteJump || shipPress || ballPress) && prevPlayer().gravBottom(*this) > prevPlayer().gravFloor() && prevPlayer().gravBottom(prevPlayer()) > prevPlayer().gravFloor() && prevPlayer().velocity == 0 && !((gravityPortal || modeFlip) && vehicle.type != VehicleType::Cube)) {
+		if (!grounded && prevPlayer().grounded && ((!input && (prevPlayer().button || !button)) || buffer || (clickedOrb && !onBlock) || coyoteJump || shipPress || ballPress) && prevPlayer().gravBottom(*this) > prevPlayer().gravFloor() && prevPlayer().gravBottom(prevPlayer()) > prevPlayer().gravFloor() && prevPlayer().velocity == 0 && !((gravityPortal || modeFlip) && vehicle.type != VehicleType::Cube) && !dualCeilingPutBack) {
 			// The level's first frame has no previous acceleration. A ufo's previous acceleration was
 			// chosen for its velocity before landing; GD falls with the one for velocity 0 (this frame's).
 			double fallAccel = prevPlayer().acceleration;

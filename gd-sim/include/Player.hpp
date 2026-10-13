@@ -254,6 +254,9 @@ struct Player : public Entity {
 	double startHalfHeight = 0;
 	/// A ship or ufo above the mode ceiling after moving was put back under it before collisions
 	bool ceilingSnapped = false;
+	/// GD put this cube (in dual mode) back under the mode's ceiling and stopped it (Player::preCollision): after
+	/// its walk-off step, which the sim then doesn't take
+	bool dualCeilingPutBack = false;
 
 	/// The velocity after this frame's collisions (GD's m_yVelocity until its next updateJump; the sim's velocity
 	/// already has that step's gravity)
