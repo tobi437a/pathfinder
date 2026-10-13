@@ -221,7 +221,12 @@ Player& Level::runFrame(bool pressed, float dt) {
 				}
 				if (pl->vehicle.type == VehicleType::Ball) {
 					pl->stopRotation();
-					pl->runBallRotation();
+					// (a ball that jumped at the end of this frame jumps in GD's next updateJump, after updateTimeMod: its
+					// flipGravity's spin, at the new speed)
+					if (pl->ballJumped)
+						pl->runBallRotation2();
+					else
+						pl->runBallRotation();
 				}
 			}
 		}
