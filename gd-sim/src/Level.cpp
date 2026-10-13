@@ -208,9 +208,11 @@ Player& Level::runFrame(bool pressed, float dt) {
 				pl->speed = speed;
 				// (player 1 after player 2's portal: the sim's velocity already has its next step's gravity, which
 				// for a cube in the air is the new speed's m_gravity)
-				if (changed && pl->vehicle.type == VehicleType::Cube && !pl->grounded && !pl->velocityOverride) {
+				// (a grounded one's next walk-off step falls with it too, see Player::preCollision)
+				if (changed && pl->vehicle.type == VehicleType::Cube) {
 					pl->acceleration = stepAcceleration(*pl);
-					pl->velocity = std::max(-810.0, roundVel(pl->collisionVelocity + pl->acceleration * pl->dt, pl->upsideDown));
+					if (!pl->grounded && !pl->velocityOverride)
+						pl->velocity = std::max(-810.0, roundVel(pl->collisionVelocity + pl->acceleration * pl->dt, pl->upsideDown));
 				}
 				if (pl->vehicle.type == VehicleType::Ball) {
 					pl->stopRotation();
