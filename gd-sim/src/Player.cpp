@@ -543,6 +543,12 @@ void Player::flipPartner(bool turned) {
 		o.onGround2 = b.onGround2;
 		o.pendingSpin = b.pendingSpin;
 	}
+	// (one that took a speed portal this step only has its speed from GD's next step, updateTimeMod, which restarts a
+	// ball's roll: this flip's spin is the old speed's)
+	int newSpeed = o.speed;
+	bool speedPending = afterTurn && o.tookSpeedPortal;
+	if (speedPending)
+		o.speed = o.prevPlayer().speed;
 	o.flipGravity(!upsideDown);
 	if (afterTurn) {
 		if (!redo)
@@ -559,6 +565,13 @@ void Player::flipPartner(bool turned) {
 	if (afterTurn && o.vehicle.turn) {
 		o.rotation = o.beforeFlyTurn;
 		o.vehicle.turn(o);
+	}
+	if (speedPending) {
+		o.speed = newSpeed;
+		if (o.vehicle.type == VehicleType::Ball) {
+			o.stopRotation();
+			o.runBallRotation();
+		}
 	}
 	o.acceleration = stepAcceleration(o);
 	o.velocity = roundVel(o.velocity + o.acceleration * o.dt, o.upsideDown);
