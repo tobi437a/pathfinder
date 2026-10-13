@@ -415,9 +415,9 @@ void Player::preCollision(bool pressed) {
 		pos.y = grav(gravCeiling()) - grav(size.y / 2);
 		if (velocity > 0 && vehicle.type != VehicleType::Ball)
 			velocity = 0;
-		// A ball rising into it that doesn't flip there (the ball's clamp) gets hitGround's roll now, before this
-		// step's turn, and at y velocity <= 5 m_isOnGround2 too
-		if (vehicle.type == VehicleType::Ball && velocity > 0 && !(input && velocity <= 270)) {
+		// A ball rising into it gets hitGround's roll now, before this step's turn, and at y velocity <= 5
+		// m_isOnGround2 too (one that flips there, the ball's clamp, only flips in GD's next updateJump)
+		if (vehicle.type == VehicleType::Ball && velocity > 0) {
 			bool onGround2Before = onGround2;
 			hitGroundRotation();
 			if (velocity > 270)
