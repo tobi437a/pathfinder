@@ -286,8 +286,9 @@ struct Player : public Entity {
 	/// A ball jumped (flipped) at the end of this frame: GD does that in its next step's updateJump, so its
 	/// end-of-step checks still see the old gravity (Level::repelBalls)
 	bool ballJumped = false;
-	/// A boosted ball stopped at the mode's ceiling this frame without jumping: GD's hitGround put it on the ground,
-	/// and the next updateJump only applies gravity (m_maybeIsBoosted), so it can still jump in the one after
+	/// A boosted ball stopped at the mode's ceiling without jumping: GD's hitGround put it on the ground, and its
+	/// updateJump only applies gravity while it's boosted (m_maybeIsBoosted), so it can still jump in the step after
+	/// the boost ends
 	bool ceilingGround = false;
 	/// GD put this upside-down cube back on the ground it fell under after a flip (checkCollisions: hitGround, then
 	/// m_isOnGround2 cleared): its landing rotation is done

@@ -325,6 +325,7 @@ Vehicle ball() {
 				p.setVelocity(jumpHeights[p.speed], override);
 			}
 			p.boosted = true;
+			p.ceilingGround = false;
 			p.ballJumped = true;
 			p.jumpBuffered = false;
 			p.clickUsed = true;
