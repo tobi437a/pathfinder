@@ -311,7 +311,7 @@ Vehicle ball() {
 				-181.92601
 			};
 
-			p.beforeBallJump = {p.boosted, p.jumpBuffered, p.vehicleBuffer, p.clickUsed};
+			p.beforeBallJump = {p.boosted, p.jumpBuffered, p.vehicleBuffer, p.clickUsed, p.grounded};
 			bool slopeBoost = (p.slope.was || p.slope.on) && 0 < p.grav(p.slope.velocity);
 			bool override = p.prevPlayer().buffer || p.vehicleBuffer;
 			if (slopeBoost) {

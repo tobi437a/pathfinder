@@ -307,7 +307,7 @@ struct Player : public Entity {
 	bool slopeRaised = false;
 	/// The flags that jump cleared or set, for a repel that undoes it (GD never made that jump)
 	struct {
-		bool boosted, jumpBuffered, vehicleBuffer, clickUsed;
+		bool boosted, jumpBuffered, vehicleBuffer, clickUsed, grounded;
 	} beforeBallJump{};
 	/// A cube jumped at the end of this frame, which GD does in its next step's updateJump: in dual mode the other
 	/// player's flip before that (flipPartner) clears m_isOnGround first, and GD never makes the jump. What the jump changed:

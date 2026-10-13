@@ -497,9 +497,26 @@ float Player::spinStep() const {
 }
 
 void Player::flipPartner(bool turned) {
-	if (!flipsPartner())
+	if (!flipsPartnerKind())
 		return;
 	Player& o = *partner;
+	// A ball the sim jumped at the end of its frame, this frame, jumps in GD's next updateJump, after this flip, which
+	// clears m_isOnGround first: GD never makes that jump, and the flip sees the gravity from before it (see
+	// Level::repelBalls)
+	bool jumpUndone = o.frame == frame && turned && o.ballJumped;
+	if ((jumpUndone ? o.collisionUpsideDown : o.upsideDown) != upsideDown)
+		return;
+	if (jumpUndone) {
+		auto const& b = o.beforeBallJump;
+		o.ballJumped = false;
+		o.input = o.button;
+		o.boosted = b.boosted;
+		o.jumpBuffered = b.jumpBuffered;
+		o.vehicleBuffer = b.vehicleBuffer;
+		o.clickUsed = b.clickUsed;
+		o.grounded = b.grounded;
+		o.upsideDown = o.collisionUpsideDown;
+	}
 	// A cube jump the sim gave the other player at the end of its last frame, before GD's step for it (it hasn't
 	// stepped this frame, or the flip comes at the start of the frame, Level::runFrame): one from a fresh press GD
 	// made in pushButton, at the start of the step, before this flip (player 1 is pushed first), so it flips the
