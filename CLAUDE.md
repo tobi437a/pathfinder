@@ -48,9 +48,12 @@ Three offline regression sets, each GD's `real.txt` per level (with `P2` lines i
 rotation work) and `runs\` (from the current one). `runs-pre1.8` and `runs-dual` match GD bit for bit
 to the end in all 453 runs: players 1 and 2, positions, cube/ball and ship/ufo/wave rotation, deaths
 (`regress.py --runs runs-dual --p2 --rot --rotfly --tol 1e-6 --base t6`, `--runs runs-pre1.8 ... --base
-pt6`); a sim change must keep both at 453. `runs` (the latest end-to-end batch): 418/453 match
-(`--p2 --rot --rotfly --base e0`: p1 13, rot 9, p2 8, p2rot 4, death-gd 1).
-- Next: triage and fix the 35 diverging `runs` (`triage.py`, `diverge.py`, `rotfly.py`).
+pt6`); a sim change must keep both at 453. `runs` (the latest end-to-end batch): 451/453 match
+(`--p2 --rot --rotfly --tol 1e-6 --jobs 6 --base g8`; use `--jobs 6`, the default can run out of memory).
+- Next: 2491857 (p2) and 1693598 (p1). `git stash list` has unfinished fixes for both (keptGround after a
+  solo portal, head-slope placement past the mode floor, mode switch refreshing the hitbox size,
+  upside-down head-slope velocity clamp); not regression-clean yet: the size-refresh part breaks
+  2715001 and 2789323.
 - Last end-to-end batch (`batch.py report`): 405/453 beaten in GD; 7 complete in the sim but die in
   GD, 4 die in the sim but not in GD, 13 complete in both but drift, 24 stuck.
 - `tools\rotfly.py [--p2] [--regress NAME] [--runs DIR]`: per diverged run, GD's and the sim's mode and
