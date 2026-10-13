@@ -125,6 +125,7 @@ Vehicle cube() {
 			p.clickUsed = true;
 			// Jumping off a slope adds a quarter of its launch
 			p.slopeJump(0.25f);
+			p.cubeJumpVelocity = p.velocity;
 			p.stopRotation();
 			p.runNormalRotation();
 			p.onGround2 = false;

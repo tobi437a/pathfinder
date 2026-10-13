@@ -496,8 +496,14 @@ void Player::flipPartner(bool turned) {
 	if (!flipsPartner())
 		return;
 	Player& o = *partner;
-	// (a cube that hasn't stepped yet this frame doesn't make the jump the sim gave it: see cubeJumped)
-	if (o.frame != frame && o.cubeJumped) {
+	// A cube jump the sim gave the other player at the end of its last frame, before GD's step for it (it hasn't
+	// stepped this frame, or the flip comes at the start of the frame, Level::runFrame): one from a fresh press GD
+	// made in pushButton, at the start of the step, before this flip (player 1 is pushed first), so it flips the
+	// jump's velocity; one with the button held comes in its updateJump, after this flip has cleared m_isOnGround,
+	// so GD never makes it (see cubeJumped)
+	bool unstepped = o.frame != frame || !turned;
+	bool pushJump = o.cubeJumped && o.button && !o.prevPlayer().button;
+	if (unstepped && o.cubeJumped && !pushJump) {
 		auto const& b = o.beforeCubeJump;
 		o.cubeJumped = false;
 		o.boosted = b.boosted;
@@ -516,6 +522,8 @@ void Player::flipPartner(bool turned) {
 	// acceleration GD's next updateJump chooses for the flipped player (a ship's depends on its velocity). A
 	// grounded one has none.
 	double gd = o.grounded ? 0 : o.collisionVelocity;
+	if (unstepped && o.cubeJumped)
+		gd = o.cubeJumpVelocity;
 	// GD turns both players after both stepped (updateRotation): player 1, flipped by player 2 after its own turn,
 	// turns with the spin the flip gives it (a ball's), not the one before
 	// (it turns again from where its turn this frame started, flipped, with the velocity the flip gives it)
@@ -552,8 +560,14 @@ void Player::flipPartner(bool turned) {
 	}
 	o.acceleration = stepAcceleration(o);
 	o.velocity = roundVel(o.velocity + o.acceleration * o.dt, o.upsideDown);
-	// (that step's updateJump: a cube now falling in its new gravity starts spinning, see postCollision)
-	if (o.vehicle.type == VehicleType::Cube && !o.boosted && !o.isRotating && !o.slope.on
+	// (that step's updateJump: a boosted player now falling ends m_maybeIsBoosted, see postCollision; otherwise a
+	// cube now falling in its new gravity starts spinning)
+	if (o.boosted) {
+		if (o.fallingBugged()) {
+			o.boosted = false;
+			o.onGround2 = false;
+		}
+	} else if (o.vehicle.type == VehicleType::Cube && !o.isRotating && !o.slope.on
 		&& o.gdVelocity() * (o.upsideDown ? -1 : 1) < -0.25) {
 		o.stopRotation();
 		o.runNormalRotation();

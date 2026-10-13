@@ -310,6 +310,10 @@ struct Player : public Entity {
 		bool boosted, clickUsed, buffer, onGround2;
 		Spin spin;
 	} beforeCubeJump{};
+	/// The jump's velocity, before the step of gravity the sim adds with it: a fresh press makes GD's grounded cube
+	/// jump in pushButton, at the start of its next step, so player 2's ring clicked by the same press (pushed after
+	/// player 1) flips player 1 with that velocity (flipPartner)
+	double cubeJumpVelocity = 0;
 
 	/// GD caches the player's hitbox, so a size portal's new size only shows once the player is moved
 	/// (e.g. snapped onto a block) or at the end of the frame
