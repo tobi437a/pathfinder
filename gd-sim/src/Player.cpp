@@ -956,9 +956,11 @@ void Player::postCollision() {
 	// falling (playerIsFallingBugged) faster than 4 is off the ground. Not while m_maybeIsBoosted: then GD
 	// only applies gravity, and ends it once the player is falling (playerIsFallingBugged: y velocity below
 	// twice m_gravity, with the wrong sign upside down), which also takes it off the ground (m_isOnGround2).
-	// (Not on the step of a jump.)
+	// (Not on the step of a jump, unless a fresh press made it: GD jumps in pushButton, before that step's
+	// updateJump, which then already sees the jump's m_maybeIsBoosted.)
 	double fall = gdVelocity() * (upsideDown ? -1 : 1);
-	if (boostedBefore) {
+	bool pushJump = (cubeJumped || ballJumped) && button && !prevPlayer().button;
+	if (boostedBefore || pushJump) {
 		if (boosted && fallingBugged()) {
 			boosted = false;
 			onGround2 = false;
