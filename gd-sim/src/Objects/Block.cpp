@@ -241,8 +241,12 @@ void Block::collideBlock(Player& p, bool bare) const {
 	bool inRange = headCapable && (landRange || headRange);
 	// GD checks the landing side first, but for an upside-down ship, ufo or ball the head side (its world-down side)
 	bool headFirst = p.upsideDown && headCapable && headRange;
+	// The landing branch: GD checks it before the inner hitbox, so a (mini) player that falls far enough into the block
+	// for that to reach it still lands
+	bool lands = p.vehicle.type != VehicleType::Wave && landRange && !headFirst && (padHitBefore || p.velocity <= 0 || p.slope.was)
+		&& !flippedOffGround && !coverFeet;
 
-	if (p.innerHitbox().intersects(*this) && !risingOnto && !inRange) {
+	if (p.innerHitbox().intersects(*this) && !risingOnto && !inRange && !lands) {
 		// Hitting block head-on. Within 0.1 s of a gravity flip GD instead puts the player on the block's far
 		// side from its (new) floor and grounds it there (hitGround: velocity 0, on ground if slow enough), if the
 		// block is on its head side: its bottom at least the landing clip above the player's (before or after
@@ -261,7 +265,7 @@ void Block::collideBlock(Player& p, bool bare) const {
 			p.onGround2 = false;
 		} else
 			p.dead = true;
-	} else if (p.vehicle.type != VehicleType::Wave && landRange && !headFirst && (padHitBefore || p.velocity <= 0 || p.slope.was) && !flippedOffGround && !coverFeet) {
+	} else if (lands) {
 		p.pos.y = gdY(p.grav(p.gravTop(*this)) + p.grav(p.size.y / 2));
 		p.applyResize();
 
