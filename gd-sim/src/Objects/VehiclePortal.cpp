@@ -110,5 +110,10 @@ void VehiclePortal::collide(Player& player) const {
 		// (and toggleRollMode off turns it the new way up)
 		if (switched && switchedFrom == VehicleType::Ball && type == VehicleType::Cube)
 			player.rotation = player.upsideDown ? 180 : 0;
+		// (and resetPlayerIcon's spin, switching a ship, ufo or wave off, is the new gravity's)
+		if (switched && flying(switchedFrom) && type == VehicleType::Cube) {
+			player.stopRotation();
+			player.runNormalRotation();
+		}
 	}
 }
