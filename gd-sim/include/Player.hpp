@@ -245,6 +245,9 @@ struct Player : public Entity {
 
 	/// The player was below the mode floor after moving and was put back onto it before collisions
 	bool floorSnapped = false;
+	/// ...in dual mode in a step where the mode's top moved (GJBaseGameLayer::checkCollisions compares getMaxPortalY with
+	/// the last step's): GD's snap calls hitGround, then puts the y velocity back, so the player isn't at rest
+	bool boundKeptVelocity = false;
 	/// Past the mode's bounds this frame (GD's m_isOutOfBounds); two frames in a row kill the player
 	bool outOfBounds = false;
 	/// The mode's floor and ceiling when this frame's collisions began: GD bounds the player before them, so a

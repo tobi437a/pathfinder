@@ -347,6 +347,7 @@ void Player::preCollision(bool pressed) {
 	// (not a launched cube, m_maybeIsBoosted: one that jumps below the floor, off a downhill slope, rises from there)
 	bool cubeBounds = vehicle.type == VehicleType::Cube && !upsideDown && !dual;
 	floorSnapped = gravBottom(*this) < gravFloor() && !(cubeBounds && boosted) && !pastBounds;
+	boundKeptVelocity = floorSnapped && dual && ceiling != prevPlayer().ceiling;
 	if (floorSnapped) {
 		pos.y = grav(gravFloor()) + grav(size.y / 2);
 		// (GD's hitGround: a ball stops and starts rolling before the step's portals)
@@ -710,7 +711,7 @@ void Player::turn() {
 	if (vehicle.type == VehicleType::Cube) {
 		if (slope.on) {
 			slopeRotation();
-		} else if ((onGround2 || orbFromGround) && !slope.was && (grounded || orbFromGround || (upsideDown ? gdVelocity() <= 0.25 : gdVelocity() >= -0.25))) {
+		} else if ((onGround2 || orbFromGround) && !slope.was && ((grounded && !boundKeptVelocity) || orbFromGround || (upsideDown ? gdVelocity() <= 0.25 : gdVelocity() >= -0.25))) {
 			// (A landed player isn't rising: the landing stopped it, though the sim only zeroes the velocity
 			// in the vehicle's update, after this)
 			stopRotation();
