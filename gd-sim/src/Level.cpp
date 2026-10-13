@@ -312,6 +312,11 @@ void Level::repelBalls(Player& p, Player& q) const {
 		flip->flipGravity(!flip->upsideDown);
 	flip->velocity = roundVel(-2 * 54 + flip->acceleration * flip->dt, flip->upsideDown);
 	flip->grounded = false;
+	// (GD's next updateJump: a boosted ball now falling ends m_maybeIsBoosted, see Player::postCollision)
+	if (flip->boosted && flip->fallingBugged()) {
+		flip->boosted = false;
+		flip->onGround2 = false;
+	}
 }
 
 /// `SimDeath <frame> <player> at <x> <y> size <w> <h> rot <r>`: the object that killed the player (set PF_FLAGS=1)
