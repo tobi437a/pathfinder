@@ -166,6 +166,11 @@ Player& Level::runFrame(bool pressed, float dt) {
 	for (Player* pl : {&p, &q}) {
 		if (pl->flipPartnerNext) {
 			pl->flipPartnerNext = false;
+			// (player 2's ball jump at the end of its last frame is GD's pushButton for it, after player 1's: player 1's
+			// flip saw player 2 in its gravity from before that jump, which didn't flip it, or the jump wouldn't have
+			// happened, see partnerFlipsNext)
+			if (pl == &p && q.ballJumped)
+				continue;
 			pl->flipPartner(false);
 		}
 	}
