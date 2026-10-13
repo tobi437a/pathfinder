@@ -98,8 +98,10 @@ void Pad::collide(Player& p) const {
 	// GD has already moved a player standing on a block by a step of its old gravity (into that block; only
 	// the block snap, which a pad prevents, would undo it), so it is launched from there (and a blue pad's
 	// player may miss the new floor by that much)
+	// (not one the other player flipped before its step: its velocity has that step of gravity, which it has moved by)
 	auto const& prev = p.prevPlayer();
-	if (p.upsideDown == prev.upsideDown && prev.grounded && prev.velocity == 0 && prev.gravBottom(prev) > prev.gravFloor() && !p.walkedOff) {
+	if (p.upsideDown == prev.upsideDown && prev.grounded && prev.velocity == 0 && prev.gravBottom(prev) > prev.gravFloor() && !p.walkedOff
+		&& !p.partnerFlipped) {
 		// (unless a slope, or a slope's side, earlier in this step's collisions has put it back on its surface:
 		// launched from there)
 		if (!p.slope.on && !p.grounded)
