@@ -313,7 +313,7 @@ struct Player : public Entity {
 	/// player's flip before that (flipPartner) clears m_isOnGround first, and GD never makes the jump. What the jump changed:
 	bool cubeJumped = false;
 	struct {
-		bool boosted, clickUsed, buffer, onGround2;
+		bool boosted, clickUsed, buffer, onGround2, grounded;
 		Spin spin;
 	} beforeCubeJump{};
 	/// The jump's velocity, before the step of gravity the sim adds with it: a fresh press makes GD's grounded cube

@@ -514,6 +514,8 @@ void Player::flipPartner(bool turned) {
 		o.clickUsed = b.clickUsed;
 		o.buffer = b.buffer;
 		o.onGround2 = b.onGround2;
+		// (a landed one's velocity is GD's 0 after hitGround, not the sim's from before the landing)
+		o.grounded = b.grounded;
 		o.rotationSpeed = b.spin.speed;
 		o.rotateSpeed = b.spin.rotateSpeed;
 		o.isRotating = b.spin.isRotating;
