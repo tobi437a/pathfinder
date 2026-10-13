@@ -387,6 +387,9 @@ struct Player : public Entity {
 	/// Player 1 took player 2's place at a solo portal this frame (DualPortal::collide), with player 2's state
 	/// from its collisions: GD steps it from there next step (Level::runFrame)
 	bool copiedFromP2 = false;
+	/// Where player 1 touched this frame's rings before player 2's solo portal moved it (copyAttributes): GD's
+	/// m_touchingRings, which a press in its next step still tries (Orb::touching)
+	std::optional<Vec2D> ringPos;
 	/// A fresh click on a blue or green orb flipped gravity this frame, which GD only does at its next step
 	/// (pushButton): this step's turn still has the old gravity (rotateUfo)
 	bool orbFlipPending = false;

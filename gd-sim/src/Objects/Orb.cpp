@@ -34,6 +34,13 @@ bool Orb::touching(Player const& p) const {
 	Player const& prev = p.prevPlayer();
 	if (EffectObject::touching(prev))
 		return true;
+	// (where it touched them, if player 2's solo portal moved it afterwards)
+	if (prev.ringPos) {
+		Player at = prev;
+		at.pos = *prev.ringPos;
+		if (EffectObject::touching(at))
+			return true;
+	}
 
 	// GD's cached hitbox kept the old size for the rest of the frame a size portal was touched in (see
 	// resizePending), and that's the hitbox the orb was touched with

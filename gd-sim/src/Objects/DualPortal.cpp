@@ -71,9 +71,11 @@ void DualPortal::collide(Player& p) const {
 		bool groundedBefore = p1.grounded;
 		float rotationBefore = p1.rotation;
 		bool switches = p1.vehicle.type != p.vehicle.type || p.vehicle.type == VehicleType::Ball;
+		Vec2D posBefore = p1.pos;
 		p1.copyAttributes(p);
 		copyWalkOff(p, p1);
 		p1.copiedFromP2 = true;
+		p1.ringPos = posBefore;
 		// (m_isOnGround stays player 1's: one in the air can't jump on its next step, even if player 2 had landed)
 		if (!groundedBefore)
 			p1.grounded = false;

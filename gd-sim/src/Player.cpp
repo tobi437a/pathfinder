@@ -290,6 +290,7 @@ void Player::preCollision(bool pressed) {
 	// (GD's on-ground flag lasts while the ball stays boosted: its updateJump only applies gravity)
 	ceilingGround = ceilingGround && boosted && vehicle.type == VehicleType::Ball;
 	dualCeilingPutBack = false;
+	ringPos.reset();
 	slopeRaised = false;
 	flipFloorPutBack = false;
 	slopeSideLanded = false;
