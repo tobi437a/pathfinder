@@ -333,8 +333,11 @@ void Block::collideBlock(Player& p, bool bare) const {
 					p.headHit = true;
 					p.applyResize();
 					if (!headSide) {
-						if (before <= 5 * 54)
+						if (before <= 5 * 54) {
 							p.grounded = true;
+							// (hitGround sets the on-ground flag again after a slope over the head cleared it earlier)
+							p.groundCleared = false;
+						}
 						p.hitGroundRotation();
 					} else if (p.vehicle.type == VehicleType::Ball) {
 						// (hitGroundNoJump starts a ball's roll, without the on-ground flags)

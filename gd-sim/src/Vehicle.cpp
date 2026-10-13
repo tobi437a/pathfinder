@@ -289,7 +289,8 @@ Vehicle ball() {
 
 		if (p.grounded) {
 			//p.rotVelocity = p.grav(600);
-			if (p.input && (p.prevPlayer().buffer || !p.prevPlayer().input || p.vehicleBuffer)) {
+			// (not when GD cleared the on-ground flag after the landing, e.g. a ball portal off a slope, see cube)
+			if (p.input && !p.groundCleared && (p.prevPlayer().buffer || !p.prevPlayer().input || p.vehicleBuffer)) {
 				jump = !p.partnerFlipsNext;
 			} else {
 				p.setVelocity(0, true);
