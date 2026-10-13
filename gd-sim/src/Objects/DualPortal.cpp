@@ -8,8 +8,9 @@ DualPortal::DualPortal(Vec2D size, std::unordered_map<int, std::string>&& fields
 /// puts it back afterwards, see Pad::collide); the player that copies it (copyAttributes) copies that
 static void copyWalkOff(Player const& p, Player& copy) {
 	auto const& prev = p.prevPlayer();
+	// (not once a block before the portal in the collisions has put it back: grounded again, stopped)
 	if (prev.grounded && prev.velocity == 0 && p.velocity == 0 && p.upsideDown == prev.upsideDown
-		&& prev.gravBottom(prev) > prev.gravFloor() && !prev.slope.on) {
+		&& prev.gravBottom(prev) > prev.gravFloor() && !prev.slope.on && !p.grounded) {
 		// (a slope or pad touched before the portal has taken that step already: copied with the position)
 		if (!p.walkedOff)
 			copy.moveY(roundVel(prev.grav(prev.acceleration) * p.dt, prev.upsideDown));
