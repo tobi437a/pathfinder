@@ -230,7 +230,7 @@ void Block::collideBlock(Player& p, bool bare) const {
 	// collidedWithObjectInternal: a player rising (y velocity > 0, not off a slope) with its feet within the
 	// landing distance of the block's top neither lands nor gets killed by its inner hitbox (GD leaves that
 	// test out once the player is in landing range)
-	bool risingOnto = !p.upsideDown && p.gravTop(*this) - bottom <= landClip && p.velocity > 0 && !padHitBefore && !p.slope.was;
+	bool risingOnto = p.gravTop(*this) - bottom <= landClip && p.velocity > 0 && !padHitBefore && !p.slope.was;
 
 	// A ship, ufo or ball within the landing or head-hit distance of the block (GD's landing and head branches)
 	// lands, stops its head or nothing; GD never tests its inner hitbox there
