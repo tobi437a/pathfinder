@@ -48,9 +48,12 @@ latest end-to-end batch (the newest pathfinder's macros); the user wants only th
 of older batches. Check: `regress.py --p2 --rot --rotfly --tol 1e-6 --jobs 6 --base <name>` (`--jobs 6`:
 the default can run out of memory). A sim change must not make any run worse; the goal is every run
 matching GD bit for bit to the end (players 1 and 2, positions, cube/ball and ship/ufo/wave rotation,
-deaths). The previous batch's macros matched in all 453.
-- Last end-to-end batch (`batch.py report`): 405/453 beaten in GD; 7 complete in the sim but die in
-  GD, 4 die in the sim but not in GD, 13 complete in both but drift, 24 stuck.
+deaths). The current `runs` (macros from the pathfinder before the latest sim fixes) match in all 453
+(`--base m0`).
+- Next: a fresh batch with the current sim (`batch.py --redo pathfind`, `--redo verify`); if all 453
+  match GD again, 1.8 support is done.
+- Last end-to-end batch (`batch.py report`): 425/453 beaten in GD, 23 stuck (GD agrees), 3 complete but
+  drift, 1 completes in the sim but dies in GD, 1 the other way round (those 5 were sim bugs since fixed).
 - `tools\rotfly.py [--p2] [--regress NAME] [--runs DIR]`: per diverged run, GD's and the sim's mode and
   rotation at a rotation divergence, the turn target each implies and the step's travel angle.
 - GD collision logs for a run's frames: `tools\gdcoll.py <id>:<from>-<to>`
