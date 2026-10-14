@@ -282,9 +282,11 @@ void Slope::collide(Player& p) const {
 		// A cube (robot, spider) under a slope
 		if (recentlyChanged(p)) {
 			p.pos.y = target - 90.f;
+			p.headSlopePlaced = true;
 			double v = p.gdVelocity();
 			p.setGdVelocity(!up ? std::min(v, -2.0) : std::max(v, 2.0));
 			p.grounded = false;
+			p.onGround2 = false;
 			return;
 		}
 		float near = !up ? py - 2.f : py + 2.f;

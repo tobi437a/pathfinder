@@ -292,6 +292,7 @@ void Player::preCollision(bool pressed) {
 	dualCeilingPutBack = false;
 	ringPos.reset();
 	slopeRaised = false;
+	headSlopePlaced = false;
 	flipFloorPutBack = false;
 	slopeSideLanded = false;
 	tookSpeedPortal = false;
@@ -364,6 +365,10 @@ void Player::preCollision(bool pressed) {
 			// (and its rotation part: the spin stops before a gravity portal in this step can flip it)
 			hitGroundRotation();
 		}
+		// In dual mode the bounds take a cube like a flying mode: hitGround on its floor, upside down only while moving
+		// into it (m_yVelocity > 0), which stops its spin even when a slope over its head then takes it off again
+		if (vehicle.type == VehicleType::Cube && dual && (!upsideDown || velocity < 0))
+			hitGroundRotation();
 		// A falling ship or ufo: hitGround stops it before the collisions (a slope it rides below the floor then
 		// clamps that, see Slope::collide)
 		if ((vehicle.type == VehicleType::Ship || vehicle.type == VehicleType::Ufo) && velocity < 0)
@@ -855,7 +860,7 @@ void Player::postCollision() {
 	bool clickFlipped = clickedOrb && button && !prevPlayer().button && upsideDown != prevPlayer().upsideDown;
 	// (nor one a slope over its head pushed past the floor after GD's snap: GD puts it back at its next step)
 	if ((bottom < boundFloor || (bottom == boundFloor && (velocity == 0 || floorSnapped))) && !velocityOverride && (velocity <= 0 || hitPad)
-		&& !pastBoundsOnSlope(slope.on) && !clickFlipped && !(slope.on && slope.head && !floorSnapped)) {
+		&& !pastBoundsOnSlope(slope.on) && !clickFlipped && !(slope.on && slope.head && !floorSnapped) && !headSlopePlaced) {
 		if (!headHit && !slope.on)
 			pos.y = grav(boundFloor) + grav(startHalfHeight);
 		// (GD's floor snap comes before the step's portals: one that switched a ship, ufo or wave on or off since

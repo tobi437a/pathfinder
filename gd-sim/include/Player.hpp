@@ -305,6 +305,9 @@ struct Player : public Entity {
 	bool tookSpeedPortal = false;
 	/// A slope this frame turned the player's velocity upwards (a flying player held on an uphill slope)
 	bool slopeRaised = false;
+	/// A slope over a cube's head put it at its surface this frame, within 0.1 s of a flip or mode change
+	/// (Slope::collide): after GD's bounds snap, so it stays there even past the mode's floor
+	bool headSlopePlaced = false;
 	/// The flags that jump cleared or set, for a repel that undoes it (GD never made that jump)
 	struct {
 		bool boosted, jumpBuffered, vehicleBuffer, clickUsed, grounded;
