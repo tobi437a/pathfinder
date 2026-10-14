@@ -431,6 +431,13 @@ void Player::preCollision(bool pressed) {
 			if (velocity > 270)
 				onGround2 = onGround2Before;
 		}
+		// Upside down that's the world's floor, where GD's bounds call hitGround for any mode but the ship (and swing)
+		// whatever the velocity: one moving away from it (a ball that just flipped there) stops and is on the ground
+		if (upsideDown && (vehicle.type == VehicleType::Ball || vehicle.type == VehicleType::Ufo) && velocity <= 0) {
+			velocity = 0;
+			grounded = true;
+			hitGroundRotation();
+		}
 	}
 
 	// A flying player (or ball, or any player in dual mode) put onto the mode's floor or ceiling is off any slope
