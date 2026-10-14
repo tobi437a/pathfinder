@@ -1,4 +1,4 @@
-# Pathfinder (fork) - working notes for Claude
+# Pathfinder - working notes for Claude
 
 Rules for this file:
 1. Max 500 lines. If an edit pushes it over, delete or trim the least important content.
@@ -7,8 +7,11 @@ Rules for this file:
 Geode mod for Geometry Dash 2.2081 that bots levels: `gd-sim/` is a standalone GD physics
 simulator (reverse-engineered from GD), `src/pathfinder.cpp` searches it for inputs that beat a
 level and exports a `.gdr2` macro. The user's goal is fixing simulator/search bugs and adding
-support for newer GD features (robot, spider, swing, dash orbs, teleport portals, dual, triggers,
-...). Upstream: camila314/pathfinder. Fork: `tobi437a/pathfinder`.
+support for newer GD features (robot, spider, swing, dash orbs, teleport portals, triggers, ...).
+Repo `tobi437a/pathfinder` (public, detached from the fork network), mod id `tobi437a.pathfinder`.
+Forked from camila314/pathfinder (abandoned); camila allowed publishing it as long as it says
+"forked from" with credit (README, `about.md`, `mod.json` `developers`) and isn't low-quality AI slop.
+Dev tooling stays in the public repo; release builds leave it out (`PATHFINDER_DEV_TOOLS`).
 
 ## Layout
 
