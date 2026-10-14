@@ -331,6 +331,7 @@ Vehicle ball() {
 				p.flipGravity(!p.upsideDown);
 				p.setVelocity(jumpHeights[p.speed], override);
 			}
+			p.ballJumpVelocity = p.velocity;
 			p.boosted = true;
 			p.ceilingGround = false;
 			p.keptGround = false;

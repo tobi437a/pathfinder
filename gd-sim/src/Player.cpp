@@ -560,6 +560,9 @@ void Player::flipPartner(bool turned) {
 	double gd = o.grounded ? 0 : o.collisionVelocity;
 	if (unstepped && o.cubeJumped)
 		gd = o.cubeJumpVelocity;
+	// (a ball's fresh-press jump too: GD's pushButton made it before this flip, which halves the jump's velocity)
+	if (unstepped && o.ballJumped && o.button && !o.prevPlayer().button)
+		gd = o.ballJumpVelocity;
 	// GD turns both players after both stepped (updateRotation): player 1, flipped by player 2 after its own turn,
 	// turns with the spin the flip gives it (a ball's), not the one before
 	// (it turns again from where its turn this frame started, flipped, with the velocity the flip gives it)

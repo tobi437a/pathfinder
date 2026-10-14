@@ -326,6 +326,8 @@ struct Player : public Entity {
 	/// jump in pushButton, at the start of its next step, so player 2's ring clicked by the same press (pushed after
 	/// player 1) flips player 1 with that velocity (flipPartner)
 	double cubeJumpVelocity = 0;
+	/// Likewise a ball's jump (its pushButton jump flips it before player 2's ring flips it back)
+	double ballJumpVelocity = 0;
 
 	/// GD caches the player's hitbox, so a size portal's new size only shows once the player is moved
 	/// (e.g. snapped onto a block) or at the end of the frame
