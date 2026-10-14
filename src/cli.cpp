@@ -50,7 +50,8 @@ int main(int argc, char** argv) {
 	});
 
 	auto start = std::chrono::steady_clock::now();
-	auto macro = pathfind(lvlString, stop, nullptr, seed);
+	PathfindStats stats;
+	auto macro = pathfind(lvlString, stop, nullptr, seed, &stats);
 	double seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
 	{
 		std::lock_guard lock(m);
@@ -87,6 +88,9 @@ int main(int argc, char** argv) {
 			  << ",\"inputs\":" << inputs.size()
 			  << ",\"seconds\":" << seconds
 			  << ",\"timedOut\":" << (stop ? "true" : "false")
-			  << ",\"seed\":" << seed << "}" << std::endl;
+			  << ",\"seed\":" << seed
+			  << ",\"simFrames\":" << stats.frames
+			  << ",\"rounds\":" << stats.rounds
+			  << ",\"deadEnds\":" << stats.deadEnds << "}" << std::endl;
 	return 0;
 }

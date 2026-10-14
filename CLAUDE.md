@@ -60,10 +60,16 @@ for this batch.
   `copyAttributes`, `Level::runFrame`) follows `toggleDualMode`, `updateDualGround`,
   `playerWillSwitchMode`, `GJBaseGameLayer::flipGravity` and the per-step order of
   `GJBaseGameLayer::update` (comments in that code).
-- Pathfinder (`batch.py pathfind`, 120 s): 427/453 complete in the sim, 26 stuck. Several stuck ones
-  end in a secret path that runs into a wall, with the real route branching off far back; the search
-  backs off exponentially from a dead end and penalises staying on it (`DeadPath`), which gets some
-  but not all of them. Search improvements are for after 1.8 support.
+- Pathfinder (`bench.py`, 120 s, 8 jobs): 449/453 complete in the sim with seed 1 (888/906 with
+  seeds 2,3), mean 5.4 s, median 1.5 s. The rest: 3 two-player levels and the odd hard one. At a dead
+  end the search backs off exponentially and remembers the path that got stuck (`DeadPaths`, up to 8);
+  candidates ending on one (same vehicle/gravity/size/speed/dual and lane, within the back-off window)
+  get a quarter of their progress, so other portals, gravities and lanes win. A candidate above
+  `Level2::offLevel` (300 over nearby objects, at least 1300) or below 0 counts as dead.
+- Search speed: per-frame `Path` arrays instead of Level copies, the round's toggle-free prefix
+  simulated once (`Prefix`), the round-ending candidate's frames kept. Tried and rejected (seed 1):
+  random toggle count per candidate (3 fewer solved), committing half instead of a third (median
+  1.46 -> 1.09 s, but 4 fewer solved).
 - Two-player levels (`kA10`, 4 in the batch) need player-2 inputs: the pathfinder only presses
   player 1, and the sim gives player 2 no button there.
 - `regress.py` labels each divergence p1, p2, p2rot, rot, rotfly, death-gd or death-sim.
@@ -195,7 +201,14 @@ python tools\batch.py report                     # build\re\batch\report.md, sim
   (`gdtools compare runs\<id>\real.txt runs\<id>\sim.txt --shift 1`); `levels\<id>.lvl` for
   `gdtools objects`. Re-check one level after a sim fix:
   `batch.py pathfind --ids <id> --redo` then `batch.py verify --ids <id> --redo`.
-- `pathfinder-cli <lvl> <out.gdr2> --seed N --time-limit S` prints a JSON line; seed 1 by default.
+- `pathfinder-cli <lvl> <out.gdr2> --seed N --time-limit S` prints a JSON line; seed 1 by default
+  (with `simFrames`, `rounds`, `deadEnds`); env `PF_LOG=1` prints each dead end on stderr.
+- Search benchmark (offline, macros discarded): `python tools\bench.py run A=<exe> B=<exe> [--seeds
+  1,2] [--jobs 8]`, then `bench.py show A B` (solved, mean/median/1% fastest/slowest, sim frames) and
+  `bench.py diff A B`. Variants alternate level by level: wall times on this laptop drift ~10%
+  between runs, so only compare variants from the same run, and keep the machine idle meanwhile
+  (extra load flips levels near the time limit). A seed's search is deterministic: a pure speed-up
+  must give the same `frames`/`inputs` per level.
 - Verifier jobs take `"levelFile"` (raw `downloadGJLevel22` response): the mod builds the level
   with `GameLevelManager::responseToDict` + `GJGameLevel::create(dict, true)`, like a download.
 
