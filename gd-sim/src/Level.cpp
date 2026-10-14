@@ -294,7 +294,10 @@ void Level::repelBalls(Player& p, Player& q) const {
 		return;
 	// The one whose partner is on the ground (m_isOnGround2) flips: player 2 if player 1 is down, else player 1
 	Player* flip = p.onGround2 || p.ballJumped ? &q : q.onGround2 || q.ballJumped ? &p : nullptr;
-	if (!flip || (flip->ballJumped && (flip == &q ? p.ballJumped : q.ballJumped)))
+	// (both jumping from a fresh press, which GD made in pushButton, before this step: no repel. A held one is GD's
+	// next updateJump, after it)
+	auto fresh = [](Player const& b) { return b.ballJumped && b.button && !b.prevPlayer().button; };
+	if (!flip || (flip->ballJumped && (flip == &q ? p.ballJumped : q.ballJumped) && (fresh(p) || fresh(q))))
 		return;
 	// PlayerObject::flipGravity (no partner flip) and a y velocity of 2 towards its new floor, which GD's next
 	// step adds gravity to (the sim's velocity has that step already). A ball the sim has jumped this frame is
