@@ -324,7 +324,7 @@ struct Player : public Entity {
 	/// GD caches the player's hitbox, so a size portal's new size only shows once the player is moved
 	/// (e.g. snapped onto a block) or at the end of the frame
 	bool resizePending = false;
-	/// GD's updatePlayerScale ran this frame (switching into or out of ship, ufo or wave), which marks the
+	/// GD's updatePlayerScale ran this frame (switching into or out of ship, ufo or wave; or the ball off), which marks the
 	/// hitbox dirty: a pending resize shows for the blocks (GD takes the player's rect once for the other
 	/// objects)
 	bool scaleRefreshed = false;

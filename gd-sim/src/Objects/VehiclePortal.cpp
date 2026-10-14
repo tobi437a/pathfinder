@@ -50,7 +50,9 @@ void VehiclePortal::collide(Player& player) const {
 		// Coyote frames only count from leaving the ground as this vehicle
 		player.coyoteFrames = INT_MAX;
 		auto flies = [](VehicleType t) { return t == VehicleType::Ship || t == VehicleType::Ufo || t == VehicleType::Wave; };
-		if (flies(from) || flies(type))
+		// (so does toggleRollMode switching the ball off: its updatePlayerFrame and refresh dirty the rect, which the
+		// blocks then take at the size a size portal set this step, before or after this one)
+		if (flies(from) || flies(type) || from == VehicleType::Ball)
 			player.scaleRefreshed = true;
 		player.vehicle = Vehicle::from(type);
 		if (type == VehicleType::Ball)
