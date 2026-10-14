@@ -296,6 +296,9 @@ struct Player : public Entity {
 	/// updateJump only applies gravity while it's boosted (m_maybeIsBoosted), so it can still jump in the step after
 	/// the boost ends
 	bool ceilingGround = false;
+	/// Player 1 took player 2's place in the air at a solo portal (DualPortal::collide) but keeps its own m_isOnGround:
+	/// a cube or ball can jump from there until its updateJump finds it falling
+	bool keptGround = false;
 	/// GD put this upside-down cube back on the ground it fell under after a flip (checkCollisions: hitGround, then
 	/// m_isOnGround2 cleared): its landing rotation is done
 	bool flipFloorPutBack = false;

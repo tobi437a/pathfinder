@@ -72,13 +72,16 @@ void DualPortal::collide(Player& p) const {
 		float rotationBefore = p1.rotation;
 		bool switches = p1.vehicle.type != p.vehicle.type || p.vehicle.type == VehicleType::Ball;
 		Vec2D posBefore = p1.pos;
+		bool upsideDownBefore = p1.upsideDown;
 		p1.copyAttributes(p);
 		copyWalkOff(p, p1);
 		p1.copiedFromP2 = true;
 		p1.ringPos = posBefore;
-		// (m_isOnGround stays player 1's: one in the air can't jump on its next step, even if player 2 had landed)
+		// (m_isOnGround stays player 1's: one in the air can't jump on its next step, even if player 2 had landed;
+		// one on the ground still can in the air, see keptGround, unless the copy's flipGravity cleared it)
 		if (!groundedBefore)
 			p1.grounded = false;
+		p1.keptGround = groundedBefore && !p1.grounded && p1.upsideDown == upsideDownBefore;
 		// GD turns player 1 after this (updateRotation, once both stepped), with the spin the copy's mode switch gave it
 		// (from 0 if the switch reset the rotation); the sim's player 1 has turned already
 		if (switches) {

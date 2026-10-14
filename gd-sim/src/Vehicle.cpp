@@ -98,6 +98,9 @@ Vehicle cube() {
 				p.setVelocity(0, true);
 			}
 			p.buffer = false;
+		} else if (p.prevPlayer().keptGround && p.input && !p.clickedOrb) {
+			jump = !p.partnerFlipsNext;
+			p.buffer = false;
 		}
 
 		// GD's on-ground flag outlives a walk-off until updateJump finds the cube falling (playerIsFallingBugged):
@@ -117,6 +120,7 @@ Vehicle cube() {
 			};
 
 			p.cubeJumped = true;
+			p.keptGround = false;
 			p.beforeCubeJump = {p.boosted, p.clickUsed, p.buffer, p.onGround2, p.grounded,
 				Player::Spin {p.rotationSpeed, p.rotateSpeed, p.isRotating, p.ballRotating, p.ballRotating2}};
 			p.setVelocity(jumpHeights[p.speed], p.prevPlayer().input);
@@ -298,7 +302,8 @@ Vehicle ball() {
 			p.buffer = false;
 		} else if (p.buffer && p.coyoteFrames < (p.upsideDown || p.dual ? 16 : 1)) {
 			jump = !p.partnerFlipsNext;
-		} else if (p.prevPlayer().ceilingGround && p.input && (p.prevPlayer().buffer || !p.prevPlayer().input || p.vehicleBuffer)) {
+		} else if ((p.prevPlayer().ceilingGround || (p.prevPlayer().keptGround && !p.clickedOrb)) && p.input
+			&& (p.prevPlayer().buffer || !p.prevPlayer().input || p.vehicleBuffer)) {
 			jump = !p.partnerFlipsNext;
 		}
 
@@ -328,6 +333,7 @@ Vehicle ball() {
 			}
 			p.boosted = true;
 			p.ceilingGround = false;
+			p.keptGround = false;
 			p.ballJumped = true;
 			p.jumpBuffered = false;
 			p.clickUsed = true;
