@@ -43,43 +43,6 @@ letters (r p i), and the verifier's `realMode`. GD's fly-mode floor/ceiling are
 `GJBaseGameLayer::getMinPortalY/getMaxPortalY` (they depend on camera zoom). The bottom is set by
 `animateInDualGroundNew`: `floor((portalY - height/2) / 30) * 30`, at least 90, in GD y (sim y + 90).
 
-## Current work: 1.8 support (start here)
-
-The batch (`build\re\batch`) is 453 rated 1.8 levels (all of them with gameVersion 18).
-One offline regression set: `runs\`, GD's `real.txt` per level (with `P2` lines in dual) from the
-latest end-to-end batch (the newest pathfinder's macros); the user wants only this one set, no copies
-of older batches. Check: `regress.py --p2 --rot --rotfly --tol 1e-6 --jobs 6 --base <name>` (`--jobs 6`:
-the default can run out of memory). A sim change must not make any run worse; the goal is every run
-matching GD bit for bit to the end (players 1 and 2, positions, cube/ball and ship/ufo/wave rotation,
-deaths). A fresh batch with the current sim matches in all 453 (`--base f0`): 1.8 simulation is done
-for this batch.
-- Last end-to-end batch (`batch.py report`): 433/453 beaten in GD, 20 stuck (GD agrees), no sim bugs.
-- `batch.py pathfind` at the default 14 workers can run the machine low on memory; `--jobs 8` is safer.
-- `tools\rotfly.py [--p2] [--regress NAME] [--runs DIR]`: per diverged run, GD's and the sim's mode and
-  rotation at a rotation divergence, the turn target each implies and the step's travel angle.
-- GD collision logs for a run's frames: `tools\gdcoll.py <id>:<from>-<to>`
-  (launches GD minimised; adds `Coll`/`SlopeColl` lines and GD's flags to a fresh real.txt).
-- Dual (`Objects/DualPortal.cpp`, `Player::updateGround`, `Player::flipPartner`, `startDual`,
-  `copyAttributes`, `Level::runFrame`) follows `toggleDualMode`, `updateDualGround`,
-  `playerWillSwitchMode`, `GJBaseGameLayer::flipGravity` and the per-step order of
-  `GJBaseGameLayer::update` (comments in that code).
-- Pathfinder (`bench.py`, 120 s, 8 jobs): 449/453 complete in the sim with seed 1 (888/906 with
-  seeds 2,3), mean 5.4 s, median 1.5 s. The rest: 3 two-player levels and the odd hard one. At a dead
-  end the search backs off exponentially and remembers the path that got stuck (`DeadPaths`, up to 8);
-  candidates ending on one (same vehicle/gravity/size/speed/dual and lane, within the back-off window)
-  get a quarter of their progress, so other portals, gravities and lanes win. A candidate above
-  `Level2::offLevel` (300 over nearby objects, at least 1300) or below 0 counts as dead.
-- Search speed: per-frame `Path` arrays instead of Level copies, the round's toggle-free prefix
-  simulated once (`Prefix`), the round-ending candidate's frames kept. Tried and rejected (seed 1):
-  random toggle count per candidate (3 fewer solved), committing half instead of a third (median
-  1.46 -> 1.09 s, but 4 fewer solved).
-- Two-player levels (`kA10`, 4 in the batch) need player-2 inputs: the pathfinder only presses
-  player 1, and the sim gives player 2 no button there.
-- `regress.py` labels each divergence p1, p2, p2rot, rot, rotfly, death-gd or death-sim.
-- End-to-end: rebuild Release `pathfinder-cli`, `batch.py --redo pathfind`, `batch.py --redo
-  verify` (GD minimised, ~25 min; a long background job can get killed under memory pressure -
-  then `verify --import-only` and verify the rest with `--ids`), `batch.py report`.
-
 ## Build & install
 
 ```powershell
