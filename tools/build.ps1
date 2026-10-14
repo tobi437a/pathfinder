@@ -30,9 +30,12 @@ if (Get-Process GeometryDash -ErrorAction SilentlyContinue) {
 }
 
 $ErrorActionPreference = 'Continue'  # PS 5.1 turns native stderr into errors under 'Stop'
-if ($Reconfigure -or -not (Test-Path "$repo\build\CMakeCache.txt")) {
+$cache = "$repo\build\CMakeCache.txt"
+if ($Reconfigure -or -not (Test-Path $cache) -or
+    -not (Select-String -Quiet -Path $cache -Pattern '^PATHFINDER_DEV_TOOLS:BOOL=ON')) {
     # ClangCL is required: the CMakeLists pass clang-style flags, and Geode's CI builds with clang-cl.
-    cmake -S $repo -B "$repo\build" -G 'Visual Studio 18 2026' -A x64 -T ClangCL 2>&1 |
+    # PATHFINDER_DEV_TOOLS: debug overlay + verifier in the mod, gd-sim-test, pathfinder-cli.
+    cmake -S $repo -B "$repo\build" -G 'Visual Studio 18 2026' -A x64 -T ClangCL -DPATHFINDER_DEV_TOOLS=ON 2>&1 |
         Where-Object { "$_" -match 'Error|error|Configuring done|Generating done' } | ForEach-Object { "$_" }
     if ($LASTEXITCODE) { throw 'CMake configure failed' }
 }

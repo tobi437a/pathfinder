@@ -7,14 +7,18 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 project(pathfinder VERSION 1.0.0)
 
+# Dev tools (debug overlay, verifier, gd-sim-test, pathfinder-cli) are left out of release builds;
+# tools/build.ps1 turns them on.
+option(PATHFINDER_DEV_TOOLS "Build the debug overlay, verifier and offline test tools" OFF)
+
 add_library(${PROJECT_NAME} SHARED
     src/main.cpp
     src/pathfinder.cpp
-    src/checker.cpp
-    src/debug.cpp
-    src/verify.cpp
     # Add any extra C++ source files here
 )
+if (PATHFINDER_DEV_TOOLS)
+    target_sources(${PROJECT_NAME} PRIVATE src/debug.cpp src/verify.cpp)
+endif()
 
 if (NOT DEFINED ENV{GEODE_SDK})
     message(FATAL_ERROR "Unable to find Geode SDK! Please define GEODE_SDK environment variable to point to Geode")
@@ -48,5 +52,7 @@ target_link_libraries(${PROJECT_NAME} gd-sim UIBuilder libGDR)
 
 # Standalone pathfinder for tools/batch.py (no Geode). Build it in Release:
 #   cmake --build build --config Release --target pathfinder-cli
-add_executable(pathfinder-cli src/cli.cpp src/pathfinder.cpp)
-target_link_libraries(pathfinder-cli gd-sim libGDR)
+if (PATHFINDER_DEV_TOOLS)
+    add_executable(pathfinder-cli src/cli.cpp src/pathfinder.cpp)
+    target_link_libraries(pathfinder-cli gd-sim libGDR)
+endif()

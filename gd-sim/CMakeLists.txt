@@ -19,7 +19,8 @@ target_include_directories(gd-sim PUBLIC include)
 
 target_compile_definitions(gd-sim PRIVATE -D_HAS_ITERATOR_DEBUGGING=0)
 
-add_executable(gd-sim-test ${SOURCES} test/test.cpp)
-
-set_target_properties(gd-sim-test PROPERTIES INTERPROCEDURAL_OPTIMIZATION 0)
-target_include_directories(gd-sim-test PRIVATE include)
+if (PATHFINDER_DEV_TOOLS)
+    add_executable(gd-sim-test ${SOURCES} test/test.cpp)
+    set_target_properties(gd-sim-test PROPERTIES INTERPROCEDURAL_OPTIMIZATION 0)
+    target_include_directories(gd-sim-test PRIVATE include)
+endif()

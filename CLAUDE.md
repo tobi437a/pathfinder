@@ -84,7 +84,10 @@ tools\build.ps1            # Debug: DEBUG_MODE=1, also builds build\gd-sim\Debug
 tools\build.ps1 RelWithDebInfo
 ```
 It configures on first use, prints only our own warnings/errors, and the Geode CMake step
-installs `build\camila314.pathfinder.geode` into GD's mods folder. **GD must be restarted** to load
+installs `build\camila314.pathfinder.geode` into GD's mods folder. The CMake option `PATHFINDER_DEV_TOOLS`
+(OFF by default, so CI/release builds ship only `main.cpp` + `pathfinder.cpp` + gd-sim; `build.ps1`
+configures with it ON) adds `debug.cpp`, `verify.cpp`, `gd-sim-test` and `pathfinder-cli`. Building
+the mod in any build dir installs that build into GD. **GD must be restarted** to load
 a new build; whichever config was built last is what GD loads. Configure by hand:
 `cmake -B build -G "Visual Studio 18 2026" -A x64 -T ClangCL`.
 

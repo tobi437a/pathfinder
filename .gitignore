@@ -62,4 +62,6 @@ build-*/
 
 # CLion
 .idea/
-/cmake-build-*/__pycache__/
+/cmake-build-*/
+__pycache__/
+
