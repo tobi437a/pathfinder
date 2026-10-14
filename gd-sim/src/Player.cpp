@@ -791,7 +791,8 @@ static double slopeTimeFactor(Player const& p, bool nextStep) {
 void Player::leaveSlope() {
 	// PlayerObject::postCollision, on the frame after the last slope collision. GD's button state for
 	// this frame is the last frame's (see Slope.cpp)
-	bool held = vehicle.type == VehicleType::Ball ? prevPlayer().input : prevPlayer().button;
+	// (m_jumpBuffered: a button held since a mode portal cleared it doesn't count)
+	bool held = vehicle.type == VehicleType::Ball ? prevPlayer().input : prevPlayer().jumpBuffered;
 	double v = gdVelocity();
 	float sv = slope.velocity;
 	bool launches = (sv < 0 && sv < v && slope.ceiling) || (0 < sv && v < sv && !slope.ceiling);
