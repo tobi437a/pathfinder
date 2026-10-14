@@ -88,6 +88,8 @@ Vehicle cube() {
 		p.acceleration = stepAcceleration(p);
 
 		bool jump = false;
+		// (a held jump from the on-ground flag player 1 kept at a solo portal: GD's updateJump, no step of gravity)
+		bool keptHeld = false;
 
 		if (p.grounded) {
 			// (not when GD cleared the on-ground flag after the landing, e.g. a ufo portal off a slope: standing, it
@@ -98,8 +100,9 @@ Vehicle cube() {
 				p.setVelocity(0, true);
 			}
 			p.buffer = false;
-		} else if (p.prevPlayer().keptGround && p.input && !p.clickedOrb) {
+		} else if (p.keptGround && p.input && !p.clickedOrb) {
 			jump = !p.partnerFlipsNext;
+			keptHeld = p.button && p.prevPlayer().button;
 			p.buffer = false;
 		}
 
@@ -123,7 +126,7 @@ Vehicle cube() {
 			p.keptGround = false;
 			p.beforeCubeJump = {p.boosted, p.clickUsed, p.buffer, p.onGround2, p.grounded,
 				Player::Spin {p.rotationSpeed, p.rotateSpeed, p.isRotating, p.ballRotating, p.ballRotating2}};
-			p.setVelocity(jumpHeights[p.speed], p.prevPlayer().input);
+			p.setVelocity(jumpHeights[p.speed], p.prevPlayer().input || keptHeld);
 			p.grounded = false;
 			p.boosted = true;
 			p.clickUsed = true;
@@ -302,7 +305,7 @@ Vehicle ball() {
 			p.buffer = false;
 		} else if (p.buffer && p.coyoteFrames < (p.upsideDown || p.dual ? 16 : 1)) {
 			jump = !p.partnerFlipsNext;
-		} else if ((p.prevPlayer().ceilingGround || (p.prevPlayer().keptGround && !p.clickedOrb)) && p.input
+		} else if ((p.prevPlayer().ceilingGround || (p.keptGround && !p.clickedOrb)) && p.input
 			&& (p.prevPlayer().buffer || !p.prevPlayer().input || p.vehicleBuffer)) {
 			jump = !p.partnerFlipsNext;
 		}
