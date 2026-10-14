@@ -332,6 +332,7 @@ void Slope::collide(Player& p) const {
 			double before = p.gdVelocity();
 			float v0 = (float)before;
 			p.velocity = 0;
+			p.slopeLanded = true;
 			// (hitGround sets the on-ground flag again after a mode switch cleared it earlier in the step)
 			if (sign * before <= 5) {
 				p.grounded = true;

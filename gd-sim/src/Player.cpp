@@ -293,6 +293,7 @@ void Player::preCollision(bool pressed) {
 	dualCeilingPutBack = false;
 	ringPos.reset();
 	slopeRaised = false;
+	slopeLanded = false;
 	headSlopePlaced = false;
 	flipFloorPutBack = false;
 	slopeSideLanded = false;
@@ -973,8 +974,8 @@ void Player::postCollision() {
 
 			// GD already had this frame's velocity (one step of gravity) when it touched a gravity
 			// portal, which multiplies it by -0.5 (flipGravity). Not on a slope under the player: its collision
-			// (hitGround) stopped the player before the portal.
-			if (velocity == 0 && !(slope.on && !slope.head)) {
+			// (hitGround) stopped the player before the portal (also when a slope over its head came after it).
+			if (velocity == 0 && !(slope.on && !slope.head) && !slopeLanded) {
 				double fallVel = roundVel(fallAccel * dt, upsideDown);
 				// ...and a vehicle portal scales it (toggleFlyMode etc.)
 				newVel += (gravityPortal ? fallVel * -0.5 : fallVel) * portalVelocityScale;
