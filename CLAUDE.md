@@ -194,6 +194,9 @@ python tools\diverge.py <id> --p2 --flags   # player 2 instead; GD's and the sim
 python tools\gdcoll.py <id>:<from>-<to> ...  # replay in GD with its collision log (Coll/SlopeColl lines per
                                              # block / slope collision) -> build\re\batch\coll\<id>.real.txt
 ```
+Full check of a sim change (all players, rotations, deaths, bit for bit):
+`regress.py --p2 --rot --rotfly --tol 1e-6 --jobs 6 --base <name>` (`--jobs 6`: the default can run
+out of memory). `batch.py pathfind` at its default 14 workers can too; `--jobs 8` is safer.
 A run whose sim dies at another step than GD counts as diverged there. A sim fix should make runs better and none worse; real paths only cover what the old macros did,
 so finish with `batch.py pathfind`/`verify`. Traces (verifier and `gd-sim-test`) end with
 `Mode` = vehicle `c s b u w` (+ `r p i` robot/spider/swing in GD) + `u` upside down, `m` mini,
