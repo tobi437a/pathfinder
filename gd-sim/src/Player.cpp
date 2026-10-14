@@ -432,11 +432,14 @@ void Player::preCollision(bool pressed) {
 				onGround2 = onGround2Before;
 		}
 		// Upside down that's the world's floor, where GD's bounds call hitGround for any mode but the ship (and swing)
-		// whatever the velocity: one moving away from it (a ball that just flipped there) stops and is on the ground
-		if (upsideDown && (vehicle.type == VehicleType::Ball || vehicle.type == VehicleType::Ufo) && velocity <= 0) {
+		// whatever the velocity: it stops, and is on the ground unless it came in faster than 5 (one moving away from
+		// it, a ball that just flipped there, too)
+		if (upsideDown && (vehicle.type == VehicleType::Ball || vehicle.type == VehicleType::Ufo)) {
+			if (velocity <= 270)
+				grounded = true;
+			if (velocity <= 0 || vehicle.type == VehicleType::Ufo)
+				hitGroundRotation();
 			velocity = 0;
-			grounded = true;
-			hitGroundRotation();
 		}
 	}
 
