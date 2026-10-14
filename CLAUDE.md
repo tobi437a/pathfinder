@@ -84,7 +84,7 @@ tools\build.ps1            # Debug: DEBUG_MODE=1, also builds build\gd-sim\Debug
 tools\build.ps1 RelWithDebInfo
 ```
 It configures on first use, prints only our own warnings/errors, and the Geode CMake step
-installs `build\camila314.pathfinder.geode` into GD's mods folder. The CMake option `PATHFINDER_DEV_TOOLS`
+installs `build\tobi437a.pathfinder.geode` into GD's mods folder. The CMake option `PATHFINDER_DEV_TOOLS`
 (OFF by default, so CI/release builds ship only `main.cpp` + `pathfinder.cpp` + gd-sim; `build.ps1`
 configures with it ON) adds `debug.cpp`, `verify.cpp`, `gd-sim-test` and `pathfinder-cli`. Building
 the mod in any build dir installs that build into GD. **GD must be restarted** to load
@@ -133,7 +133,7 @@ where X stops changing.
 
 - Gray debug button on `EditLevelLayer` (My Levels -> a level): pick a `.gdr2`; runs it through
   `build\gd-sim\Debug\gd-sim-test.exe` (path baked in from `__FILE__`) and writes `sim.txt` +
-  `.lvl`/`.inp` into the mod save dir `%LOCALAPPDATA%\GeometryDash\geode\mods\camila314.pathfinder\`.
+  `.lvl`/`.inp` into the mod save dir `%LOCALAPPDATA%\GeometryDash\geode\mods\tobi437a.pathfinder\`.
 - Every `PlayLayer` frame is recorded (`GJBaseGameLayer::updateCamera` hook); opening any level in
   the editor dumps it to `real.txt` in the same save dir. `PlayLayer::resetLevel` clears the
   recording, so it only holds the latest attempt.

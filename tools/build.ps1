@@ -9,7 +9,7 @@
 
 .NOTES
   Build output: build\<Config>\pathfinder.dll, build\gd-sim\<Config>\gd-sim-test.exe.
-  setup_geode_mod packages build\camila314.pathfinder.geode and installs it into the
+  setup_geode_mod packages build\tobi437a.pathfinder.geode and installs it into the
   `geode profile` mods folder. Whichever config was built last is the one GD loads.
   GD must be closed for the new build to load (it only reads mods at startup).
 #>

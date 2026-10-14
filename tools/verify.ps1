@@ -10,7 +10,7 @@
 .NOTES
   jobs.json: {"jobs": [{"level": "77239587" | "main:3" | "<local level name>", "macro": "<path>.gdr2"}]}
   The level must be in the GD save. GD must not already be running. Results:
-  %LOCALAPPDATA%\GeometryDash\geode\mods\camila314.pathfinder\verify-results.jsonl, plus
+  %LOCALAPPDATA%\GeometryDash\geode\mods\tobi437a.pathfinder\verify-results.jsonl, plus
   verify\<level>\real.txt, sim.txt, level.lvl for `gdtools compare ... --shift 1`.
 #>
 param(
@@ -20,7 +20,7 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 
-$saveDir = Join-Path $env:LOCALAPPDATA 'GeometryDash\geode\mods\camila314.pathfinder'
+$saveDir = Join-Path $env:LOCALAPPDATA 'GeometryDash\geode\mods\tobi437a.pathfinder'
 $results = Join-Path $saveDir 'verify-results.jsonl'
 
 if (Get-Process GeometryDash -ErrorAction SilentlyContinue) { throw 'GD is already running - close it first.' }

@@ -35,7 +35,7 @@ from gdtools import decode_level_string  # noqa: E402
 REPO = Path(__file__).resolve().parent.parent
 DATA = REPO / "build" / "re" / "batch"
 CLI = REPO / "build" / "Release" / "pathfinder-cli.exe"
-MOD_SAVE = Path(os.environ.get("LOCALAPPDATA", "")) / "GeometryDash" / "geode" / "mods" / "camila314.pathfinder"
+MOD_SAVE = Path(os.environ.get("LOCALAPPDATA", "")) / "GeometryDash" / "geode" / "mods" / "tobi437a.pathfinder"
 SERVER = "https://www.boomlings.com/database/"
 # Seconds between server requests. 1 s gets "429 Too Many Requests" after ~100 requests; every 429
 # makes the gap longer for the rest of the run. The servers ban IPs that keep hammering them.

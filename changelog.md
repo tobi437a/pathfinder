@@ -1,6 +1,6 @@
 # v1.0.0
 
-First release of the fork (camila314's last release was beta 24, below).
+First release of the fork.
 
 - The simulator matches real GD frame for frame on 453 tested levels from 1.8
 - Dual mode

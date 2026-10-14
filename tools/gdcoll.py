@@ -18,7 +18,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 DATA = REPO / "build" / "re" / "batch"
-SAVE = Path(os.environ["LOCALAPPDATA"]) / "GeometryDash" / "geode" / "mods" / "camila314.pathfinder"
+SAVE = Path(os.environ["LOCALAPPDATA"]) / "GeometryDash" / "geode" / "mods" / "tobi437a.pathfinder"
 
 
 def main():
