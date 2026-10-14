@@ -160,6 +160,13 @@ void Block::collideBlock(Player& p, bool bare) const {
 			p.onBlock = true;
 			if (!p.innerHitbox().intersects(*this) && prev.velocity <= 0 && oldBottom < prev.gravTop(*this)) {
 				p.pos.y = gdY(prev.grav(prev.gravTop(*this)) + prev.grav(p.size.y / 2));
+				// (and hitGround's rotation part: this step eases a cube to the ground or rolls a ball, the orb's spin
+				// starts after it, see the landing below)
+				if (p.clickedOrb && p.pendingSpin && (p.vehicle.type == VehicleType::Cube || p.vehicle.type == VehicleType::Ball)) {
+					p.hitGroundRotation();
+					p.onGround2 = false;
+					p.orbFromGround = true;
+				}
 				// (X-snap in the gravity it landed in)
 				if (!bare) {
 					p.upsideDown = prev.upsideDown;
