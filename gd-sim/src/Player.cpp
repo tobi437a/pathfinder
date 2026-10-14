@@ -516,7 +516,10 @@ void Player::flipPartner(bool turned) {
 	// A ball the sim jumped at the end of its frame, this frame, jumps in GD's next updateJump, after this flip, which
 	// clears m_isOnGround first: GD never makes that jump, and the flip sees the gravity from before it (see
 	// Level::repelBalls)
-	bool jumpUndone = o.frame == frame && turned && o.ballJumped;
+	// (likewise one with the button held the other player hasn't stepped for yet: GD makes it in that player's
+	// updateJump, after this flip. A fresh press is GD's pushButton, before it, see ballJumpVelocity)
+	bool heldPending = (o.frame != frame || !turned) && o.ballJumped && !(o.button && !o.prevPlayer().button);
+	bool jumpUndone = o.ballJumped && ((o.frame == frame && turned) || heldPending);
 	if ((jumpUndone ? o.collisionUpsideDown : o.upsideDown) != upsideDown)
 		return;
 	if (jumpUndone) {

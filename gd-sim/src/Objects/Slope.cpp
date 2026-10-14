@@ -172,11 +172,11 @@ void Slope::collide(Player& p) const {
 	GDRect S = GDRect::of(*this), P = GDRect::of(p);
 	if (preCollide(p, S, P)) {
 		if (slopeDebug)
-			printf("SlopeDbg %d id %d at %.1f %.1f pre-skip S %.3f %.3f %.3f %.3f P %.3f %.3f %.3f %.3f int %d\n", p.frame, id, pos.x, pos.y, S.x, S.y, S.w, S.h, P.x, P.y, P.w, P.h, (int)S.intersects(P));
+			printf("SlopeDbg %d p%d id %d at %.1f %.1f pre-skip S %.3f %.3f %.3f %.3f P %.3f %.3f %.3f %.3f int %d\n", p.frame, p.isP2 ? 2 : 1, id, pos.x, pos.y, S.x, S.y, S.w, S.h, P.x, P.y, P.w, P.h, (int)S.intersects(P));
 		return;
 	}
 	if (slopeDebug)
-		printf("SlopeDbg %d id %d at %.1f %.1f enter\n", p.frame, id, pos.x, pos.y);
+		printf("SlopeDbg %d p%d id %d at %.1f %.1f enter\n", p.frame, p.isP2 ? 2 : 1, id, pos.x, pos.y);
 
 	auto& st = p.slope;
 	bool up = p.upsideDown;
@@ -274,7 +274,7 @@ void Slope::collide(Player& p) const {
 		clampDown = !held && fly && down;
 	}
 	if (slopeDebug)
-		printf("SlopeDbg %d id %d at %.1f %.1f hazard %d dir %d target %.4f py %.4f hit %d head %d tol %.3f was %d on %d\n", p.frame, id, pos.x, pos.y, hazard, direction, target, py, hit, head, tol, st.was, st.on);
+		printf("SlopeDbg %d p%d id %d at %.1f %.1f hazard %d dir %d target %.4f py %.4f hit %d head %d tol %.3f was %d on %d\n", p.frame, p.isP2 ? 2 : 1, id, pos.x, pos.y, hazard, direction, target, py, hit, head, tol, st.was, st.on);
 	if (!hit)
 		return;
 
