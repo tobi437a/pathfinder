@@ -1,8 +1,8 @@
 # Pathfinder
 
-A Geode mod for Geometry Dash 2.2081 that beats levels automatically. A physics simulator of GD
+A Geode mod for Geometry Dash that beats levels automatically. A physics simulator of GD
 (`gd-sim/`) runs the level thousands of times faster than the game, the pathfinder searches it for
-inputs that reach the end, and the result is exported as a `.gdr2` macro. Pathfinder does not play
+inputs that reach the end, and the result is exported as a macro. Pathfinder does not play
 macros itself: you need a bot that can (e.g. Eclipse).
 
 ## Credits
@@ -14,15 +14,12 @@ Buy iCreate Pro to support camila: https://icreate.pro/
 
 ## How to use
 
-1. Open the level you want to beat, either one of your own levels or an online level.
+1. Open the level you want to beat.
 2. Click the blue Pathfinder button to start the pathfinder.
-3. Export the macro into the macro folder of the bot you are using.
+3. Export the macro.
 4. Import the macro in your bot and play it back.
 
 ## What is supported
-
-Tested on 453 rated levels last updated in 1.8: the simulator matches real GD frame for frame on
-all of them, and the pathfinder beats 433 (the rest are levels its search can't solve yet).
 
 Supported:
 - Cube, ship, ball, UFO and wave
@@ -43,6 +40,4 @@ Not supported yet:
 ## Building
 
 Needs the [Geode SDK](https://geode-sdk.org). A normal build (`cmake -B build` then
-`cmake --build build`) produces just the mod. The development tools used to check the simulator
-against GD (`tools/`, `src/debug.cpp`, `src/verify.cpp`, `gd-sim/test/`) are only built with
-`-DPATHFINDER_DEV_TOOLS=ON`.
+`cmake --build build`) produces just the mod.

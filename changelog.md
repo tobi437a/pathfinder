@@ -1,3 +1,12 @@
+# v1.0.0
+
+First release of the fork (camila314's last release was beta 24, below).
+
+- The simulator matches real GD frame for frame on 453 tested levels from 1.8
+- Dual mode
+- Upside-down slopes, plus many slope, ball, UFO and wave fixes
+- Faster pathfinding that steers away from paths it already got stuck on
+
 # beta 24
 
 - Red Orb & Red Pad
