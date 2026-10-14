@@ -245,7 +245,9 @@ python tools\gdtools.py annotate build\re\out.c param_1=PlayerObject param_3=Gam
 - Before finishing, if the sim changed, rebuild Debug (`tools\build.ps1`) so the user can test the
   fix in the game straight away (after restarting GD).
 - Every time you fix something, commit as the very last step (one commit per fix, after the
-  Debug rebuild). Don't push unless asked.
+  Debug rebuild).
+- Never push unless the user explicitly says to (the repo is public); an earlier "push" doesn't
+  carry over to later commits.
 
 ## Machine
 
